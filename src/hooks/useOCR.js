@@ -149,11 +149,21 @@ function isTileLabelLine(line) {
   return TILE_LABEL.test(l)
 }
 
+// Pull the participant NAME TOKENS out of a tile label ("Winters Alvarez, Jamie
+// Lee (AC-NYC, ACME)" → Winters, Alvarez, Jamie, Lee). The list is fed
+// to the prompts and the verify pass so a mishearing of a participant's name can
+// never survive as a report/table/tool name.
+function tileNameTokens(line) {
+  const namePart = (line || "").replace(/\([^)]*\)/g, "") // drop the (ORG, CODE) part
+  return (namePart.match(/[A-Z][a-z]{2,}/g) || []).filter((w) =>
+    !/^(The|And|For|With|From|New|Open|View)$/.test(w))
+}
+
 // Rebuild OCR text keeping only CONFIDENT words, preserving line structure. If a
 // frame is mostly low-confidence (garbled, unreadable screen), drop it entirely so
 // the model never tries to document noise like "EERNGRIEES". Defensive: falls back
 // to the raw text if the structured output isn't available.
-function cleanOCR(data, minConf = 55) {
+function cleanOCR(data, minConf = 55, nameSink = null) {
   try {
     const blocks = data?.blocks
     if (Array.isArray(blocks) && blocks.length) {
@@ -167,7 +177,13 @@ function cleanOCR(data, minConf = 55) {
         if (good.length) lines.push(good.map((w) => w.text.trim()).join(" "))
       }
       if (total && kept < total * 0.35) return "" // mostly garbage → drop this frame
-      const out = lines.filter((l) => !isTileLabelLine(l)).join("\n").trim()
+      const content = []
+      for (const l of lines) {
+        if (isTileLabelLine(l)) {
+          if (nameSink) for (const n of tileNameTokens(l)) nameSink.add(n)
+        } else content.push(l)
+      }
+      const out = content.join("\n").trim()
       if (out) return out
     }
     if (Array.isArray(data?.words) && data.words.length) {
@@ -191,6 +207,7 @@ export default function useOCR() {
 
     const { keyframes, sceneCuts } = await selectKeyframes(frames)
     const frameTexts = []
+    const nameCounts = new Map() // participant name → number of frames it appeared on
     let combined = transcriptText + "\n"
 
     for (let i = 0; i < keyframes.length; i++) {
@@ -199,7 +216,9 @@ export default function useOCR() {
         // Request word/line confidence so we can drop garbled, low-confidence OCR
         // (e.g. unreadable enterprise-UI text) instead of feeding it to the model.
         const { data } = await worker.recognize(keyframes[i].imageData, {}, { text: true, blocks: true })
-        const text = cleanOCR(data).replace(/\s+\n/g, "\n").trim()
+        const frameNames = new Set()
+        const text = cleanOCR(data, 55, frameNames).replace(/\s+\n/g, "\n").trim()
+        for (const n of frameNames) nameCounts.set(n, (nameCounts.get(n) || 0) + 1)
         if (text) {
           frameTexts.push({ timestamp: keyframes[i].timestamp, text })
           combined += text + "\n"
@@ -210,7 +229,11 @@ export default function useOCR() {
     }
 
     await worker.terminate()
-    return { frameTexts, tools: detectTools(combined), primaryApp: detectPrimaryApp(combined), sceneCuts }
+    // Only names seen on SEVERAL frames count as participants — a one-off OCR
+    // fluke of real screen content must not land on the blocklist. Webcam tile
+    // labels render on every frame, so real participants clear this bar easily.
+    const participants = [...nameCounts.entries()].filter(([, c]) => c >= 2).map(([n]) => n)
+    return { frameTexts, tools: detectTools(combined), primaryApp: detectPrimaryApp(combined), sceneCuts, participants }
   }, [])
 
   return { runOCR, detectTools }

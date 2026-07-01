@@ -154,7 +154,10 @@ function retrieveChunks(question, chunks, k = 6) {
     .map((x) => x.c)
 }
 
-// Drop near-duplicate questions (high significant-word overlap).
+// Drop near-duplicate questions (high significant-word overlap). Threshold is
+// deliberately loose: two questions about the same feature from different
+// angles ("why this filter?" vs "which table type?") are BOTH worth keeping — a
+// stricter cut was leaving documents with one lonely FAQ.
 function dedupeQuestions(qs) {
   const kept = [], sets = []
   for (const q of qs) {
@@ -164,7 +167,7 @@ function dedupeQuestions(qs) {
     for (const prev of sets) {
       const inter = [...s].filter((w) => prev.has(w)).length
       const uni = new Set([...s, ...prev]).size
-      if (uni && inter / uni > 0.55) { dup = true; break }
+      if (uni && inter / uni > 0.75) { dup = true; break }
     }
     if (!dup) { kept.push(q); sets.push(s) }
   }

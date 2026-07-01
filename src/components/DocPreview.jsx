@@ -233,6 +233,11 @@ export default function DocPreview({ transcriptChunks, annotatedDocs, onSeek, on
                 )}
                 <button onClick={() => onSeek?.(doc.timestamp, i)} title="Jump to this moment in the video"
                   className="block w-full text-center text-emerald-400 hover:text-emerald-300 font-mono text-xs mt-1 transition-colors">{doc.label}</button>
+                {doc.zoomFrame && (
+                  <button onClick={() => setLightbox({ src: doc.zoomFrame, label: `Step ${i + 1} · where it happened` })}
+                    title="Zoomed view of exactly where the action happened"
+                    className="block w-full text-center text-[10px] text-amber-300/80 hover:text-amber-200 mt-0.5 transition-colors">🔍 zoom</button>
+                )}
               </div>
 
               {/* Content */}

@@ -3,8 +3,10 @@ import {
   PROCEDURE_PROMPT, VISION_ADDENDUM, buildContextPrompt, parseProcedureStep, isMeetingNoise,
   IDENTIFY_APP_PROMPT, parseAppName, appContextPrefix, isLogisticsStep,
   STEP_JSON_SCHEMA, JSON_ADDENDUM, cleanTranscriptText, hasActionWords, RECALL_ADDENDUM,
+  SEGMENT_PROMPT, SEGMENT_SCHEMA,
 } from "../lib/skillPrompt"
 import { callOllama, callWebLLM, callLocalEngine, WEBLLM_NO_VISION } from "../lib/llm"
+import { smartCrop } from "../lib/smartCrop"
 import { ocrNear } from "./useOCR"
 
 // ── Screen-share start detection ──
@@ -44,6 +46,69 @@ function ocrSimilarity(a, b) {
 }
 const SCENE_SIM_THRESHOLD = 0.35 // below this overlap the screen "changed"
 const SCENE_MIN_GAP = 12         // s — a fast transition burst is ONE change
+
+// ── Speech activity boundaries — the EARS of segmentation ──
+// One LLM call over the timestamped transcript proposes where new activities
+// start. Unioned with the pixel cuts (the eyes): this splits same-screen work
+// pixels can't see ("set the row height… now add the dimension" in one dialog).
+// Best-effort: any failure returns [] and segmentation falls back to pixels.
+async function speechBoundaries(chunks, maxT, aiMode, model, onStatus) {
+  const clean = (chunks || []).filter((c) => c.text?.trim())
+  if (clean.length < 8) return []
+  let lines = clean.map((c) => `[${formatTS(c.timestamp?.[0] ?? 0)}] ${c.text.trim()}`)
+  if (lines.length > 120) { // cap the prompt on long recordings, sampled evenly
+    const step = lines.length / 120
+    lines = Array.from({ length: 120 }, (_, i) => lines[Math.floor(i * step)])
+  }
+  const msg = lines.join("\n").slice(0, 7000)
+  try {
+    onStatus?.("Listening for activity changes in the narration…")
+    const opts = { schema: SEGMENT_SCHEMA, maxTokens: 400, temperature: 0.1 }
+    const raw = aiMode === "ollama"
+      ? await callOllama(msg, SEGMENT_PROMPT, model, opts)
+      : aiMode === "local"
+      ? await callLocalEngine(msg, SEGMENT_PROMPT, null, opts)
+      : await callWebLLM(msg, SEGMENT_PROMPT, null, { ...opts, model })
+    const m = raw.match(/\{[\s\S]*\}/)
+    if (!m) return []
+    const o = JSON.parse(m[0])
+    const bs = (Array.isArray(o.boundaries) ? o.boundaries : [])
+      .filter((n) => typeof n === "number" && isFinite(n) && n > 5 && n < maxT - 5)
+      .sort((x, y) => x - y)
+      .slice(0, 30)
+    const spaced = []
+    for (const b of bs) if (!spaced.length || b - spaced[spaced.length - 1] >= SCENE_MIN_GAP) spaced.push(b)
+    return spaced
+  } catch { return [] }
+}
+
+// Does text contain something that looks like a participant's name — allowing
+// one letter of ASR drift ("Winters" heard as "Wintors")? Levenshtein ≤ 1 on tokens.
+function editDistanceLe1(a, b) {
+  if (a === b) return true
+  const la = a.length, lb = b.length
+  if (Math.abs(la - lb) > 1) return false
+  let i = 0, j = 0, edits = 0
+  while (i < la && j < lb) {
+    if (a[i] === b[j]) { i++; j++; continue }
+    if (++edits > 1) return false
+    if (la > lb) i++
+    else if (lb > la) j++
+    else { i++; j++ }
+  }
+  return edits + (la - i) + (lb - j) <= 1
+}
+function resemblesParticipant(text, participants) {
+  if (!participants?.length || !text) return false
+  const words = text.match(/[A-Za-z]{4,}/g) || []
+  for (const w of words) {
+    const lw = w.toLowerCase()
+    for (const p of participants) {
+      if (editDistanceLe1(lw, p.toLowerCase())) return true
+    }
+  }
+  return false
+}
 function sceneBoundaries(ocrFrameTexts, t0, maxT) {
   const fr = (ocrFrameTexts || []).filter(
     (f) => f.timestamp > t0 + 5 && f.timestamp < maxT - 5 && (f.text || "").trim(),
@@ -67,7 +132,7 @@ function sceneBoundaries(ocrFrameTexts, t0, maxT) {
 //   3. Fixed time slicing — last resort.
 // Long segments split (dense work → separate steps), tiny ones merged.
 const MIN_WINDOW = 25, MAX_WINDOW = 70
-function buildSegments(ocrFrameTexts, maxT, shareStart, sceneCuts = []) {
+function buildSegments(ocrFrameTexts, maxT, shareStart, sceneCuts = [], speechCuts = []) {
   const t0 = shareStart ?? 0
   const span = maxT - t0
   if (span <= MIN_WINDOW) return span > 1 ? [[t0, maxT]] : []
@@ -77,7 +142,15 @@ function buildSegments(ocrFrameTexts, maxT, shareStart, sceneCuts = []) {
     if (c <= t0 + 5 || c >= maxT - 5) continue
     if (!pixel.length || c - pixel[pixel.length - 1] >= SCENE_MIN_GAP) pixel.push(c)
   }
-  const cuts = pixel.length >= 3 ? pixel : sceneBoundaries(ocrFrameTexts, t0, maxT)
+  // UNION of eyes and ears: add a speech boundary only where no pixel cut is
+  // already nearby — the pixel cut wins ties because it aligns screenshots best.
+  const union = [...pixel]
+  for (const c of speechCuts || []) {
+    if (c <= t0 + 5 || c >= maxT - 5) continue
+    if (union.every((u) => Math.abs(u - c) >= SCENE_MIN_GAP)) union.push(c)
+  }
+  union.sort((a, b) => a - b)
+  const cuts = union.length >= 3 ? union : sceneBoundaries(ocrFrameTexts, t0, maxT)
   let edges
   if (cuts?.length) {
     edges = [t0, ...cuts, maxT]
@@ -163,10 +236,11 @@ function nearestFrame(frames, timestamp) {
 export default function useAnnotator() {
   // ocrFrameTexts: [{timestamp, text}] from useOCR — gives the model real on-screen UI text.
   // onDraft(docsSoFar) fires after every completed window so the UI can show
-  // steps appearing live instead of a bare progress bar.
+  // steps appearing live instead of a bare progress bar. `participants` are
+  // names harvested from webcam tiles — blocked from becoming artifact names.
   const annotate = useCallback(async (
     chunks, frames, aiMode, onProgress, onStatus, sections, ollamaModel, ocrFrameTexts = [],
-    shouldCancel = () => false, useVision = false, sceneCuts = [], onDraft = null,
+    shouldCancel = () => false, useVision = false, sceneCuts = [], onDraft = null, participants = [],
   ) => {
     // Build windows across the WHOLE video timeline (not just where someone spoke),
     // so silent stretches are still documented from the on-screen (OCR) text.
@@ -186,8 +260,10 @@ export default function useAnnotator() {
       const anyOcr = (ocrFrameTexts || []).find((f) => (f.text || "").trim().length >= 20)
       if (anyOcr && anyOcr.timestamp < shareStart) shareStart = anyOcr.timestamp
     }
-    // 2) Segment on SCREEN CHANGES (fixed slicing only as fallback)…
-    let segments = buildSegments(ocrFrameTexts, maxT, shareStart, sceneCuts)
+    // 2) Segment on SCREEN CHANGES + SPEECH ACTIVITY CHANGES — eyes and ears
+    // together, like a person taking notes (fixed slicing only as last resort).
+    const speechCuts = await speechBoundaries(chunks, maxT, aiMode, ollamaModel, onStatus)
+    let segments = buildSegments(ocrFrameTexts, maxT, shareStart, sceneCuts, speechCuts)
     // 3) …bounded by what this machine can chew through in reasonable time.
     // The cap SCALES with video length (one window per ~45s of recording) so a
     // 60-minute video gets proportionally more steps than a 30-minute one —
@@ -227,29 +303,41 @@ export default function useAnnotator() {
     // instead of re-attempting vision on every window.
     let visionLive = useVision
 
-    // Identify the application ONCE from the actual screen — the richest OCR frame
-    // plus its screenshot — so every step is anchored to the real software. Fully
-    // model-driven (works for any app, nothing hardcoded). Failure → stays generic.
+    // Identify the application from the actual screen — model-driven, works for
+    // any app, nothing hardcoded. Reusable: it runs once up front, and AGAIN
+    // whenever the on-screen vocabulary shifts hard mid-video (a second app or
+    // window opened) so later steps are grounded in the app actually in use.
+    const identifyApp = async (ocrText, frame) => {
+      const idMsg = `On-screen text (OCR):\n${(ocrText || "").slice(0, 1500)}`
+      const withImg = visionLive && !!frame?.imageData
+      const idImages = withImg ? [frame.imageData] : undefined
+      const idCall = (imgs) => aiMode === "ollama"
+        ? callOllama(idMsg, IDENTIFY_APP_PROMPT, ollamaModel, { images: imgs })
+        : aiMode === "local"
+        ? callLocalEngine(idMsg, IDENTIFY_APP_PROMPT, null, { images: imgs })
+        : callWebLLM(idMsg, IDENTIFY_APP_PROMPT, onStatus, { model: ollamaModel, images: imgs })
+      try {
+        let idRaw = null
+        try { idRaw = await idCall(idImages) }
+        catch { idRaw = await idCall(undefined) } // vision unavailable → identify from text
+        return parseAppName(idRaw)
+      } catch { return "" }
+    }
+
     let appName = ""
     try {
       const rich = [...(ocrFrameTexts || [])].sort((a, b) => (b.text || "").length - (a.text || "").length)[0]
       if (rich && (rich.text || "").trim().length > 10) {
-        const idFrame = nearestFrame(frames, rich.timestamp)
-        const idMsg = `On-screen text (OCR):\n${(rich.text || "").slice(0, 1500)}`
-        const withImg = visionLive && !!idFrame?.imageData
-        const idImages = withImg ? [idFrame.imageData] : undefined
-        const idCall = (imgs) => aiMode === "ollama"
-          ? callOllama(idMsg, IDENTIFY_APP_PROMPT, ollamaModel, { images: imgs })
-          : aiMode === "local"
-          ? callLocalEngine(idMsg, IDENTIFY_APP_PROMPT, null, { images: imgs })
-          : callWebLLM(idMsg, IDENTIFY_APP_PROMPT, onStatus, { model: ollamaModel, images: imgs })
-        let idRaw = null
-        try { idRaw = await idCall(idImages) }
-        catch { idRaw = await idCall(undefined) } // vision unavailable → identify from text
-        appName = parseAppName(idRaw)
+        appName = await identifyApp(rich.text, nearestFrame(frames, rich.timestamp))
       }
     } catch { /* leave appName empty — prompts just stay generic */ }
-    const sysPrefix = appContextPrefix(appName)
+
+    // Participant names from the webcam tiles: hard context so a mishearing of a
+    // person's name can never become a report/table/tool name in a step.
+    const peopleLine = participants?.length
+      ? `PEOPLE ON THE CALL: ${participants.join(", ")}. These are participants' names shown on webcam tiles — NEVER use them, or anything resembling them, as an application, report, table, view, field, or data name.\n\n`
+      : ""
+    let sysPrefix = peopleLine + appContextPrefix(appName)
 
     // Annotate one window either WITH the screenshot (vision) or text-only (OCR).
     const runWindow = (win, frame, label, prev, next, withVision, extra = "") => {
@@ -283,6 +371,19 @@ export default function useAnnotator() {
       // that shows actual work is always sent to the model.
       const ocrLen = (win.ocr || "").replace(/\s+/g, " ").trim().length
       if (isMeetingNoise(win.text) && ocrLen < 40) continue
+
+      // Multi-window awareness: a HARD vocabulary turnover vs the previous
+      // window's screen text means a different app/window is now in front
+      // (e.g. Report Builder opened beside the main report). Re-identify the app
+      // from THIS window's evidence so the grounding prefix follows the user.
+      const prevOcr = windows[i - 1]?.ocr || ""
+      if (win.ocr && prevOcr && ocrLen >= 80 && ocrSimilarity(prevOcr, win.ocr) < 0.15) {
+        const newApp = await identifyApp(win.ocr, frame)
+        if (newApp && newApp !== appName) {
+          appName = newApp
+          sysPrefix = peopleLine + appContextPrefix(appName)
+        }
+      }
 
       let raw = null
       try {
@@ -323,11 +424,26 @@ export default function useAnnotator() {
       }
       if (isLogisticsStep(step)) continue // meeting logistics / webcam-name tile → not a procedure step
 
-      // Confidence flag for the reviewer: a step the model first skipped, or one
+      // Confidence flag for the reviewer: a step the model first skipped, one
       // written from thin evidence (little speech AND little readable screen
-      // text), deserves a human look. Shown as a subtle marker in the UI.
-      const lowConfidence = fromRetry
+      // text), or one whose title looks like a participant's name drifted into
+      // an artifact name. Shown as a subtle marker in the UI.
+      const nameSuspect = resemblesParticipant(step.title, participants)
+        || (step.steps || []).some((s) => resemblesParticipant(s, participants))
+      const lowConfidence = fromRetry || nameSuspect
         || ((win.text || "").length < 40 && ocrLen < 40 && !(visionLive && frame?.imageData))
+
+      // Smart screenshot: diff the frame just BEFORE this window against the
+      // evidence frame → zoomed crop with a highlight box on the changed spot.
+      // Null when the whole screen changed or nothing localised happened.
+      let zoomFrame = null
+      try {
+        const beforeFrame = nearestFrame(frames, Math.max(0, win.a - 3))
+        if (frame?.imageData && beforeFrame?.imageData && beforeFrame.timestamp < (frame.timestamp ?? win.center)) {
+          const crop = await smartCrop(beforeFrame.imageData, frame.imageData)
+          zoomFrame = crop?.dataUrl ?? null
+        }
+      } catch { /* zoom is a bonus, never a blocker */ }
 
       results.push({
         timestamp: win.a,
@@ -337,6 +453,7 @@ export default function useAnnotator() {
         annotation: stepToText(step), // plain text for doc chat / RAG
         text: win.text || step.title || "",
         frame: frame?.imageData ?? null,
+        zoomFrame,                  // zoomed crop of WHERE the action happened (or null)
         // The moment the evidence screenshot was taken — step clips/GIFs center
         // HERE (where the action is visible), not on the window's start edge.
         frameTimestamp: frame?.timestamp ?? win.center,

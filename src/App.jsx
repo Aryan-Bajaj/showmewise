@@ -60,6 +60,7 @@ export default function App() {
   const [ocrFrameTexts, setOcrFrameTexts] = useState([])
   const [toolsUsed, setToolsUsed] = useState([])
   const [sceneCuts, setSceneCuts] = useState([]) // pixel-level screen-change timestamps (step boundaries)
+  const [participants, setParticipants] = useState([]) // names from webcam tiles — blocked from becoming artifact names
   const [docTitle, setDocTitle] = useState("")
   const [companyName, setCompanyName] = useState("")
   const [insights, setInsights] = useState(null)
@@ -159,10 +160,11 @@ export default function App() {
       // OCR: read on-screen text from frames → captures exact UI labels + detects tools used
       updateStep('ocr', { status: 'active', detail: 'Reading on-screen text...', startedAt: Date.now() })
       const transcriptText = chunks.map(c => c.text).join(' ')
-      const { frameTexts, tools, sceneCuts: cuts } = await runOCR(extracted, transcriptText,
+      const { frameTexts, tools, sceneCuts: cuts, participants: people } = await runOCR(extracted, transcriptText,
         (i, total) => updateStep('ocr', { step: i + 1, total }))
       setOcrFrameTexts(frameTexts)
       setSceneCuts(cuts || [])
+      setParticipants(people || [])
       setToolsUsed(tools)
       updateStep('ocr', { status: 'done', detail: tools.length ? `Tools: ${tools.join(', ')}` : `${frameTexts.length} frames read`, endedAt: Date.now() })
 
@@ -254,6 +256,7 @@ export default function App() {
         // Live drafts: steps appear in the panel as they are written, so the
         // user watches the document grow instead of staring at a progress bar.
         (draft) => setAnnotatedDocs(draft),
+        participants,
       )
       if (cancelRef.current) {
         setAnnotatedDocs(docs)
@@ -288,6 +291,7 @@ export default function App() {
             (msg) => updateStep('verify', { detail: msg }),
             (i, total) => updateStep('verify', { step: i, total }),
             () => cancelRef.current,
+            participants,
           )
         } catch { /* keep drafts */ }
         const dropped = before - finalDocs.length

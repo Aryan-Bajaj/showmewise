@@ -94,6 +94,26 @@ export const STEP_JSON_SCHEMA = {
   required: ["screen", "skip", "title", "steps", "result", "note"],
 }
 
+// ── Speech (transcript) activity boundaries — the EARS of segmentation ──
+// One cheap LLM call over the whole timestamped transcript proposes where a NEW
+// distinct activity starts. These are HINTS, unioned with the pixel scene cuts
+// (the eyes); the min/max window rules keep over-splitting disciplined. This is
+// what splits "set the row height… and now add the dimension" into two steps
+// even when the screen barely changes between them.
+export const SEGMENT_SCHEMA = {
+  type: "object",
+  properties: { boundaries: { type: "array", items: { type: "number" } } },
+  required: ["boundaries"],
+}
+
+export const SEGMENT_PROMPT = `You are given the timestamped transcript of a screen-recording work session. Find where a NEW distinct activity starts — the speaker moves on to a different task, screen, or configuration topic ("okay, now let's…", "next I want to…", a new subject after a pause).
+
+Reply with a SINGLE JSON object: {"boundaries": [<start time in SECONDS of each new activity>]}
+- Convert the [mm:ss] marks to seconds (for example [05:20] is 320).
+- Only real activity changes. Casual chatter, small talk, or continuing the same task is NOT a boundary.
+- Typical: one boundary every 1 to 3 minutes of active work. Never more than 30 boundaries.
+- If the whole transcript is one continuous activity, reply {"boundaries": []}.`
+
 // Appended LAST to the system prompt when constrained decoding is active, so the
 // model knows the output contract matches the grammar the sampler enforces.
 export const JSON_ADDENDUM = `
@@ -349,6 +369,7 @@ Correct the draft so EVERY claim is supported by the evidence:
 - CHECK EVERY NAME: for each window, view, tab, row, or query the draft names, find that exact name in the screenshot or OCR text. Not findable → replace it with the name that IS visible (read the window/page title) or a generic phrase. Small models often substitute a plausible module name ("Data Warehouse Query") for what the screen really shows ("Report Builder") — this is the #1 error to catch.
 - If the draft names software (e.g. "Excel", "Power BI", "Power Query") that the evidence does not actually show, remove that name or replace it with a generic phrase ("the application", "the report").
 - Remove any step that uses a person's name as a value/search term, or that invents a feature/dialog not in the evidence.
+- UNVERIFIABLE PROPER NAMES: if the draft names a specific report, table, view, or file ("Wintors Alvares Report") and that exact name is NOT findable in the evidence, do not keep it — replace it with the generic kind ("the report", "the data table"). A wrong proper name is worse than a generic one; transcription mishears names and the reader will search for something that does not exist.
 - Keep the wording concrete and followable, and keep the original order. Do NOT add new actions that are not in the evidence.
 
 Output the corrected step in EXACTLY this format:
@@ -367,8 +388,16 @@ If, after removing everything unsupported, no real followable action remains, ou
 SKIP`
 
 // Assemble the fact-checker's user message: the evidence first, then the draft.
-export function buildVerifyPrompt(draft, evidence) {
-  return `EVIDENCE (the ONLY things you may rely on):
+// `people` are participant names harvested from the webcam tiles — any of them
+// (or anything resembling them) appearing as an artifact name is a known error.
+export function buildVerifyPrompt(draft, evidence, people = []) {
+  const peopleBlock = people.length
+    ? `PEOPLE ON THE CALL (participants, NOT part of the software): ${people.join(", ")}.
+If the draft uses any of these names — or a close mishearing of one — as a report, table, view, file, or data name, that is an error: replace it with the generic kind.
+
+`
+    : ""
+  return `${peopleBlock}EVIDENCE (the ONLY things you may rely on):
 ${evidence}
 
 DRAFT STEP TO CHECK:

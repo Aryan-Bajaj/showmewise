@@ -124,6 +124,12 @@ export async function exportHTML(docs, videoName, allFrames, meta = {}) {
           ? buildStaticMedia(clipFrames[0], stepTitle, '')
           : `<div class="seg-no-frame"><span>${esc(stepTitle)}</span></div>`
 
+    // Smart screenshot: a zoomed crop with a highlight box on exactly where the
+    // action happened — shown under the clip so the reader knows WHERE to act.
+    const zoomHtml = doc.zoomFrame
+      ? `<figure class="seg-media" style="margin-top:8px"><img src="${doc.zoomFrame}" alt="Where it happened" style="width:100%;height:auto;display:block;max-height:300px;object-fit:contain;border-radius:8px;border:1px solid rgba(245,158,11,0.35)"><figcaption style="font-size:11px;color:var(--ink3);padding:4px 2px 0">Zoomed: where this step happens on screen</figcaption></figure>`
+      : ''
+
     return `
     <div class="seg-entry reveal" id="step-${i + 1}" style="transition-delay:0.05s">
       <div class="seg-step-header">
@@ -134,6 +140,7 @@ export async function exportHTML(docs, videoName, allFrames, meta = {}) {
       <div class="seg-body">
         <div class="seg-media-col">
           ${mediaHtml}
+          ${zoomHtml}
         </div>
         <div class="seg-content-col">
           <div class="ann-blocks">

@@ -47,7 +47,7 @@ function stepToDraft(step) {
 // evidence supports — dropping the step entirely if nothing real survives. This
 // is the strongest guard against invented apps / buttons / tools / values.
 // Best-effort and never throws: a per-step failure keeps the original step.
-export async function verifyProcedure(docs, aiMode, model, useVision, onStatus, onProgress, shouldCancel = () => false) {
+export async function verifyProcedure(docs, aiMode, model, useVision, onStatus, onProgress, shouldCancel = () => false, participants = []) {
   const list = docs || []
   const total = list.length
   const out = []
@@ -71,7 +71,7 @@ export async function verifyProcedure(docs, aiMode, model, useVision, onStatus, 
     if (!d.step) { out.push(d); continue }
 
     const evidence = buildContextPrompt(d.text, d.label, null, null, d.ocrText)
-    const userMsg = buildVerifyPrompt(stepToDraft(d.step), evidence)
+    const userMsg = buildVerifyPrompt(stepToDraft(d.step), evidence, participants)
     const wantImg = useImages && !!d.frame
 
     let raw = null
