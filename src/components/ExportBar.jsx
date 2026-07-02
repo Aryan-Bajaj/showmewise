@@ -17,7 +17,7 @@ function toExportDocs(annotatedDocs, transcriptChunks) {
   })
 }
 
-export default function ExportBar({ annotatedDocs, transcriptChunks, videoName, videoFile, docTitle, companyName, insights, toolsUsed, frames }) {
+export default function ExportBar({ annotatedDocs, transcriptChunks, videoName, videoFile, docTitle, companyName, insights, toolsUsed, frames, videoDuration }) {
   const [busy, setBusy] = useState(null)
   const [error, setError] = useState(null)
   const [gifMsg, setGifMsg] = useState(null)
@@ -45,7 +45,7 @@ export default function ExportBar({ annotatedDocs, transcriptChunks, videoName, 
         if (type !== "html" && mermaidSvg) flowImage = await svgToPngDataURL(mermaidSvg)
         setGifMsg(null)
       }
-      const meta = { title, company: companyName || "", insights: insights || null, tools: toolsUsed || [], flowImage, transcript: transcriptChunks || [] }
+      const meta = { title, company: companyName || "", insights: insights || null, tools: toolsUsed || [], flowImage, transcript: transcriptChunks || [], duration: videoDuration || 0 }
 
       if (type === "html") {
         // Build a short, sharp WebM clip per step — browser-only, base64-inlined.

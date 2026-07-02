@@ -63,6 +63,7 @@ export const VISION_ADDENDUM = `
 
 You are ALSO given a SCREENSHOT of this exact moment. Use BOTH the spoken transcript AND the screen together, like a person watching the recording:
 - Focus ONLY on the shared application window. IGNORE the small webcam / video-call tiles and the people's names listed beside them — they are NOT part of the procedure and must NEVER be used as data, values, names, or search terms in a step.
+- Meeting recordings BURN the current speaker's name into a corner of every frame as a caption like "Lastname, Firstname (ORG-UNIT, CODE)". That caption is a PERSON on the call, not screen content — NEVER read it as a file, report, dashboard, page, table, or view name.
 - Identify the application ONLY from what is actually visible (title bar, tab labels, the URL in the address bar, menu names). State its name only if you can read it. Do NOT assume it is Excel, Power BI, Word, or any specific product unless its name is on screen.
 - Name views/windows by READING their visible title. If the window header says "Report Builder" or the page heading says "Monthly Overview", use exactly that — never substitute a product or module name you know from elsewhere (e.g. do NOT call it "Data Warehouse" because the domain sounds like it).
 - The screenshot is evidence of EQUAL weight to the transcript. In a working session people mostly talk vaguely while doing concrete things — when the speech says little but the screen clearly shows an open dialog, menu, panel, or configuration in progress, document what the SCREEN shows and name the visible elements.
@@ -354,6 +355,96 @@ export function isLogisticsStep(step) {
   if (LOGISTICS_TITLE.test(t)) return true
   if (PERSON_STEP.test(t)) return true
   return false
+}
+
+// ── Participant-name leak guard ──
+// Teams burns the speaker's name into every frame (webcam tiles + a caption in
+// the corner). Small vision models keep reading it as an artifact name no matter
+// what the prompt says ("Winters Alvarez, Jamie Lee" → "Open Wintors Alvares
+// Page"). These helpers detect and DETERMINISTICALLY remove such leaks — with
+// one letter of OCR/ASR drift allowed ("Winters"→"Wintors", "Alvarez"→"Alvares").
+export function editDistanceLe1(a, b) {
+  if (a === b) return true
+  const la = a.length, lb = b.length
+  if (Math.abs(la - lb) > 1) return false
+  let i = 0, j = 0, edits = 0
+  while (i < la && j < lb) {
+    if (a[i] === b[j]) { i++; j++; continue }
+    if (++edits > 1) return false
+    if (la > lb) i++
+    else if (lb > la) j++
+    else { i++; j++ }
+  }
+  return edits + (la - i) + (lb - j) <= 1
+}
+// Exact token match works in any case; the one-letter FUZZY match only fires on
+// Capitalized words. Leaked names are proper nouns ("Wintors Alvares Page") —
+// without the caps rule, ordinary words collide ("winter view" ~ "Winters").
+function matchesParticipantWord(w, participants) {
+  const lw = w.toLowerCase()
+  const cap = /^[A-Z]/.test(w)
+  for (const p of participants) {
+    const lp = p.toLowerCase()
+    if (lw === lp) return true
+    if (cap && w.length >= 4 && editDistanceLe1(lw, lp)) return true
+  }
+  return false
+}
+export function resemblesParticipant(text, participants) {
+  if (!participants?.length || !text) return false
+  const words = text.match(/[A-Za-z]{3,}/g) || []
+  for (const w of words) if (matchesParticipantWord(w, participants)) return true
+  return false
+}
+
+// Strip participant-resembling words from one text, then tidy the debris
+// (doubled spaces, empty quotes, dangling "of/the/for", stray commas/dashes).
+// "Open the 'Winters Alvarez Jamie' dashboard" → "Open the dashboard".
+export function scrubParticipantText(text, participants) {
+  if (!text || !participants?.length) return text
+  let out = text.replace(/[A-Za-z]{3,}/g, (w) => (matchesParticipantWord(w, participants) ? "" : w))
+  out = out
+    .replace(/\(\s*[A-Z]{2,8}([\s,–-]+[A-Z]{2,8}){0,3}\s*\)/g, "") // Teams org-code parens "(AC-NYC, ACME)"
+    .replace(/\(\s*\)/g, "") // emptied parens
+    .replace(/\s*[-–—]\s*(?=["'‘’“”.,)]|$)/g, "") // dash left dangling before a quote/stop
+    .replace(/(^|\s)(["'‘“])\s+/g, "$1$2") // space stuck after an OPENING quote
+    .replace(/\s+(["'’”])(?=[\s.,)]|$)/g, "$1") // space stuck before a CLOSING quote
+    .replace(/["'‘’“”]{2}/g, "") // emptied quote pairs
+    .replace(/\s*,\s*(?=[.,)]|$)/g, "") // stray comma
+    .replace(/\s{2,}/g, " ")
+    .replace(/\s+([.,)])/g, "$1")
+    .replace(/\b(the|a|an|of|for|to|on|in)\s+(the|a|an)\b/gi, "$2")
+    .trim()
+  // A removed name often leaves a sentence hanging on filler ("Expand the row
+  // for", "The dashboard is titled.") — peel those from the end.
+  let prev
+  do {
+    prev = out
+    out = out.replace(/[\s]+(the|a|an|of|for|to|on|in|with|from|is|are|was|were|titled|named|called)[.!?]?$/i, "").trim()
+  } while (out !== prev)
+  return out
+}
+
+// Scrub a whole parsed step in place. Returns true if the step still carries
+// real content afterwards; false means it collapsed to nothing (caller drops it).
+export function scrubParticipantStep(step, participants) {
+  if (!step || !participants?.length) return true
+  if (resemblesParticipant(step.title, participants)) step.title = scrubParticipantText(step.title, participants)
+  if (Array.isArray(step.steps)) {
+    step.steps = step.steps
+      .map((s) => (resemblesParticipant(s, participants) ? scrubParticipantText(s, participants) : s))
+      .filter((s) => (s.match(/[A-Za-z]{3,}/g) || []).length >= 2) // an action needs at least a verb + object
+  }
+  if (step.result && resemblesParticipant(step.result, participants)) {
+    const r = scrubParticipantText(step.result, participants)
+    step.result = (r.match(/[A-Za-z]{3,}/g) || []).length >= 3 ? r : ""
+  }
+  if (step.note && resemblesParticipant(step.note, participants)) {
+    const n = scrubParticipantText(step.note, participants)
+    step.note = (n.match(/[A-Za-z]{3,}/g) || []).length >= 3 ? n : ""
+  }
+  const titleWords = (step.title?.match(/[A-Za-z]{3,}/g) || []).length
+  return titleWords >= 2 || (step.steps?.length ?? 0) > 0
 }
 
 // ── Self-verify pass ──

@@ -8,6 +8,7 @@ import { callOllama, callWebLLM, callLocalEngine, cleanLLMOutput, WEBLLM_NO_VISI
 import {
   CONSOLIDATE_TITLE_PROMPT, VERIFY_PROMPT, buildVerifyPrompt,
   buildContextPrompt, parseProcedureStep, STEP_JSON_SCHEMA, JSON_ADDENDUM,
+  isLogisticsStep, resemblesParticipant, scrubParticipantStep,
 } from "./skillPrompt"
 
 function callLLM(userMsg, systemPrompt, aiMode, model, onStatus, opts = {}) {
@@ -102,6 +103,32 @@ export async function verifyProcedure(docs, aiMode, model, useVision, onStatus, 
     out.push(d)
   }
   onProgress?.(total, total)
+  return out
+}
+
+// ── Final deterministic sanitize ──
+// The annotator filters logistics steps and participant-name leaks at draft
+// time, but the verify and consolidate passes above REWRITE titles with an LLM
+// afterwards — and can re-introduce exactly what was filtered ("View Video Call"
+// → "Initiate Video Call View", a participant's name back into a title). This
+// pass runs AFTER every LLM rewrite, so nothing poisoned reaches the document
+// or the insights built from it. Pure string work: no model, never throws.
+export function sanitizeDocs(docs, participants = []) {
+  const out = []
+  for (const d of docs || []) {
+    if (!d?.step) { out.push(d); continue }
+    if (isLogisticsStep(d.step)) continue
+    const leaked = resemblesParticipant(d.step.title, participants)
+      || (d.step.steps || []).some((s) => resemblesParticipant(s, participants))
+      || resemblesParticipant(d.step.result, participants)
+      || resemblesParticipant(d.step.note, participants)
+    if (leaked) {
+      if (!scrubParticipantStep(d.step, participants)) continue // collapsed → drop
+      d.lowConfidence = true
+      d.annotation = stepToText(d.step)
+    }
+    out.push(d)
+  }
   return out
 }
 

@@ -96,8 +96,10 @@ export async function exportHTML(docs, videoName, allFrames, meta = {}) {
   const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
   const annotated = docs.filter(d => d.annotation).length
   const total = docs.length
-  const lastTs = docs[docs.length - 1]?.endTimestamp ?? docs[docs.length - 1]?.timestamp ?? 0
-  const durStr = `${Math.floor(lastTs / 60)}m ${Math.floor(lastTs % 60)}s`
+  // Real recording length from the video metadata; the last step's end is only
+  // a fallback (steps rarely run to the final second, so it under-reports).
+  const durSecs = meta.duration || docs[docs.length - 1]?.endTimestamp || docs[docs.length - 1]?.timestamp || 0
+  const durStr = `${Math.floor(durSecs / 60)}m ${Math.floor(durSecs % 60)}s`
 
   const gifs = meta.gifs instanceof Map ? meta.gifs : new Map()
   const clips = meta.clips instanceof Map ? meta.clips : new Map()

@@ -18,7 +18,7 @@ import useVantaHalo from "./hooks/useVantaHalo"
 import { webLLMLabel, isWebLLMVision, ollamaModelHasVision, DEFAULT_WEBLLM_MODEL } from "./lib/llm"
 import { estimateRunMinutes } from "./lib/estimate"
 import { generateInsights } from "./lib/insights"
-import { consolidateProcedure, verifyProcedure } from "./lib/refine"
+import { consolidateProcedure, verifyProcedure, sanitizeDocs } from "./lib/refine"
 import { scrubSensitive } from "./lib/skillPrompt"
 import { fixTranscriptChunks } from "./lib/transcriptFixups"
 
@@ -312,6 +312,12 @@ export default function App() {
         updateStep('consolidate', { status: 'done', detail: 'Skipped', endedAt: Date.now() })
       }
 
+      // Last line of defense, AFTER every LLM rewrite above: the verify and
+      // consolidate passes can re-introduce meeting-logistics titles or a
+      // participant's name as an artifact name. Deterministic scrub so nothing
+      // poisoned reaches the document or the insights built from it.
+      finalDocs = sanitizeDocs(finalDocs, participants)
+
       setAnnotatedDocs(finalDocs)
 
       // Insights pass: facilitator summary, FAQ (incl. questions asked in the
@@ -518,6 +524,7 @@ export default function App() {
               insights={insights}
               toolsUsed={toolsUsed}
               frames={frames}
+              videoDuration={videoDuration}
             />
 
             {(annotatedDocs.length > 0 || transcriptChunks.length > 0) && (

@@ -2,6 +2,7 @@ import { useCallback } from "react"
 import {
   PROCEDURE_PROMPT, VISION_ADDENDUM, buildContextPrompt, parseProcedureStep, isMeetingNoise,
   IDENTIFY_APP_PROMPT, parseAppName, appContextPrefix, isLogisticsStep,
+  resemblesParticipant, scrubParticipantStep,
   STEP_JSON_SCHEMA, JSON_ADDENDUM, cleanTranscriptText, hasActionWords, RECALL_ADDENDUM,
   SEGMENT_PROMPT, SEGMENT_SCHEMA,
 } from "../lib/skillPrompt"
@@ -82,33 +83,6 @@ async function speechBoundaries(chunks, maxT, aiMode, model, onStatus) {
   } catch { return [] }
 }
 
-// Does text contain something that looks like a participant's name — allowing
-// one letter of ASR drift ("Winters" heard as "Wintors")? Levenshtein ≤ 1 on tokens.
-function editDistanceLe1(a, b) {
-  if (a === b) return true
-  const la = a.length, lb = b.length
-  if (Math.abs(la - lb) > 1) return false
-  let i = 0, j = 0, edits = 0
-  while (i < la && j < lb) {
-    if (a[i] === b[j]) { i++; j++; continue }
-    if (++edits > 1) return false
-    if (la > lb) i++
-    else if (lb > la) j++
-    else { i++; j++ }
-  }
-  return edits + (la - i) + (lb - j) <= 1
-}
-function resemblesParticipant(text, participants) {
-  if (!participants?.length || !text) return false
-  const words = text.match(/[A-Za-z]{4,}/g) || []
-  for (const w of words) {
-    const lw = w.toLowerCase()
-    for (const p of participants) {
-      if (editDistanceLe1(lw, p.toLowerCase())) return true
-    }
-  }
-  return false
-}
 function sceneBoundaries(ocrFrameTexts, t0, maxT) {
   const fr = (ocrFrameTexts || []).filter(
     (f) => f.timestamp > t0 + 5 && f.timestamp < maxT - 5 && (f.text || "").trim(),
@@ -335,7 +309,7 @@ export default function useAnnotator() {
     // Participant names from the webcam tiles: hard context so a mishearing of a
     // person's name can never become a report/table/tool name in a step.
     const peopleLine = participants?.length
-      ? `PEOPLE ON THE CALL: ${participants.join(", ")}. These are participants' names shown on webcam tiles — NEVER use them, or anything resembling them, as an application, report, table, view, field, or data name.\n\n`
+      ? `PEOPLE ON THE CALL: ${participants.join(", ")}. These are participants' names shown on webcam tiles AND burned into a corner of every frame as a speaker caption — NEVER use them, or anything resembling them, as an application, report, dashboard, file, page, table, view, field, or data name.\n\n`
       : ""
     let sysPrefix = peopleLine + appContextPrefix(appName)
 
@@ -424,12 +398,32 @@ export default function useAnnotator() {
       }
       if (isLogisticsStep(step)) continue // meeting logistics / webcam-name tile → not a procedure step
 
+      // A participant's name drifted into the step ("Winters Alvarez, Jamie" →
+      // "Open Wintors Alvares Page"). The prompt warning alone doesn't stop small
+      // vision models, so: ONE corrective re-ask naming the mistake explicitly,
+      // then a deterministic scrub of whatever still leaks. A step that collapses
+      // to nothing after scrubbing was never about real screen content — drop it.
+      let nameSuspect = resemblesParticipant(step.title, participants)
+        || (step.steps || []).some((s) => resemblesParticipant(s, participants))
+        || resemblesParticipant(step.result, participants)
+      if (nameSuspect) {
+        try {
+          const nameFix = `\n\nCORRECTION — your previous answer used a call participant's name (${participants.join(", ")}) as a file/report/dashboard/page name. That name is a PERSON shown in the recording's speaker caption and webcam tiles, NOT on-screen content. Re-emit the step describing ONLY what the application screen really shows; if you cannot read the real name of the item, describe it generically (e.g. "the dashboard", "the report").`
+          const raw3 = await runWindow(win, frame, label, prevText, nextText, visionLive && !!frame?.imageData, nameFix)
+          const step3 = parseProcedureStep(raw3)
+          if (!step3.skip && (step3.title || step3.steps?.length)) step = step3
+        } catch { /* keep the original — the scrub below still cleans it */ }
+        nameSuspect = resemblesParticipant(step.title, participants)
+          || (step.steps || []).some((s) => resemblesParticipant(s, participants))
+          || resemblesParticipant(step.result, participants)
+        if (nameSuspect && !scrubParticipantStep(step, participants)) continue
+        if (isLogisticsStep(step)) continue
+      }
+
       // Confidence flag for the reviewer: a step the model first skipped, one
       // written from thin evidence (little speech AND little readable screen
-      // text), or one whose title looks like a participant's name drifted into
-      // an artifact name. Shown as a subtle marker in the UI.
-      const nameSuspect = resemblesParticipant(step.title, participants)
-        || (step.steps || []).some((s) => resemblesParticipant(s, participants))
+      // text), or one that needed the participant-name correction. Shown as a
+      // subtle marker in the UI.
       const lowConfidence = fromRetry || nameSuspect
         || ((win.text || "").length < 40 && ocrLen < 40 && !(visionLive && frame?.imageData))
 

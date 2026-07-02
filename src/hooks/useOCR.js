@@ -176,13 +176,16 @@ function cleanOCR(data, minConf = 55, nameSink = null) {
         kept += good.length
         if (good.length) lines.push(good.map((w) => w.text.trim()).join(" "))
       }
-      if (total && kept < total * 0.35) return "" // mostly garbage → drop this frame
+      // Harvest participant names FIRST — the name overlay is often the ONLY
+      // confidently-read line on a blurry frame, so it must be collected even
+      // when the frame as a whole is dropped as garbage below.
       const content = []
       for (const l of lines) {
         if (isTileLabelLine(l)) {
           if (nameSink) for (const n of tileNameTokens(l)) nameSink.add(n)
         } else content.push(l)
       }
+      if (total && kept < total * 0.35) return "" // mostly garbage → drop this frame
       const out = content.join("\n").trim()
       if (out) return out
     }
