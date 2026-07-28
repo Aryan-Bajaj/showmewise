@@ -398,18 +398,34 @@ video-docs/
 ├── netlify.toml                  ← COEP/COOP headers + SPA redirect
 ├── package.json
 ├── vite.config.js                ← Excludes ONNX/HuggingFace from optimizeDeps
+├── README.md · CHANGELOG.md
+├── DESKTOP_SETUP.md              ← How to build/run the offline desktop version
+├── WHATS_INSIDE.md               ← SBOM / data-flow sheet for IT & security review
+├── IT_REQUIREMENTS.md            ← Hardware, network and approval checklist for IT
 │
 ├── public/
 │   ├── _redirects                ← Netlify SPA fallback
-│   ├── _headers                  ← COEP/COOP for drag-drop deploys   🆕 v2
+│   ├── _headers                  ← COEP/COOP for drag-drop deploys
 │   ├── three.min.js              ← Three.js r134 (same-origin, bypasses COEP)
 │   ├── vanta.halo.min.js         ← Vanta HALO effect (app background)
 │   └── vanta.net.min.js          ← Vanta NET effect (landing background)
 │
+├── desktop/                      ← Offline desktop bundle (v4/v5)
+│   ├── VideoDoc.iss              ← Inno Setup script → single installer .exe
+│   ├── VideoDoc.bat              ← Launcher: starts llama-server, opens the app
+│   ├── VideoDoc-quiet.vbs        ← Same launcher, no console window
+│   ├── Stop-VideoDoc.bat         ← Shuts the local engine down
+│   ├── get-engine.ps1            ← One-time downloader: engine + 4B/12B model
+│   ├── README.md                 ← Desktop-specific setup and usage
+│   ├── llama/                    ← llama.cpp engine binaries (fetched, gitignored)
+│   ├── models/                   ← gemma 3 model + vision projector (fetched, gitignored)
+│   ├── app/                      ← built web app for the bundle (gitignored)
+│   └── Output/                   ← compiled installer .exe + .bin parts (gitignored)
+│
 └── src/
-    ├── main.jsx                  ← HashRouter → / · /app · /docchat       🆕 v2 route
+    ├── main.jsx                  ← HashRouter → / · /app · /docchat
     ├── App.jsx                   ← VideoDoc pipeline UI + OCR + Vid Chat
-    ├── DocChatApp.jsx            ← Doc Chat app (upload a doc, chat)      🆕 v2
+    ├── DocChatApp.jsx            ← Doc Chat app (upload a doc, chat)
     ├── index.css                 ← Indeterminate progress animation
     │
     ├── components/
@@ -417,36 +433,48 @@ video-docs/
     │   ├── Uploader.jsx          ← Drop cards: video / code / reference doc
     │   ├── VideoPlayer.jsx       ← Seekable video preview
     │   ├── FrameStrip.jsx        ← Horizontal frame timeline
-    │   ├── DocPreview.jsx        ← Live transcript + annotation viewer
+    │   ├── Timeline.jsx          ← Segment/step timeline view
+    │   ├── DocPreview.jsx        ← Live transcript + annotation viewer, zoom lightbox
     │   ├── ExportBar.jsx         ← HTML / PDF / DOCX export (+ GIFs)
-    │   ├── AISettings.jsx        ← Title + Ollama model picker + sections
-    │   ├── DocChat.jsx           ← Vid Chat / Doc Chat panel             🆕 v2
-    │   ├── DocChatDemo.jsx       ← Looping Vid Chat landing animation     🆕 v2
+    │   ├── AISettings.jsx        ← Title + engine/model picker + sections
+    │   ├── InsightsPanel.jsx     ← Grounding / confidence insights view
+    │   ├── StatusBar.jsx         ← Engine/model status indicator
+    │   ├── DocChat.jsx           ← Vid Chat / Doc Chat panel
+    │   ├── DocChatDemo.jsx       ← Looping Vid Chat landing animation
     │   ├── ProductDemo.jsx       ← Animated landing-page product demo
     │   ├── BeforeAfter.jsx       ← Before/after comparison slider
     │   ├── VideoDocLogo.jsx      ← Custom SVG logo
     │   └── PipelineStatus.jsx    ← Live step tracker (elapsed, %, ETA)
     │
     ├── hooks/
-    │   ├── useFrameExtractor.js  ← Frame extraction (capped + downscaled) 🆕 v2 hardening
-    │   ├── useAudioExtractor.js  ← Web Audio API → 16kHz (guarded)        🆕 v2 hardening
+    │   ├── useFrameExtractor.js  ← Frame extraction (capped + downscaled)
+    │   ├── useAudioExtractor.js  ← Web Audio API → 16kHz (guarded)
     │   ├── useTranscriber.js     ← Whisper Web Worker wrapper
-    │   ├── useAnnotator.js       ← Windowed annotation + OCR context      🆕 v2
-    │   ├── useOCR.js             ← Tesseract OCR + tool detection         🆕 v2
-    │   ├── useGifMaker.js        ← Browser GIF encoding per step          🆕 v2
-    │   ├── useRAG.js             ← In-browser embeddings + retrieval      🆕 v2
-    │   ├── useDocParser.js       ← headings + full-text extract + chunk   🆕 v2 (chunk)
-    │   └── useVantaHalo.js       ← Vanta HALO background (WebGL-guarded)   🆕 v2 hardening
+    │   ├── useAnnotator.js       ← Windowed annotation, boundaries, name safety
+    │   ├── useOCR.js             ← Tesseract OCR + tool detection
+    │   ├── useGifMaker.js        ← Browser GIF encoding per step
+    │   ├── useClipMaker.js       ← WebM step clips (real action, true colour)
+    │   ├── useRAG.js             ← In-browser embeddings + retrieval
+    │   ├── useDocParser.js       ← headings + full-text extract + chunk
+    │   └── useVantaHalo.js       ← Vanta HALO background (WebGL-guarded)
     │
     ├── workers/
     │   └── transcriber.worker.js ← Whisper in isolated Web Worker thread
     │
     └── lib/
-        ├── llm.js                ← Shared Ollama + WebLLM calls           🆕 v2
-        ├── skillPrompt.js        ← OCR-aware prompts + window chunking    🆕 v2
-        ├── exportHTML.js         ← HTML guide (title, tools, step GIFs)
+        ├── llm.js                ← Shared Ollama + llama.cpp + WebLLM calls
+        ├── skillPrompt.js        ← Prompts, window chunking, name/grounding guards
+        ├── smartCrop.js          ← Frame-diff zoom crop + highlight for screenshots
+        ├── refine.js             ← Verify + consolidate + sanitize pass
+        ├── insights.js           ← Grounding/confidence scoring for InsightsPanel
+        ├── evalDoc.js            ← Regression scoring vs golden docs
+        ├── estimate.js           ← Upfront ETA estimate for a run
+        ├── limits.js             ← Netlify build size/length limits
+        ├── systemCheck.js        ← Detects available engine (Ollama/llama.cpp/WebLLM)
+        ├── transcriptFixups.js   ← Noise scrub + known-mishearing corrections
+        ├── exportHTML.js         ← HTML guide (title, tools, step GIFs/clips)
         ├── exportPDF.js          ← jsPDF export (title + tools)
-        └── exportDOCX.js         ← docx export (title + tools)
+        └── exportDOCX.js         ← docx export (title + tools + GIFs)
 ```
 
 ---
