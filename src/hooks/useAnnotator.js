@@ -4,7 +4,7 @@ import {
   IDENTIFY_APP_PROMPT, parseAppName, appContextPrefix, isLogisticsStep,
   resemblesParticipant, scrubParticipantStep,
   STEP_JSON_SCHEMA, JSON_ADDENDUM, cleanTranscriptText, hasActionWords, RECALL_ADDENDUM,
-  SEGMENT_PROMPT, SEGMENT_SCHEMA,
+  SEGMENT_PROMPT, SEGMENT_SCHEMA, isScreenlessFrame, groundStepInEvidence,
 } from "../lib/skillPrompt"
 import { callOllama, callWebLLM, callLocalEngine, WEBLLM_NO_VISION } from "../lib/llm"
 import { smartCrop } from "../lib/smartCrop"
@@ -19,9 +19,14 @@ import { ocrNear } from "./useOCR"
 // frame can't open the gate early. No rich frames at all → gate off (a video
 // where OCR failed everywhere should still be documented from the transcript).
 const RICH_OCR_LEN = 60
-function screenShareStart(ocrFrameTexts) {
+function screenShareStart(ocrFrameTexts, participants = []) {
+  // "Rich" must mean a real application screen — NOT a webcam frame whose only text
+  // is the burned-in speaker-name captions ("Lastname, Firstname (ORG, CODE)"),
+  // which alone can exceed 60 chars and used to open the gate at second 10 over a
+  // pure webcam. isScreenlessFrame strips the captions before judging.
   const rich = (ocrFrameTexts || []).filter(
-    (f) => (f.text || "").replace(/\s+/g, " ").trim().length >= RICH_OCR_LEN,
+    (f) => (f.text || "").replace(/\s+/g, " ").trim().length >= RICH_OCR_LEN
+      && !isScreenlessFrame(f.text, participants),
   )
   if (!rich.length) return null
   for (let i = 0; i + 1 < rich.length; i++) {
@@ -229,9 +234,11 @@ export default function useAnnotator() {
     // (this exact failure collapsed a 32-min session to one step). If the
     // "start" lands past 40% of the timeline, fall back to the first frame with
     // ANY readable text.
-    let shareStart = screenShareStart(ocrFrameTexts)
+    let shareStart = screenShareStart(ocrFrameTexts, participants)
     if (shareStart != null && shareStart > maxT * 0.4) {
-      const anyOcr = (ocrFrameTexts || []).find((f) => (f.text || "").trim().length >= 20)
+      const anyOcr = (ocrFrameTexts || []).find(
+        (f) => (f.text || "").trim().length >= 20 && !isScreenlessFrame(f.text, participants),
+      )
       if (anyOcr && anyOcr.timestamp < shareStart) shareStart = anyOcr.timestamp
     }
     // 2) Segment on SCREEN CHANGES + SPEECH ACTIVITY CHANGES — eyes and ears
@@ -398,6 +405,16 @@ export default function useAnnotator() {
       }
       if (isLogisticsStep(step)) continue // meeting logistics / webcam-name tile → not a procedure step
 
+      // Screenless-frame backstop: the frame carries no real UI text (only webcam
+      // + speaker captions), so a step here is built on a virtual background, not
+      // an application. Only applied when VISION was NOT used for this window — a
+      // vision model that looked at the actual screenshot is a better judge of
+      // "is this a screen" than a sparse OCR pass, and gating on OCR alone was
+      // deleting real work on blurry (heavily-downscaled Teams) application frames. The
+      // early webcam stretch is already handled by the screenShareStart gate.
+      const sawScreen = visionLive && !!frame?.imageData
+      if (!sawScreen && ocrLen < 25 && isScreenlessFrame(win.ocr, participants)) continue
+
       // A participant's name drifted into the step ("Winters Alvarez, Jamie" →
       // "Open Wintors Alvares Page"). The prompt warning alone doesn't stop small
       // vision models, so: ONE corrective re-ask naming the mistake explicitly,
@@ -420,11 +437,21 @@ export default function useAnnotator() {
         if (isLogisticsStep(step)) continue
       }
 
+      // Evidence grounding: strip domain nouns the vision model confabulated when
+      // it couldn't read the screen ("Inventory Tag Cluster", "Sales Report
+      // Builder", "Revenue Warehouse") — anything asserted that appears in
+      // NEITHER the OCR nor the speech. Drops the step when its whole identity was
+      // the fabrication; otherwise keeps the true remainder.
+      const grounded = groundStepInEvidence(step, win.ocr, win.text)
+      if (grounded.drop) continue
+      const groundingEdited = grounded.changed
+      step = grounded.step
+
       // Confidence flag for the reviewer: a step the model first skipped, one
       // written from thin evidence (little speech AND little readable screen
-      // text), or one that needed the participant-name correction. Shown as a
-      // subtle marker in the UI.
-      const lowConfidence = fromRetry || nameSuspect
+      // text), one that needed the participant-name correction, or one whose text
+      // was corrected by the evidence-grounding pass. Shown as a subtle marker.
+      const lowConfidence = fromRetry || nameSuspect || groundingEdited
         || ((win.text || "").length < 40 && ocrLen < 40 && !(visionLive && frame?.imageData))
 
       // Smart screenshot: diff the frame just BEFORE this window against the

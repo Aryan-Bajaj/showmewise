@@ -12,6 +12,9 @@ desktop/llama/
 desktop/models/
 desktop/app/
 
+# Built installer output (several GB, produced locally by ISCC from VideoDoc.iss)
+desktop/Output/
+
 # Logs
 *.log
 npm-debug.log*

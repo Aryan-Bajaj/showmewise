@@ -86,9 +86,14 @@ Version 4 is the accuracy and trust release. It was built by testing against a r
 * **Grounded summaries.** The executive summary no longer invents decisions, outcomes or next steps to round off the story, never dramatises, and never names software that was not actually on screen.
 * **Cleaner input, cleaner output.** Meeting chatter, filler and speech-recognition repeats are scrubbed from the transcript before the model sees it. Garbled OCR identifiers are stripped from results. Transient system popups become notes instead of steps. FAQ questions built from mishearings are filtered out.
 * **Editable in full.** Steps can be edited, reordered and removed before export, and every change flows into the PDF, Word and HTML exports. Steps written from thin evidence carry a subtle marker so a reviewer knows where to look.
+* **Hears and sees the boundaries, not just the clock.** Step breaks now come from both the transcript (a cheap pass proposes breaks where the discussion moves to a new activity) and the screen (pixel scene changes), so several actions inside one static dialog no longer collapse into a single step.
+* **No more overheard names in the guide.** Meeting recordings burn the speaker's name into the video caption; that name, and anyone's spoken name, is now kept out of step titles and summaries.
+* **Smart screenshots.** Screenshots auto-zoom and crop to the exact spot the action happened, with the region highlighted, instead of showing the whole screen.
+* **Sharper vision by default.** The desktop build now ships the larger gemma 3 12B vision model, a meaningful accuracy jump over 4B for dense enterprise UIs at the cost of a slower first read. A 4B option remains for lower-spec machines.
+* **One-click installer for offline deployment.** `desktop/VideoDoc.iss` builds a self-contained Windows installer (engine + model + app, no internet needed at install or run time, no admin rights required), with a silent-install switch for enterprise deployment tools. See [desktop/README.md](desktop/README.md).
 * **Two builds.**
   * `npm run build:netlify` builds the hosted web version, with per-video size and length limits so a huge file cannot crash a visitor's laptop (limits are set in `.env.netlify`).
-  * `npm run build:desktop` builds the fully offline desktop version, which bundles the llama.cpp engine with the gemma 3 4B vision model. One engine, nothing to choose, nothing to install. See [desktop/README.md](desktop/README.md).
+  * `npm run build:desktop` builds the fully offline desktop version, which bundles the llama.cpp engine with a gemma 3 vision model (12B by default, 4B optional). See [desktop/README.md](desktop/README.md).
 
 ---
 

@@ -8,28 +8,38 @@ There is **no cloud, no account, no data upload**.
 
 ## 1. Hardware
 
-| | Minimum | Recommended |
+| | Minimum (4B model) | Recommended (12B model, ships by default) |
 |---|---|---|
-| **RAM** | 8 GB | **16 GB** |
-| **Free disk** | 6 GB | 10 GB |
-| **GPU** | Not required (runs on CPU) | Any dedicated GPU (e.g. 4 GB+) speeds it up |
+| **RAM** | 8 GB | **16 GB** (12B needs ~10 GB free while generating) |
+| **Free disk** | 6 GB | 10 GB (installer payload is ~7.6 GB) |
+| **GPU** | Not required (runs on CPU) | Any dedicated GPU (e.g. 4 GB+) speeds it up; partial CPU offload is used automatically on smaller GPUs |
 | **CPU** | 64-bit, 4 cores | 6+ cores |
 
-> The app installs to ~4.5 GB (app + AI model). The model uses ~4–6 GB RAM while
-> generating; the GPU is used if present, otherwise the CPU.
+> The 12B model (shipped by default for accuracy on dense enterprise UIs)
+> installs to ~8 GB total (app + engine + model) and uses ~10 GB RAM while
+> generating. A smaller 4B model (~4 GB, ~4–6 GB RAM) is available for lower-spec
+> machines — trades some screen-reading accuracy for speed and a smaller footprint.
 
 ## 2. Operating system / software
 
 - **Windows 10 or 11 (64-bit)** — primary. (macOS build also possible.)
-- **Microsoft Edge WebView2** — already built into Windows 11; auto-present on most
-  Windows 10. (Standard Microsoft component.)
+- Uses the system's default web browser (Edge/Chrome) to display the app — no
+  WebView runtime or browser install required beyond what Windows ships with.
 - No .NET, Java, Python, or other runtimes required — everything is bundled.
 
 ## 3. Installation & permissions
 
-- Ships as a **signed installer** (`.msi` / `.exe`).
-- Can be packaged as **per-user install → NO admin rights needed** (good for locked-down machines), or system-wide if IT prefers.
-- Installs only to the user/app folder. No drivers, no system services, no registry-wide changes.
+- Ships as an **Inno Setup installer** (`.exe`, currently **unsigned** — no code-signing
+  certificate yet. Windows SmartScreen will show an "unknown publisher" prompt on
+  first run until the org either allow-lists it or a certificate is added).
+- Due to the ~7.6 GB payload, the installer is delivered as `VideoDoc-Setup.exe`
+  plus a few sibling `.bin` files that must be kept together in the same folder —
+  still a single run of the `.exe` to install everything.
+- **Per-user install → NO admin rights needed** (good for locked-down machines).
+- Installs only to the user's local app folder (`%LOCALAPPDATA%`). No drivers, no
+  system services, no registry-wide changes.
+- Supports a **silent switch** for software deployment tools (Matrix42, Intune, SCCM):
+  `VideoDoc-Setup.exe /VERYSILENT /NORESTART /SUPPRESSMSGBOXES`.
 
 ## 4. Network & security  *(the important part for IT)*
 
@@ -64,10 +74,10 @@ There is **no cloud, no account, no data upload**.
 
 ## ✅ Ask your IT team to confirm these 6 items
 
-1. **Disk:** ~6 GB free on the target machines — OK?
-2. **RAM:** 8 GB minimum (16 GB ideal) — OK?
-3. **Install method:** is a **per-user signed installer** (no admin) acceptable, or do they require system-wide / their own packaging (SCCM/Intune)?
-4. **App allow-listing:** can the signed app + its local `llama-server.exe` be **allow-listed in antivirus/EDR**?
+1. **Disk:** ~10 GB free on the target machines — OK?
+2. **RAM:** 16 GB recommended for the default 12B model (8 GB works with the smaller 4B model) — OK?
+3. **Install method:** is a **per-user, unsigned installer** (no admin) acceptable, or do they require code signing / system-wide / their own packaging (SCCM/Intune/Matrix42 — a silent-install switch is already supported)?
+4. **App allow-listing:** can the unsigned app + its local `llama-server.exe` be **allow-listed in antivirus/EDR** (and SmartScreen)?
 5. **Localhost server:** is a **127.0.0.1-only** local server (loopback, no external port) permitted by endpoint policy?
 6. **Offline vs download:** do they want the **fully-offline build** (model bundled, no network) — or is a one-time HTTPS model download from a trusted source allowed?
 

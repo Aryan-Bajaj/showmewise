@@ -69,7 +69,8 @@ You are ALSO given a SCREENSHOT of this exact moment. Use BOTH the spoken transc
 - The screenshot is evidence of EQUAL weight to the transcript. In a working session people mostly talk vaguely while doing concrete things — when the speech says little but the screen clearly shows an open dialog, menu, panel, or configuration in progress, document what the SCREEN shows and name the visible elements.
 - When the speaker says vague words like "here", "this", "that" or "click there", LOOK at the screen to find the EXACT button, menu, tab, or field, and name it.
 - Only state UI text you can actually READ on screen. Do NOT guess or invent labels, menus, dialogs, or tools you cannot clearly see.
-- If the screenshot shows only a webcam, a photo, a desktop, or no real application screen, reply SKIP.`
+- If the screenshot shows only a webcam, a photo, a desktop, or no real application screen, reply SKIP.
+- If the screen shows a loading/waiting state (a spinner, progress bar, "Loading your story", "Please wait", a splash screen) with no user action visible, reply SKIP — the user did not DO anything during a loading screen.`
 
 // ── Constrained JSON output ──
 // JSON schema for one procedure step. Passed to engines that support constrained
@@ -163,12 +164,19 @@ function stripMeta(s) {
 
 // OCR sometimes misreads a technical ID half-right ("AB_CD_EFownerDashboard_GH")
 // and the model copies it into a step or result verbatim. A half-garbled ID is
-// worse than none — the reader can't use it and it looks broken. Strip long
-// underscore-chained tokens; short real codes (t-codes, "AB_CD") survive.
+// worse than none — the reader can't use it and it looks broken.
+// Three patterns cover the range of enterprise technical identifiers seen in the wild:
+//   1. 3-part+ chains at >=12 chars (AB_Measure_CT=13, AB_CD_EF=8 but AB_CD_EF_GH=11<12 → caught by rule 2)
+//   2. All-caps abbreviation chains like AB_CD_EF_GH — 4-part but only 11 chars
+//   3. CamelCase compound + 2-3 char system suffix like AbcTrackerDashboard_GH (1 underscore, missed by rule 1)
+// Short real codes like "AB_CD" (5 chars, rule 2 threshold=6) survive.
 function stripGarbledIds(s) {
   if (typeof s !== "string") return s
   return s
-    .replace(/\b[A-Za-z0-9]+(?:_[A-Za-z0-9]+){2,}\b/g, (m) => (m.length >= 18 ? "" : m))
+    .replace(/\b[A-Za-z0-9]+(?:_[A-Za-z0-9]+){2,}\b/g, (m) => (m.length >= 12 ? "" : m))
+    .replace(/\b[A-Z]{1,4}(?:_[A-Z0-9]{1,4}){1,}\b/g, (m) => (m.length >= 6 ? "" : m))
+    .replace(/\b[A-Za-z]{4,}[A-Za-z0-9]*_[A-Z]{2,3}\b/g, "")
+    .replace(/\b[A-Z]{2,}\d{5,}[A-Z0-9]*\b/g, "")  // table/object IDs like ACM000001234X
     .replace(/["'(]\s*["')]/g, "")   // empty quotes/parens left behind
     .replace(/\s{2,}/g, " ")
     .replace(/\s+([.,;:])/g, "$1")
@@ -225,9 +233,8 @@ export function parseProcedureStep(text) {
     .map((l) => l.replace(/^[\d\-\*•]+[.\):\s]+/, '').trim())
     .filter((l) => l.length > 2)
   const result = cleanField((t.match(/RESULT:\s*([\s\S]*?)(?=\n\s*NOTE:|$)/i)?.[1] || '').trim())
-  let note = (t.match(/NOTE:\s*([\s\S]*)$/i)?.[1] || '').trim()
+  let note = cleanField((t.match(/NOTE:\s*([\s\S]*)$/i)?.[1] || '').trim())
   note = note.replace(/^[\s\-–—•:]+/, '').trim()              // strip leading dash/bullet ("– This opens…")
-  note = stripMeta(note)
   // Drop notes that are just the model explaining its own corrections (verifier bloat).
   if (/\b(the )?(draft|corrected|revised|above) (step|note)\b|\bthe evidence (does|provided)\b|\bOCR text\b/i.test(note)) note = ''
   if (note.length < 3 || /^(none|n\/a|na)$/i.test(note) || /^[-–—.\s]*$/.test(note)) note = '' // drop empty / dash-only
@@ -277,6 +284,107 @@ export function isMeetingNoise(text) {
 // guard: a skipped window where someone SAID "click / open / configure…" is far
 // more likely a model miss than true noise.
 export function hasActionWords(text) { return ACTION_VERBS.test(text || "") }
+
+// ── Screenless-frame guard ──
+// The first minutes of a meeting are usually WEBCAM only — the shared screen has
+// not started. A small vision model looks at a person's virtual background and
+// confabulates a UI ("The dashboard view opens, displaying an outdoor
+// scene"). The prompt tells it to SKIP a webcam, but gemma3:4b doesn't obey.
+// This is a deterministic backstop: a frame whose OCR carries NO real UI text —
+// only the burned-in speaker-name captions, or nothing — is not an application
+// screen, so any step built from it is fabricated. Used together with a tiny-OCR
+// gate so a real (text-dense) screen with a failed OCR pass is never dropped.
+const UI_VOCAB_RE = /\b(file|edit|view|insert|tools|format|home|tab|menu|ribbon|toolbar|http|https|www|report|table|dashboard|builder|styling|filter|column|row|search|save|analysis|analytics|story|page|panel|dialog|source|measure|dimension|cell|sheet|folder|settings|export|refresh|story|widget|chart|grid)\b/i
+export function isScreenlessFrame(ocrText, participants = []) {
+  let t = (ocrText || "").trim()
+  if (!t) return true                       // nothing readable → webcam / photo / desktop
+  if (UI_VOCAB_RE.test(t)) return false     // any real UI word → it IS an app screen
+  // Strip burned-in speaker captions: "Lastname, Firstname (ORG-UNIT, CODE)".
+  t = t.replace(/[A-Z][\w''.-]+,\s*[A-Z][\w''.-]+(?:\s+[A-Z][\w''.-]+)*\s*(?:\([^)]*\))?/g, " ")
+  for (const p of participants || []) {
+    if (!p) continue
+    for (const part of String(p).split(/[\s,()]+/)) {
+      if (part.length >= 3) t = t.replace(new RegExp(part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi"), " ")
+    }
+  }
+  // What real alphabetic text survives after removing names?
+  const leftover = (t.match(/[A-Za-z]{3,}/g) || []).join("")
+  return leftover.length < 12
+}
+
+// ── Evidence grounding (anti-confabulation) ──
+// The single biggest failure of a small local vision model: when it cannot READ a
+// dense enterprise UI, it invents a plausible business domain. On a cost-centre
+// finance screen it writes "Inventory Tag Cluster", "Sales Report Builder",
+// "Revenue Warehouse", "Global Sales" — none of which are on screen. These are
+// grammatically clean, so no format/filler rule catches them, and self-verify
+// (same blind model) rubber-stamps them.
+// The fix is to GROUND each step in the actual evidence: the frame's OCR text and
+// the spoken transcript. A domain noun the model claims to see, that appears in
+// NEITHER the OCR nor the speech, is a fabrication — we strip that word so the
+// step keeps its true remainder ("Sales Report Builder" → "Report Builder") and
+// never asserts something false. Only runs when there IS enough OCR evidence to
+// judge against, so a real screen with a weak OCR pass is never touched.
+// Deliberately narrow: only well-known confabulated ERP/business domains are
+// scrutinised; every real cost/finance term (cost, budget, supplier,
+// fiscal, salary…) is left alone, and even these are kept when the evidence
+// actually contains them.
+const CONFABULATED_DOMAINS = [
+  "inventory", "sales", "revenue", "procurement", "shipment", "shipping",
+  "logistics", "manufacturing", "warehouse", "retail", "marketing",
+  "ecommerce", "e-commerce", "delivery",
+]
+function evidenceHas(evidence, word) {
+  const w = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  return new RegExp(`\\b${w}`, "i").test(evidence) // prefix match → catches sales/sale, ship/shipment
+}
+function stripWord(text, word) {
+  if (!text) return text
+  const w = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  return text
+    .replace(new RegExp(`\\b${w}(?:'?s)?\\b`, "gi"), "")
+    .replace(/['"]\s+/g, m => m.trim() + " ")
+    .replace(/\s{2,}/g, " ")
+    .replace(/\s+([.,;:])/g, "$1")
+    .replace(/\(\s*\)|''|""/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+}
+// Returns { step, drop, changed }. `drop` true when the step's TITLE was built on
+// a fabricated domain and nothing meaningful survives stripping it.
+export function groundStepInEvidence(step, ocrText, transcript) {
+  if (!step || step.skip) return { step, drop: false, changed: false }
+  const evidence = `${ocrText || ""} ${transcript || ""}`.toLowerCase()
+  const evidenceLen = evidence.replace(/[^a-z0-9]/g, "").length
+  if (evidenceLen < 40) return { step, drop: false, changed: false } // too little to judge → leave alone
+
+  // Which confabulated domains are asserted by the step but ABSENT from evidence?
+  const fields = [step.title || "", ...(step.steps || []), step.result || "", step.note || ""].join(" ").toLowerCase()
+  const fabricated = CONFABULATED_DOMAINS.filter((d) => new RegExp(`\\b${d.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`, "i").test(fields) && !evidenceHas(evidence, d))
+  if (!fabricated.length) return { step, drop: false, changed: false }
+
+  const out = { title: step.title, steps: [...(step.steps || [])], result: step.result, note: step.note }
+  const titleHadFab = fabricated.some((d) => new RegExp(`\\b${d}`, "i").test(out.title || ""))
+  for (const d of fabricated) {
+    out.title = stripWord(out.title, d)
+    out.steps = out.steps.map((s) => stripWord(s, d))
+    out.result = stripWord(out.result, d)
+    out.note = stripWord(out.note, d)
+  }
+  out.steps = out.steps.filter((s) => isRealAction(s))
+  // A real action DID happen at this timestamp — the model just mislabelled it.
+  // We never DROP for a fabricated domain word: a missing step loses genuine work
+  // (confirmed on this recording — dropping wiped the Data-Analyzer and row-height
+  // demos). We strip the false word and, if that hollows the title, fall back to a
+  // truthful generic title built from the surviving action, so coverage is kept
+  // while the false claim is removed. The step is flagged low-confidence upstream.
+  const titleCore = (out.title || "").replace(/^(open|view|review|access|navigate to|go to|select|click|configure|set)\b/i, "").replace(/\b(view|page|dialog|window|tab|panel|section)\b/gi, "").trim()
+  if (titleHadFab && titleCore.replace(/[^a-z]/gi, "").length < 3) {
+    const firstAction = (out.steps[0] || "").replace(/[.'"]+$/, "").trim()
+    out.title = firstAction ? firstAction.slice(0, 60) : (out.title || "Review the current view").trim()
+  }
+  return { step: { ...step, ...out }, drop: false, changed: true }
+}
 
 // ── Transcript noise scrub ──
 // Sentence-level cleaning applied BEFORE the transcript reaches any prompt.

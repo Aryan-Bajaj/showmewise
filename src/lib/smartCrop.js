@@ -78,6 +78,10 @@ export async function smartCrop(beforeDataUrl, afterDataUrl) {
       const cy = (y0 + y1) / 2
       y0 = Math.max(0, cy - minH / 2); y1 = Math.min(H, y0 + minH)
     }
+    // If the crop still covers >60% of the original image it adds no value over
+    // the main screenshot — the "zoomed" label would be misleading. Return null
+    // and let the caller show only the full frame.
+    if ((x1 - x0) * (y1 - y0) > W * H * 0.60) return null
 
     // Draw the crop and the highlight box around the ORIGINAL (unpadded) change
     const out = document.createElement("canvas")

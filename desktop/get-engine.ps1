@@ -1,14 +1,40 @@
 # VideoDoc desktop, one time setup.
 # Downloads the llama.cpp server (Vulkan build: NVIDIA, AMD and Intel graphics,
-# CPU fallback) and the gemma 3 4B vision model (QAT quant, about 3.2 GB).
+# CPU fallback) and a gemma 3 vision model.
 # Sources are official: github.com/ggml-org and huggingface.co/ggml-org.
-# Run from this folder:  powershell -ExecutionPolicy Bypass -File get-engine.ps1
+#
+# Usage:
+#   powershell -ExecutionPolicy Bypass -File get-engine.ps1            # 4B model (default, fast, ~4 GB)
+#   powershell -ExecutionPolicy Bypass -File get-engine.ps1 -Model 12b # 12B model (slower, reads dense UIs far better, ~8 GB)
+#
+# The 12B model is the recommended upgrade when the 4B model misreads a dense
+# enterprise UI and invents plausible-but-wrong labels. It runs on the same
+# machine via llama.cpp CPU/GPU offload — nothing leaves the device.
+param(
+    [ValidateSet("4b", "12b")]
+    [string]$Model = "4b"
+)
 $ErrorActionPreference = "Stop"
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $here
 
 New-Item -ItemType Directory -Force "$here\llama"  | Out-Null
 New-Item -ItemType Directory -Force "$here\models" | Out-Null
+
+# Per-model download details. Both live in official ggml-org GGUF repos.
+if ($Model -eq "12b") {
+    $repo       = "gemma-3-12b-it-qat-GGUF"
+    $modelFile  = "gemma-3-12b-it-qat-Q4_0.gguf"
+    $mmprojFile = "mmproj-model-f16-12B.gguf"
+    $modelSize  = "about 7 GB"
+    $mmprojSize = "about 850 MB"
+} else {
+    $repo       = "gemma-3-4b-it-qat-GGUF"
+    $modelFile  = "gemma-3-4b-it-qat-Q4_0.gguf"
+    $mmprojFile = "mmproj-model-f16.gguf"
+    $modelSize  = "about 3.2 GB"
+    $mmprojSize = "about 850 MB"
+}
 
 # 1) llama.cpp server, latest release, Windows Vulkan x64 build
 if (-not (Test-Path "$here\llama\llama-server.exe")) {
@@ -28,19 +54,24 @@ if (-not (Test-Path "$here\llama\llama-server.exe")) {
     Write-Host "      Engine ready."
 } else { Write-Host "[1/3] Engine already present, skipping." }
 
-# 2) gemma 3 4B model (QAT Q4_0, quality close to full precision at a quarter of the size)
-$model = "$here\models\gemma-3-4b-it-qat-Q4_0.gguf"
+# 2) the gemma 3 model (QAT Q4_0, quality close to full precision at a quarter of the size)
+$model = "$here\models\$modelFile"
 if (-not (Test-Path $model)) {
-    Write-Host "[2/3] Downloading the gemma 3 4B model (about 3.2 GB, this takes a while)..."
-    Invoke-WebRequest "https://huggingface.co/ggml-org/gemma-3-4b-it-qat-GGUF/resolve/main/gemma-3-4b-it-qat-Q4_0.gguf" -OutFile $model
-} else { Write-Host "[2/3] Model already present, skipping." }
+    Write-Host "[2/3] Downloading the gemma 3 $Model model ($modelSize, this takes a while)..."
+    Invoke-WebRequest "https://huggingface.co/ggml-org/$repo/resolve/main/$modelFile" -OutFile $model
+} else { Write-Host "[2/3] Model ($modelFile) already present, skipping." }
 
 # 3) vision projector, required so the model can see screenshots
-$mmproj = "$here\models\mmproj-model-f16.gguf"
+$mmproj = "$here\models\$mmprojFile"
 if (-not (Test-Path $mmproj)) {
-    Write-Host "[3/3] Downloading the vision projector (about 850 MB)..."
-    Invoke-WebRequest "https://huggingface.co/ggml-org/gemma-3-4b-it-qat-GGUF/resolve/main/mmproj-model-f16.gguf" -OutFile $mmproj
-} else { Write-Host "[3/3] Vision projector already present, skipping." }
+    Write-Host "[3/3] Downloading the vision projector ($mmprojSize)..."
+    Invoke-WebRequest "https://huggingface.co/ggml-org/$repo/resolve/main/$mmprojFile" -OutFile $mmproj
+} else { Write-Host "[3/3] Vision projector ($mmprojFile) already present, skipping." }
 
 Write-Host ""
-Write-Host "Setup complete. Start VideoDoc with VideoDoc.bat"
+Write-Host "Setup complete ($Model model). Start VideoDoc with VideoDoc.bat"
+if ($Model -eq "12b") {
+    Write-Host "VideoDoc.bat will auto-detect the 12B model and load it. First generation"
+    Write-Host "is slower than 4B (larger model, partial GPU offload) but reads dense UIs"
+    Write-Host "far more accurately."
+}
