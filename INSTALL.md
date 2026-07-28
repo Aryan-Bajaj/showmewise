@@ -1,0 +1,30 @@
+# VideoDoc — Download & Install (Desktop, offline)
+
+**Download:** [VideoDoc-Setup.zip](https://drive.google.com/file/d/12A21aqW3QnFJGnXR2sxUlWIYivxNsMmw/view?usp=sharing) (~7.6 GB)
+
+The zip contains everything needed to run VideoDoc fully offline: the app, the
+llama.cpp engine, and the gemma 3 12B vision model. Nothing is downloaded
+during install or while using the app.
+
+## Steps
+
+1. Download `VideoDoc-Setup.zip` from the link above and extract it. You'll get
+   `VideoDoc-Setup.exe` plus four `VideoDoc-Setup-*.bin` files — keep all five
+   in the same folder (the installer needs the `.bin` parts alongside the `.exe`).
+2. Run `VideoDoc-Setup.exe`.
+   - No admin rights required (installs to your user folder).
+   - Windows SmartScreen may show an "unknown publisher" warning since this
+     build isn't code-signed yet — choose **More info → Run anyway**.
+3. Launch VideoDoc from the Start Menu or desktop shortcut created by the installer.
+
+## Silent install (for IT deployment via Matrix42 / Intune / SCCM)
+
+```
+VideoDoc-Setup.exe /VERYSILENT /NORESTART /SUPPRESSMSGBOXES
+```
+
+## For IT review
+
+See [IT_REQUIREMENTS.md](IT_REQUIREMENTS.md) for hardware/network requirements
+and the approval checklist, and [WHATS_INSIDE.md](WHATS_INSIDE.md) for what the
+app is built from and how data flows (nothing leaves the machine).

@@ -8,6 +8,8 @@
 
 > **Now on Version 4.** This release is about trust: every step is grounded in what was actually said and shown, steps line up with real screen changes, summaries no longer invent conclusions, and there are now two builds: a hosted web version and a fully offline desktop version with a bundled vision model. See [New in v4](#-new-in-v4).
 
+> **Want the offline desktop installer?** → [Download & install instructions](INSTALL.md)
+
 ---
 
 ## 📑 Table of Contents
