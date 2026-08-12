@@ -45,7 +45,7 @@ UninstallDisplayName={#MyAppName}
 ; of these files together in one folder (zip them together to share) — the
 ; installer reads the .bin parts from beside the .exe.
 DiskSpanning=yes
-DiskSliceSize=2147483647
+DiskSliceSize=1900000000
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
