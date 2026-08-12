@@ -241,19 +241,19 @@ This is where the magic starts. VideoDoc runs **OpenAI's Whisper model** entirel
 The model runs in a **dedicated Web Worker** so your UI never freezes, even on long videos.
 
 ```
-Model:    Xenova/whisper-tiny.en
+Model:    Xenova/whisper-small.en
 Format:   fp32 (q4/q8 cause MatMulNBits errors in browser ONNX)
-Size:     ~150MB (downloaded once, cached in IndexedDB forever)
+Size:     ~970MB (downloaded once, cached in the browser forever)
 Output:   Timestamped segments [ { text, start, end }, ... ]
 Accuracy: ~95% on clear English audio
 ```
 
-**First run:** The model downloads (~150MB). Grab a coffee.
+**First run:** The model downloads (~970MB). Grab a coffee. The desktop build ships it inside the installer and skips this entirely.
 **Every run after:** Instant, served from IndexedDB cache.
 
 ```
 [ Transcription Progress ]
-Downloading model  ████████░░  80%   (~120MB / 150MB)
+Downloading model  ████████░░  80%   (~776MB / 970MB)
 Transcribing       ██████████  100%  → 24 segments found
 ```
 
@@ -523,7 +523,7 @@ npm install
 
 ```bash
 npm run dev
-# Opens at http://localhost:5174
+# Opens at http://localhost:5173
 ```
 
 > **Note:** The dev server must run with COEP/COOP headers (already configured in `vite.config.js`) for Whisper's SharedArrayBuffer to work.
@@ -544,10 +544,10 @@ If Ollama is not running, VideoDoc falls back to WebLLM (Llama 3.2 1B in-browser
 
 ### 5. Upload a Video and Generate Docs
 
-1. Open `http://localhost:5174`
-2. Click **Try It Free** on the landing page
+1. Open `http://localhost:5173`
+2. Click **Video → Docs** on the landing page
 3. Drop a `.mp4`, `.mov`, or `.webm` file
-4. Wait for Whisper to transcribe (first run downloads ~150MB model)
+4. Wait for Whisper to transcribe (first run downloads the ~970MB model)
 5. Select AI mode and model in the annotation modal
 6. Click **Annotate**
 7. Export as HTML, PDF, or DOCX
