@@ -37,9 +37,10 @@
 9. [Deploying to Netlify](#-deploying-to-netlify)
 10. [Privacy: Where Does Your Data Go?](#-privacy-where-does-your-data-go)
 11. [Customisation](#-customisation)
-12. [License Notes](#-license-notes)
-13. [Author](#-author)
-14. [License](#-license)
+12. [Example Data](#-example-data)
+13. [License Notes](#-license-notes)
+14. [Author](#-author)
+15. [License](#-license)
 
 ---
 
@@ -608,6 +609,23 @@ Edit `src/hooks/useVantaHalo.js`. Adjust `baseColor`, `size`, `speed`, `amplitud
 
 **Change Vanta NET settings (landing page background)**
 In `src/components/LandingPage.jsx`, find the `window.VANTA.NET({...})` call and adjust `color`, `points`, `maxDistance`, `spacing`.
+
+---
+
+## 🧪 Example Data
+
+Every example in this repository is invented. Code comments, prompt samples and test fixtures use the placeholder set below, and nothing in them comes from a real recording, a real person or a real system. If you add a new example, reuse this set so it stays obvious that the data is fictional.
+
+| Kind | Placeholder used |
+|---|---|
+| Participant name | Winters Alvarez, Jamie Lee |
+| Meeting tile label | `Winters Alvarez, Jamie Lee (AC-NYC, ACME)` |
+| Organisation codes | `AC-NYC`, `ACME` |
+| Technical identifiers | `AB_CD_EF_GH`, `AB_Measure_CT`, `AbcTrackerDashboard_GH` |
+| Object and table IDs | `ACM000001234X` |
+| Document titles | Sales Dashboard, Wintors Alvares Report |
+
+The screenshots in `guide-assets/` show the app's own interface only, so they carry no third party content either.
 
 ---
 
