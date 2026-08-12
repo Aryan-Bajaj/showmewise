@@ -2,13 +2,10 @@
 
 **Download:** [VideoDoc-Setup.zip](https://drive.google.com/file/d/12A21aqW3QnFJGnXR2sxUlWIYivxNsMmw/view?usp=sharing) (~7.6 GB)
 
-The zip contains the app, the llama.cpp engine, and the gemma 3 12B vision
-model. Install needs no internet at all, and neither does the writing AI.
-
-One thing does need it: the first time you transcribe a video, the browser
-downloads the Whisper speech model from Hugging Face (about 970 MB). It is
-cached afterwards, so that happens once and every run after it works with the
-network switched off. Nothing of yours is uploaded at any point.
+The zip contains everything needed to run VideoDoc offline: the app, the
+llama.cpp engine, the gemma 3 12B vision model and the Whisper speech model.
+Nothing is downloaded during install or while using the app, and nothing of
+yours is ever uploaded. You can pull the network cable out and it still works.
 
 ## Steps
 

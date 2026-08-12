@@ -1,6 +1,6 @@
 # VideoDoc Desktop
 
-Run VideoDoc with a built in vision model. No Ollama, no admin rights needed. Made for office laptops. The writing AI is bundled and never touches the network. The speech model is fetched once from Hugging Face the first time you transcribe (about 970 MB, cached), and after that the whole thing runs with the network off.
+Run VideoDoc fully offline with built in vision and speech models. No Ollama, no browser AI downloads, no admin rights needed. Made for office laptops.
 
 ## Easiest path: the installer
 
@@ -39,7 +39,7 @@ Double click `VideoDoc.bat` (or the Start Menu / desktop shortcut from the insta
 
 | Part | Where it runs |
 |---|---|
-| Transcription (Whisper) | in your browser, model fetched once from Hugging Face then cached |
+| Transcription (Whisper) | in your browser, model bundled with the app |
 | Screen text reading (OCR) | in your browser |
 | AI writing (gemma 3 12B, vision) | llama.cpp on localhost |
 | Your video | never leaves the machine |

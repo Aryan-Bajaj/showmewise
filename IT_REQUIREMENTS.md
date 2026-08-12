@@ -4,11 +4,10 @@
 documentation. The AI runs **entirely on the user's computer**. There is **no
 cloud, no account, no data upload**.
 
-**The one outbound connection:** the first transcription downloads the Whisper
-speech model from `huggingface.co` (about 970 MB), which the browser then
-caches. Everything after that, and everything else in the app, runs locally.
-If that download is not acceptable on your network, see the air-gapped note
-below.
+**Outbound connections: none.** The vision model, the speech model, the OCR
+engine and its language data are all inside the installer and served by the app
+itself. Installed on a machine with the network disabled, it still works end to
+end.
 
 ---
 
@@ -64,11 +63,7 @@ below.
   is the computer talking to itself; it needs **no inbound firewall rule** and is not
   reachable from the network.
 - For an **air-gapped / offline** deployment: choose the **model-bundled installer**
-  and **disable auto-update**. The writing AI, the OCR engine and the OCR language
-  data are all bundled and served by the app itself, so the only connection left is
-  the one-time Whisper speech-model download described above. Let that download
-  happen once on a connected machine and the app then runs with **no network
-  connections at all**.
+  and **disable auto-update** → the app makes **zero network connections, ever.**
 - The bundled local-inference binary (`llama-server.exe`) is open-source
   (llama.cpp). It may need to be **allow-listed in EDR/antivirus** (standard for any
   new signed app running a local process).
