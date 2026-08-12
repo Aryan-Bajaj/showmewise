@@ -1,17 +1,18 @@
 # VideoDoc — Download & Install (Desktop, offline)
 
-**Download:** [VideoDoc-Setup.zip](https://drive.google.com/file/d/12A21aqW3QnFJGnXR2sxUlWIYivxNsMmw/view?usp=sharing) (~7.6 GB)
+**Download:** [latest release](https://github.com/Aryan-Bajaj/video-docs/releases/latest) (~8.5 GB in total)
 
-The zip contains everything needed to run VideoDoc offline: the app, the
+The release holds everything needed to run VideoDoc offline: the app, the
 llama.cpp engine, the gemma 3 12B vision model and the Whisper speech model.
 Nothing is downloaded during install or while using the app, and nothing of
 yours is ever uploaded. You can pull the network cable out and it still works.
 
 ## Steps
 
-1. Download `VideoDoc-Setup.zip` from the link above and extract it. You'll get
-   `VideoDoc-Setup.exe` plus four `VideoDoc-Setup-*.bin` files — keep all five
-   in the same folder (the installer needs the `.bin` parts alongside the `.exe`).
+1. Download every file from the release: `VideoDoc-Setup.exe` and all five
+   `VideoDoc-Setup-*.bin` files. Put them in the same folder. The installer
+   reads the `.bin` parts from beside the `.exe`, so the `.exe` on its own
+   stops partway through.
 2. Run `VideoDoc-Setup.exe`.
    - No admin rights required (installs to your user folder).
    - Windows SmartScreen may show an "unknown publisher" warning since this
