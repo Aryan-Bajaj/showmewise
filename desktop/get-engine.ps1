@@ -38,7 +38,7 @@ if ($Model -eq "12b") {
 
 # 1) llama.cpp server, latest release, Windows Vulkan x64 build
 if (-not (Test-Path "$here\llama\llama-server.exe")) {
-    Write-Host "[1/3] Finding the latest llama.cpp release..."
+    Write-Host "[1/4] Finding the latest llama.cpp release..."
     $rel = Invoke-RestMethod "https://api.github.com/repos/ggml-org/llama.cpp/releases/latest"
     $asset = $rel.assets | Where-Object { $_.name -match "bin-win-vulkan-x64\.zip$" } | Select-Object -First 1
     if (-not $asset) { throw "No win-vulkan-x64 asset found. Check https://github.com/ggml-org/llama.cpp/releases" }
@@ -52,21 +52,39 @@ if (-not (Test-Path "$here\llama\llama-server.exe")) {
         Move-Item "$($exe.DirectoryName)\*" "$here\llama" -Force
     }
     Write-Host "      Engine ready."
-} else { Write-Host "[1/3] Engine already present, skipping." }
+} else { Write-Host "[1/4] Engine already present, skipping." }
 
 # 2) the gemma 3 model (QAT Q4_0, quality close to full precision at a quarter of the size)
 $model = "$here\models\$modelFile"
 if (-not (Test-Path $model)) {
-    Write-Host "[2/3] Downloading the gemma 3 $Model model ($modelSize, this takes a while)..."
+    Write-Host "[2/4] Downloading the gemma 3 $Model model ($modelSize, this takes a while)..."
     Invoke-WebRequest "https://huggingface.co/ggml-org/$repo/resolve/main/$modelFile" -OutFile $model
-} else { Write-Host "[2/3] Model ($modelFile) already present, skipping." }
+} else { Write-Host "[2/4] Model ($modelFile) already present, skipping." }
 
 # 3) vision projector, required so the model can see screenshots
 $mmproj = "$here\models\$mmprojFile"
 if (-not (Test-Path $mmproj)) {
-    Write-Host "[3/3] Downloading the vision projector ($mmprojSize)..."
+    Write-Host "[3/4] Downloading the vision projector ($mmprojSize)..."
     Invoke-WebRequest "https://huggingface.co/ggml-org/$repo/resolve/main/$mmprojFile" -OutFile $mmproj
-} else { Write-Host "[3/3] Vision projector ($mmprojFile) already present, skipping." }
+} else { Write-Host "[3/4] Vision projector ($mmprojFile) already present, skipping." }
+
+# 4) the Whisper speech model, served from inside app\ so transcription never
+# calls Hugging Face. Without this the first transcription needs internet.
+$whisper = "$here\app\models\Xenova\whisper-small.en"
+$whisperBase = "https://huggingface.co/Xenova/whisper-small.en/resolve/main"
+$whisperFiles = @(
+    "config.json", "generation_config.json", "preprocessor_config.json",
+    "tokenizer.json", "tokenizer_config.json", "special_tokens_map.json",
+    "added_tokens.json", "normalizer.json", "vocab.json",
+    "onnx/encoder_model.onnx", "onnx/decoder_model_merged.onnx"
+)
+if (-not (Test-Path "$whisper\onnx\decoder_model_merged.onnx")) {
+    Write-Host "[4/4] Downloading the Whisper speech model (~970 MB)..."
+    New-Item -ItemType Directory -Force "$whisper\onnx" | Out-Null
+    foreach ($f in $whisperFiles) {
+        Invoke-WebRequest "$whisperBase/$f" -OutFile "$whisper\$($f -replace '/', '\')"
+    }
+} else { Write-Host "[4/4] Whisper model already present, skipping." }
 
 Write-Host ""
 Write-Host "Setup complete ($Model model). Start VideoDoc with VideoDoc.bat"

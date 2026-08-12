@@ -5,6 +5,14 @@ import { pipeline, env } from '@huggingface/transformers'
 // out to a CDN. The build copies them into /ort (see vite.config.js).
 if (env.backends?.onnx?.wasm) env.backends.onnx.wasm.wasmPaths = '/ort/'
 
+// The desktop build ships the speech model inside the app folder, so it never
+// reaches Hugging Face. The hosted build still downloads it once, since nobody
+// wants a 970MB web page.
+if (import.meta.env.VITE_BUILD_TARGET === 'desktop') {
+  env.allowRemoteModels = false
+  env.localModelPath = '/models/'
+}
+
 let pipe = null
 let cancelled = false
 
