@@ -9,8 +9,6 @@ import DocChatDemo from './DocChatDemo'
 // Accent:  #06b6d4 (cyan)           Warm:      #fbbf24 (amber)
 
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap');
-
   @keyframes lp-float {
     0%, 100% { transform: translateY(0px) rotate(0deg); }
     33%       { transform: translateY(-18px) rotate(0.7deg); }
@@ -271,7 +269,7 @@ export default function LandingPage() {
         position: 'relative', zIndex: 3,
         minHeight: '100vh',
         color: '#fff',
-        fontFamily: "'DM Sans', system-ui, sans-serif",
+        fontFamily: "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
         overflowX: 'hidden',
         opacity: ready ? 1 : 0,
         transition: leaving ? 'none' : 'opacity 0.9s ease',

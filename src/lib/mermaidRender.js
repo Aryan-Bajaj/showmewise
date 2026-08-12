@@ -14,7 +14,7 @@ export async function renderMermaidSVG(def) {
         theme: "neutral",
         securityLevel: "strict",
         flowchart: { useMaxWidth: true, htmlLabels: false, curve: "basis" },
-        fontFamily: "DM Sans, sans-serif",
+        fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif",
       })
       inited = true
     }

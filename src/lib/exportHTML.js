@@ -298,7 +298,6 @@ ${transcript.map((c) => {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${esc(title)}</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
 :root{
   --paper:#faf8f4;--paper2:#f2ede6;--paper3:#e8e2d9;
@@ -310,7 +309,7 @@ ${transcript.map((c) => {
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);font-size:16px;line-height:1.7}
+body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background:var(--paper);color:var(--ink);font-size:16px;line-height:1.7}
 
 /* NAV */
 nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(250,248,244,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 2rem}
@@ -412,7 +411,7 @@ hr.divider{border:none;border-top:1px solid var(--border);max-width:1100px;margi
 .seg-entry:hover{box-shadow:0 8px 40px rgba(0,0,0,.08)}
 .seg-step-header{display:flex;align-items:center;gap:12px;padding:14px 24px;background:var(--paper2);border-bottom:1px solid var(--border)}
 .step-num{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal-dark);background:var(--teal-light);padding:3px 10px;border-radius:20px}
-.step-ts{font-family:'DM Sans',monospace;font-size:13px;font-weight:700;color:var(--gold-dark);background:var(--gold-light);padding:3px 10px;border-radius:20px}
+.step-ts{font-family:ui-monospace,'Cascadia Mono','Segoe UI Mono',Menlo,Consolas,monospace;font-size:13px;font-weight:700;color:var(--gold-dark);background:var(--gold-light);padding:3px 10px;border-radius:20px}
 .seg-body{display:grid;grid-template-columns:1fr 1fr;min-height:320px}
 .seg-media-col{position:relative;background:var(--paper3);overflow:hidden}
 .seg-content-col{padding:24px 28px;display:flex;flex-direction:column;gap:16px;border-left:1px solid var(--border)}
