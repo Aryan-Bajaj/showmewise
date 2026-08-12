@@ -1,6 +1,6 @@
 # VideoDoc Desktop
 
-The desktop version bundles the llama.cpp engine with the gemma 3 4B vision model, so it runs fully offline with a single AI backend and nothing to install beyond copying a folder.
+The desktop version bundles the llama.cpp engine with the gemma 3 4B vision model, so the writing AI runs offline with a single backend and nothing to install beyond copying a folder. The first transcription still fetches the Whisper speech model from Hugging Face once, after which it is cached and the app needs no network.
 
 Setup, daily use and the folder layout are documented in [desktop/README.md](desktop/README.md).
 

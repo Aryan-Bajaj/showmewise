@@ -93,10 +93,10 @@ Version 4 is the accuracy and trust release. It was built by testing against a r
 * **No more overheard names in the guide.** Meeting recordings burn the speaker's name into the video caption; that name, and anyone's spoken name, is now kept out of step titles and summaries.
 * **Smart screenshots.** Screenshots auto-zoom and crop to the exact spot the action happened, with the region highlighted, instead of showing the whole screen.
 * **Sharper vision by default.** The desktop build now ships the larger gemma 3 12B vision model, a meaningful accuracy jump over 4B for dense enterprise UIs at the cost of a slower first read. A 4B option remains for lower-spec machines.
-* **One-click installer for offline deployment.** `desktop/VideoDoc.iss` builds a self-contained Windows installer (engine + model + app, no internet needed at install or run time, no admin rights required), with a silent-install switch for enterprise deployment tools. See [desktop/README.md](desktop/README.md).
+* **One-click installer for offline deployment.** `desktop/VideoDoc.iss` builds a self-contained Windows installer (engine + model + app, no internet needed to install, no admin rights required), with a silent-install switch for enterprise deployment tools. The only download left at run time is the Whisper speech model on the first transcription, cached from then on. See [desktop/README.md](desktop/README.md).
 * **Two builds.**
   * `npm run build:netlify` builds the hosted web version, with per-video size and length limits so a huge file cannot crash a visitor's laptop (limits are set in `.env.netlify`).
-  * `npm run build:desktop` builds the fully offline desktop version, which bundles the llama.cpp engine with a gemma 3 vision model (12B by default, 4B optional). See [desktop/README.md](desktop/README.md).
+  * `npm run build:desktop` builds the desktop version, which bundles the llama.cpp engine with a gemma 3 vision model (12B by default, 4B optional). See [desktop/README.md](desktop/README.md).
 
 ---
 
@@ -584,9 +584,19 @@ The hosted build enforces a per-video size and length limit (default 1000 MB / 3
 | Extracted frames | Browser RAM. Embedded in export file. |
 | Transcript text | Sent to Ollama (localhost) or WebLLM (browser). Never to any server. |
 | Exported document | Generated in your browser. Saved to your Downloads folder. |
-| **External requests** | **Zero.** Nothing is sent to any external server at runtime. |
+| **Your content leaving the machine** | **Never.** No video, audio, frame, transcript or document is uploaded anywhere. |
 
-The only network request VideoDoc ever makes is to `localhost:11434` (your own Ollama instance) and to download the Whisper model from HuggingFace on first run (cached after that).
+**What does leave the machine, and when.** VideoDoc downloads things, it never uploads them. The list is short and complete:
+
+| Request | When | Why |
+|---|---|---|
+| `huggingface.co` | First transcription only, then cached in the browser | Downloads the Whisper speech model (about 970 MB). Nothing about your audio is sent, the file is simply fetched. |
+| `localhost:11434` or `localhost:8080` | Every annotation | Your own Ollama or the bundled engine, on your own machine. |
+| `perplexity.ai` | Only if you click "Search the web" in Vid Chat | Opens a normal web search in a new tab with the question you typed. Nothing else goes with it. |
+
+Everything else runs from files served by the app itself. The OCR engine, the English OCR data and the ONNX runtime that Whisper needs are all bundled and served from the same origin as the page, so no CDN sees a request when you read a screen or transcribe audio. There are no webfonts, no analytics and no error reporting. Exported documents style themselves with the fonts already on the reader's computer, so opening one calls nobody.
+
+That leaves exactly one download that matters: the Whisper model, once. Do that first transcription on a connected machine and the desktop build then runs with the network switched off.
 
 ---
 

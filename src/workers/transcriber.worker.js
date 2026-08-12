@@ -1,4 +1,9 @@
-import { pipeline } from '@huggingface/transformers'
+import { pipeline, env } from '@huggingface/transformers'
+
+// transformers.js points the ONNX runtime at jsdelivr by default. Serve those
+// two files from our own origin instead, so running a transcript does not call
+// out to a CDN. The build copies them into /ort (see vite.config.js).
+if (env.backends?.onnx?.wasm) env.backends.onnx.wasm.wasmPaths = '/ort/'
 
 let pipe = null
 let cancelled = false

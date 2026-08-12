@@ -204,7 +204,15 @@ export default function useOCR() {
     if (!frames?.length) return { frameTexts: [], tools: detectTools(transcriptText), primaryApp: detectPrimaryApp(transcriptText), sceneCuts: [] }
 
     const { createWorker } = await import("tesseract.js")
-    const worker = await createWorker("eng")
+    // Point the engine, the worker and the English data at our own origin.
+    // Left to itself tesseract.js downloads all three from jsdelivr on first
+    // use, which is both a call to a third party and a reason OCR would fail
+    // on an offline machine. The build copies them into /tesseract.
+    const worker = await createWorker("eng", 1, {
+      workerPath: "/tesseract/worker.min.js",
+      corePath: "/tesseract",
+      langPath: "/tesseract/lang",
+    })
     // Keep spacing between words/columns — helps read tables, ribbons and menus.
     try { await worker.setParameters({ preserve_interword_spaces: "1" }) } catch { /* older tesseract.js */ }
 

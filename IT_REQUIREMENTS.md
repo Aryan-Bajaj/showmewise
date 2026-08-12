@@ -1,8 +1,14 @@
 # VideoDoc Desktop — IT Requirements & Approval Sheet
 
 **What it is:** a desktop app that turns a screen recording into step-by-step
-documentation. The AI runs **entirely on the user's computer** (bundled, offline).
-There is **no cloud, no account, no data upload**.
+documentation. The AI runs **entirely on the user's computer**. There is **no
+cloud, no account, no data upload**.
+
+**The one outbound connection:** the first transcription downloads the Whisper
+speech model from `huggingface.co` (about 970 MB), which the browser then
+caches. Everything after that, and everything else in the app, runs locally.
+If that download is not acceptable on your network, see the air-gapped note
+below.
 
 ---
 
@@ -57,8 +63,12 @@ There is **no cloud, no account, no data upload**.
 - The AI talks to a **localhost (127.0.0.1) loopback** server inside the app — this
   is the computer talking to itself; it needs **no inbound firewall rule** and is not
   reachable from the network.
-- For a **fully air-gapped / offline** deployment: choose the **model-bundled
-  installer** and **disable auto-update** → the app makes **zero network connections, ever.**
+- For an **air-gapped / offline** deployment: choose the **model-bundled installer**
+  and **disable auto-update**. The writing AI, the OCR engine and the OCR language
+  data are all bundled and served by the app itself, so the only connection left is
+  the one-time Whisper speech-model download described above. Let that download
+  happen once on a connected machine and the app then runs with **no network
+  connections at all**.
 - The bundled local-inference binary (`llama-server.exe`) is open-source
   (llama.cpp). It may need to be **allow-listed in EDR/antivirus** (standard for any
   new signed app running a local process).
