@@ -24,8 +24,6 @@ async function load(onProgress) {
     // (~970MB one-time download) and slower than base, but far more complete.
     pipe = await pipeline('automatic-speech-recognition', 'Xenova/whisper-small.en', {
       dtype: 'fp32',
-      chunk_length_s: 30,
-      stride_length_s: 5,
       progress_callback: onProgress,
     })
   }
@@ -66,7 +64,9 @@ self.onmessage = async ({ data }) => {
       const slice = audio.subarray(start, end)
       const offset = start / sr
 
-      const result = await asr(slice, { return_timestamps: true })
+      // chunking options belong on the call: Whisper only hears 30 s at a time,
+      // so without them each window stopped after its first 30 seconds
+      const result = await asr(slice, { return_timestamps: true, chunk_length_s: 30, stride_length_s: 5 })
 
       for (const c of (result.chunks ?? [])) {
         const ts = c.timestamp ?? [null, null]
