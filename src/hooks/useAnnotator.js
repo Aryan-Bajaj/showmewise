@@ -52,6 +52,9 @@ function ocrSimilarity(a, b) {
 }
 const SCENE_SIM_THRESHOLD = 0.35 // below this overlap the screen "changed"
 const SCENE_MIN_GAP = 12         // s — a fast transition burst is ONE change
+// Short videos pack a step every few seconds, so the spacing shrinks with length
+// (a 1-minute how-to gets ~4 s, anything past 3 minutes keeps the full 12 s).
+const minGapFor = (span) => Math.min(SCENE_MIN_GAP, Math.max(4, span / 15))
 
 // ── Speech activity boundaries — the EARS of segmentation ──
 // One LLM call over the timestamped transcript proposes where new activities
@@ -83,7 +86,8 @@ async function speechBoundaries(chunks, maxT, aiMode, model, onStatus) {
       .sort((x, y) => x - y)
       .slice(0, 30)
     const spaced = []
-    for (const b of bs) if (!spaced.length || b - spaced[spaced.length - 1] >= SCENE_MIN_GAP) spaced.push(b)
+    const gap = minGapFor(maxT)
+    for (const b of bs) if (!spaced.length || b - spaced[spaced.length - 1] >= gap) spaced.push(b)
     return spaced
   } catch { return [] }
 }
@@ -96,7 +100,7 @@ function sceneBoundaries(ocrFrameTexts, t0, maxT) {
   const cuts = []
   for (let i = 1; i < fr.length; i++) {
     if (ocrSimilarity(fr[i - 1].text, fr[i].text) < SCENE_SIM_THRESHOLD) {
-      if (!cuts.length || fr[i].timestamp - cuts[cuts.length - 1] >= SCENE_MIN_GAP) {
+      if (!cuts.length || fr[i].timestamp - cuts[cuts.length - 1] >= minGapFor(maxT - t0)) {
         cuts.push(fr[i].timestamp)
       }
     }
@@ -114,6 +118,11 @@ const MIN_WINDOW = 25, MAX_WINDOW = 70
 function buildSegments(ocrFrameTexts, maxT, shareStart, sceneCuts = [], speechCuts = []) {
   const t0 = shareStart ?? 0
   const span = maxT - t0
+  // Window sizes scale down for short recordings: the 25-70 s range suits long
+  // sessions, but it squeezed a 1-minute how-to into a single step.
+  const MIN_WINDOW = Math.min(25, Math.max(6, span / 10))
+  const MAX_WINDOW = Math.min(70, Math.max(15, span / 4))
+  const SCENE_MIN_GAP = minGapFor(span)
   if (span <= MIN_WINDOW) return span > 1 ? [[t0, maxT]] : []
   // Pixel cuts: clamp into range, enforce spacing (a fast transition burst = one change).
   const pixel = []
@@ -134,7 +143,7 @@ function buildSegments(ocrFrameTexts, maxT, shareStart, sceneCuts = [], speechCu
   if (cuts?.length) {
     edges = [t0, ...cuts, maxT]
   } else {
-    const step = Math.min(MAX_WINDOW, Math.max(35, span / 50))
+    const step = Math.min(MAX_WINDOW, Math.max(Math.min(35, MAX_WINDOW), span / 50))
     edges = [t0]
     for (let t = t0 + step; t < maxT - 1; t += step) edges.push(t)
     edges.push(maxT)
@@ -301,8 +310,15 @@ export default function useAnnotator() {
         let idRaw = null
         try { idRaw = await idCall(idImages) }
         catch { idRaw = await idCall(undefined) } // vision unavailable → identify from text
-        return parseAppName(idRaw)
+        return grounded(parseAppName(idRaw))
       } catch { return "" }
+    }
+    // Same rule as the steps: an app name must be backed by the screen or the
+    // audio. A look-alike guess (a generic workspace read as a famous brand) is dropped.
+    const evidence = [...(ocrFrameTexts || []).map((f) => f.text || ""), ...windows.map((w) => w.text || "")].join(" ").toLowerCase()
+    const grounded = (name) => {
+      const words = (name || "").toLowerCase().split(/[^a-z0-9]+/).filter((t) => t.length >= 4)
+      return words.some((t) => evidence.includes(t)) ? name : ""
     }
 
     let appName = ""
