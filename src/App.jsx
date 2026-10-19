@@ -262,7 +262,9 @@ export default function App() {
             const avgMs = (Date.now() - started) / i
             etaMs = (total - i) * avgMs
           }
-          updateStep('annotate', { step: i + 1, total, etaMs: etaMs > 0 ? etaMs : null })
+          // replace the earlier status line, so it never shows a finished stage
+          updateStep('annotate', { step: i + 1, total, etaMs: etaMs > 0 ? etaMs : null,
+            detail: `Writing part ${i + 1} of ${total}: the AI looks at the screen and the narration of this part` })
         },
         // model-loading status (WebLLM): drive the Load AI Model step
         (msg, pct, phase) => {
