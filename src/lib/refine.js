@@ -4,6 +4,7 @@
 //   2. Folds adjacent steps that now share a title, merging their actions.
 // Per-step fact-checking (Self-verify) lives in the annotator loop, where each
 // window's evidence + screenshot are still available.
+import { keyTerms, missingTerms } from "./coverage"
 import { callOllama, callWebLLM, callLocalEngine, cleanLLMOutput, WEBLLM_NO_VISION } from "./llm"
 import {
   CONSOLIDATE_TITLE_PROMPT, VERIFY_PROMPT, buildVerifyPrompt,
@@ -93,9 +94,13 @@ export async function verifyProcedure(docs, aiMode, model, useVision, onStatus, 
     // big gaps in the procedure. (Obvious junk is still removed by the logistics
     // filter and the grounding rules at draft time.)
     if (parsed.skip || (!parsed.steps?.length && !parsed.title)) { out.push(d); continue }
+    // the check may tidy wording, never lose a fact: if its version drops a
+    // code, number or named field that the draft had, the draft actions stay
+    const terms = keyTerms(d.text, d.ocrText)
+    const loses = parsed.steps?.length && missingTerms({ steps: parsed.steps }, terms).length > missingTerms({ steps: d.step.steps }, terms).length
     d.step = {
       title: parsed.title || d.step.title,
-      steps: parsed.steps?.length ? parsed.steps : d.step.steps,
+      steps: parsed.steps?.length && !loses && parsed.steps.length >= (d.step.steps?.length || 0) - 1 ? parsed.steps : d.step.steps,
       result: parsed.result || d.step.result,
       note: parsed.note || d.step.note,
     }

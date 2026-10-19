@@ -23,7 +23,7 @@ function blobToDataURL(blob) {
 }
 
 // Record the video from `start` to `end` (real-time) into a WebM blob.
-function recordRange(video, canvas, ctx, start, end, fps, mime, seek, overlay = null) {
+function recordRange(video, canvas, ctx, start, end, fps, mime, seek, overlay = null, C = { x: 0, y: 0, w: video.videoWidth, h: video.videoHeight }) {
   return new Promise((resolve, reject) => {
     const stream = canvas.captureStream(fps)
     const chunks = []
@@ -39,7 +39,7 @@ function recordRange(video, canvas, ctx, start, end, fps, mime, seek, overlay = 
     const draw = () => {
       if (!drawing) return
       try {
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+        ctx.drawImage(video, C.x, C.y, C.w, C.h, 0, 0, canvas.width, canvas.height)
         overlay?.(ctx, video.currentTime)
       } catch { /* frame not ready */ }
       requestAnimationFrame(draw)
@@ -75,9 +75,11 @@ export default function useClipMaker() {
     video.playsInline = true
     await new Promise((res) => video.addEventListener("loadedmetadata", res, { once: true }))
 
-    const scale = Math.min(1, maxW / video.videoWidth)
-    const W = Math.max(2, Math.round(video.videoWidth * scale))
-    const H = Math.max(2, Math.round(video.videoHeight * scale))
+    // the same cut as the frames (shared screen only), so markers line up
+    const C = opts.crop || { x: 0, y: 0, w: video.videoWidth, h: video.videoHeight }
+    const scale = Math.min(1, maxW / C.w)
+    const W = Math.max(2, Math.round(C.w * scale))
+    const H = Math.max(2, Math.round(C.h * scale))
     const canvas = document.createElement("canvas")
     canvas.width = W; canvas.height = H
     const ctx = canvas.getContext("2d")
@@ -109,10 +111,10 @@ export default function useClipMaker() {
       }
       if (end - start < 1) continue
       // Frames (and so the marker boxes) were captured at the extractor's width.
-      const srcW = Math.round(video.videoWidth * Math.min(1, 1280 / video.videoWidth))
+      const srcW = Math.round(C.w * Math.min(1, 1920 / C.w))
       const overlay = markerOverlay(shots, srcW, W, H)
       try {
-        const blob = await recordRange(video, canvas, ctx, start, end, fps, mime, seek, overlay)
+        const blob = await recordRange(video, canvas, ctx, start, end, fps, mime, seek, overlay, C)
         if (blob && blob.size) clips.set(doc.timestamp ?? center, await blobToDataURL(blob))
       } catch { /* skip this clip */ }
     }

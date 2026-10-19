@@ -51,7 +51,7 @@ export default function ExportBar({ annotatedDocs, transcriptChunks, videoName, 
         // Build a short, sharp WebM clip per step — browser-only, base64-inlined.
         let clips = new Map()
         if (videoFile && docs.length) {
-          clips = await makeClips(videoFile, docs, (i, t) => setGifMsg(`Building step clips ${i}/${t}… (keep this tab focused)`))
+          clips = await makeClips(videoFile, docs, (i, t) => setGifMsg(`Building step clips ${i}/${t}… (keep this tab focused)`), { crop: frames?.[0]?.crop })
           setGifMsg(null)
         }
         await exportHTML(docs, name, frames, { ...meta, clips, mermaidSvg })
@@ -65,7 +65,7 @@ export default function ExportBar({ annotatedDocs, transcriptChunks, videoName, 
         if (videoFile && docs.length) {
           gifs = await makeGifs(videoFile, docs,
             (i, t) => setGifMsg(`Building step animations ${i}/${t}… (keep this tab focused)`),
-            { window: 4, fps: 4, maxW: 480, colors: 128 })
+            { window: 4, fps: 4, maxW: 480, colors: 128, crop: frames?.[0]?.crop })
           setGifMsg(null)
         }
         await exportDOCX(docs, name, { ...meta, gifs })

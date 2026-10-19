@@ -44,9 +44,11 @@ export default function useGifMaker() {
     video.muted = true
     await new Promise((res) => video.addEventListener("loadedmetadata", res, { once: true }))
 
-    const scale = Math.min(1, maxW / video.videoWidth)
-    const W = Math.max(2, Math.round(video.videoWidth * scale))
-    const H = Math.max(2, Math.round(video.videoHeight * scale))
+    // the same cut as the frames (shared screen only), so markers line up
+    const C = opts.crop || { x: 0, y: 0, w: video.videoWidth, h: video.videoHeight }
+    const scale = Math.min(1, maxW / C.w)
+    const W = Math.max(2, Math.round(C.w * scale))
+    const H = Math.max(2, Math.round(C.h * scale))
     const px = W * H
     const canvas = document.createElement("canvas")
     canvas.width = W; canvas.height = H
@@ -77,7 +79,7 @@ export default function useGifMaker() {
         start = Math.max(0, lo - 1, Math.min(start, shots[0].ts - 1.2))
         end = Math.min(dur, hi + 1, Math.max(end, shots[shots.length - 1].ts + 3), start + 24)
       }
-      const srcW = Math.round(video.videoWidth * Math.min(1, 1280 / video.videoWidth))
+      const srcW = Math.round(C.w * Math.min(1, 1920 / C.w))
       const overlay = markerOverlay(shots, srcW, W, H)
       const times = []
       for (let t = start; t <= end; t += 1 / fps) times.push(t)
@@ -87,7 +89,7 @@ export default function useGifMaker() {
       const merged = [] // { data, delay, marked }
       for (const t of times) {
         await seek(t)
-        ctx.drawImage(video, 0, 0, W, H)
+        ctx.drawImage(video, C.x, C.y, C.w, C.h, 0, 0, W, H)
         overlay?.(ctx, t)
         const on = !!overlay && shots.some((s) => t >= s.ts - 0.6 && t < s.ts + 4) // palette sample hint
         const data = new Uint8Array(ctx.getImageData(0, 0, W, H).data.buffer.slice(0))

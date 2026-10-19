@@ -79,22 +79,36 @@ function loadImage(src) {
   })
 }
 
-async function fingerprint(src, ctx, size = 16) {
+// Two views of a frame: a 16x16 brightness grid (a dialog dims the screen) and
+// a 48x27 grid normalised to its own contrast, which still sees a new screen in a
+// dark, low-contrast app where the brightness barely moves.
+const luma = (d, i) => 0.299 * d[i * 4] + 0.587 * d[i * 4 + 1] + 0.114 * d[i * 4 + 2]
+async function fingerprint(src, ctx) {
   const img = await loadImage(src)
-  ctx.clearRect(0, 0, size, size)
-  ctx.drawImage(img, 0, 0, size, size)
-  const { data } = ctx.getImageData(0, 0, size, size)
-  const fp = new Float32Array(size * size)
-  for (let i = 0; i < size * size; i++) {
-    fp[i] = 0.299 * data[i * 4] + 0.587 * data[i * 4 + 1] + 0.114 * data[i * 4 + 2]
+  const grid = (w, h) => {
+    ctx.clearRect(0, 0, 48, 27)
+    ctx.drawImage(img, 0, 0, w, h)
+    const { data } = ctx.getImageData(0, 0, w, h)
+    const g = new Float32Array(w * h)
+    for (let i = 0; i < w * h; i++) g[i] = luma(data, i)
+    return g
   }
-  return fp
+  const raw = grid(16, 16)
+  const n = grid(48, 27)
+  let m = 0, v = 0
+  for (const x of n) m += x
+  m /= n.length
+  for (const x of n) v += (x - m) ** 2
+  const sd = Math.sqrt(v / n.length) + 1e-6
+  for (let i = 0; i < n.length; i++) n[i] = (n[i] - m) / sd
+  return { raw, n }
 }
 
+const meanAbs = (a, b) => { let s = 0; for (let i = 0; i < a.length; i++) s += Math.abs(a[i] - b[i]); return s / a.length }
+// >= 1 means "a new screen": 8 brightness levels, or 0.35 of the normalised grid
+// (measured on a dark-theme recording: catches each new transaction and popup)
 function fpDiff(a, b) {
-  let s = 0
-  for (let i = 0; i < a.length; i++) s += Math.abs(a[i] - b[i])
-  return s / a.length
+  return Math.max(meanAbs(a.raw, b.raw) / 8, meanAbs(a.n, b.n) / 0.35)
 }
 
 // Returns { keyframes, sceneCuts }. sceneCuts = timestamps where the SCREEN
@@ -103,18 +117,18 @@ function fpDiff(a, b) {
 // The annotator uses these as step boundaries so steps align with real events.
 // The OCR budget SCALES with video length (one keyframe per ~40s, capped) so a
 // 90-minute recording is read as densely per minute as a 20-minute one.
-async function selectKeyframes(frames, maxKeyframes = null) {
+export async function selectKeyframes(frames, maxKeyframes = null) {
   if (!frames?.length) return { keyframes: [], sceneCuts: [] }
   if (maxKeyframes == null) {
     const dur = frames[frames.length - 1].timestamp || 0
-    maxKeyframes = Math.min(140, Math.max(48, Math.round(dur / 40)))
+    maxKeyframes = Math.min(180, Math.max(48, Math.round(dur / 9)))
   }
 
   // Fingerprint ALWAYS (even when all frames fit the keyframe budget) — the
   // scene cuts matter to segmentation regardless of how many frames we OCR.
   const cands = sampleFrames(frames, Math.min(frames.length, 240))
   const canvas = document.createElement("canvas")
-  canvas.width = 16; canvas.height = 16
+  canvas.width = 48; canvas.height = 27
   const ctx = canvas.getContext("2d", { willReadFrequently: true })
 
   const fps = []
@@ -123,7 +137,7 @@ async function selectKeyframes(frames, maxKeyframes = null) {
   }
   const diffs = cands.map((_, i) => (i > 0 && fps[i] && fps[i - 1]) ? fpDiff(fps[i], fps[i - 1]) : 0)
 
-  const THRESHOLD = 8          // avg luminance change that counts as a "new screen"
+  const THRESHOLD = 1          // fpDiff score that counts as a "new screen"
   const sceneCuts = cands.filter((_, i) => diffs[i] >= THRESHOLD).map((f) => f.timestamp)
 
   if (frames.length <= maxKeyframes) return { keyframes: frames, sceneCuts }
@@ -134,6 +148,21 @@ async function selectKeyframes(frames, maxKeyframes = null) {
 
   for (const i of byChange) { if (chosen.size >= maxKeyframes) break; if (diffs[i] >= THRESHOLD) chosen.add(i) }
   for (const i of byChange) { if (chosen.size >= Math.min(maxKeyframes, MIN_COVERAGE)) break; chosen.add(i) }
+  // A screen that stays while values are typed into it (a long form) has no
+  // "change", yet its fields fill up: read one frame at least every 10 s.
+  const GAP = 10
+  for (;;) {
+    if (chosen.size >= maxKeyframes) break
+    const idx = [...chosen].sort((a, b) => a - b)
+    idx.push(cands.length - 1)
+    let bi = -1, bg = GAP
+    for (let j = 0; j + 1 < idx.length; j++) {
+      const g = cands[idx[j + 1]].timestamp - cands[idx[j]].timestamp
+      if (g > bg && idx[j + 1] - idx[j] > 1) { bg = g; bi = j }
+    }
+    if (bi < 0) break
+    chosen.add(Math.round((idx[bi] + idx[bi + 1]) / 2))
+  }
 
   return { keyframes: [...chosen].sort((a, b) => a - b).map((i) => cands[i]), sceneCuts }
 }
@@ -163,7 +192,7 @@ function tileNameTokens(line) {
 // frame is mostly low-confidence (garbled, unreadable screen), drop it entirely so
 // the model never tries to document noise like "EERNGRIEES". Defensive: falls back
 // to the raw text if the structured output isn't available.
-function cleanOCR(data, minConf = 55, nameSink = null) {
+export function cleanOCR(data, minConf = 55, nameSink = null) {
   try {
     const blocks = data?.blocks
     if (Array.isArray(blocks) && blocks.length) {
@@ -172,7 +201,8 @@ function cleanOCR(data, minConf = 55, nameSink = null) {
       for (const b of blocks) for (const p of (b.paragraphs || [])) for (const l of (p.lines || [])) {
         const ws = (l.words || []).filter((w) => (w.text || "").trim())
         total += ws.length
-        const good = ws.filter((w) => (w.confidence ?? 100) >= minConf)
+        // icons read as '>', '&', '%' are not text; a word with letters or a digit is
+        const good = ws.filter((w) => (w.confidence ?? 100) >= minConf && /[A-Za-z]{2,}|\d/.test(w.text))
         kept += good.length
         if (good.length) lines.push(good.map((w) => w.text.trim()).join(" "))
       }
@@ -185,7 +215,9 @@ function cleanOCR(data, minConf = 55, nameSink = null) {
           if (nameSink) for (const n of tileNameTokens(l)) nameSink.add(n)
         } else content.push(l)
       }
-      if (total && kept < total * 0.35) return "" // mostly garbage → drop this frame
+      // mostly garbage → drop this frame, unless it still holds real text (a dark
+      // screen full of icons can be 70% noise around 30 readable field names)
+      if (total && kept < total * 0.35 && kept < 12) return ""
       const out = content.join("\n").trim()
       if (out) return out
     }
@@ -200,7 +232,7 @@ function cleanOCR(data, minConf = 55, nameSink = null) {
 
 // Confident word boxes (image pixels) so a step's "click 'New dashboard'" can be
 // pinned to the exact spot on the screenshot. Tile labels are left out.
-function wordBoxes(data, minConf = 55) {
+function wordBoxes(data, minConf = 55, k = 1) {
   const out = []
   try {
     for (const b of data?.blocks || []) for (const p of (b.paragraphs || [])) for (const l of (p.lines || [])) {
@@ -209,7 +241,7 @@ function wordBoxes(data, minConf = 55) {
       for (const w of l.words || []) {
         const t = (w.text || "").trim()
         if (!t || (w.confidence ?? 100) < minConf || !w.bbox) continue
-        out.push({ t, x0: w.bbox.x0, y0: w.bbox.y0, x1: w.bbox.x1, y1: w.bbox.y1 })
+        out.push({ t, x0: w.bbox.x0 / k, y0: w.bbox.y0 / k, x1: w.bbox.x1 / k, y1: w.bbox.y1 / k })
       }
     }
   } catch { /* boxes are a bonus */ }
@@ -257,6 +289,9 @@ function findButtons(img) {
   }
   return out
 }
+
+// Tesseract's own default, set explicitly so a helper can always restore it
+const PAGE_MODE = "6"
 
 async function buttonWords(worker, src) {
   const img = await loadImage(src)
@@ -312,7 +347,9 @@ async function buttonWords(worker, src) {
       } catch { /* unreadable button */ }
     }
   } finally {
-    await worker.setParameters({ tessedit_pageseg_mode: "3" })
+    // back to the page mode the frames are read in (6). Restoring "3" here made
+    // every later frame read almost nothing (0 words where 6 reads 16 to 24).
+    await worker.setParameters({ tessedit_pageseg_mode: PAGE_MODE })
   }
   return words
 }
@@ -331,6 +368,42 @@ function mergeWords(base, extra, scale) {
   return out
 }
 
+// Tesseract reads dark text on a light page. A dark-theme app (light text on a
+// dark fill) read as is gave ~4 words a frame; turned to grey, inverted, contrast
+// stretched and enlarged 2x it gave 30 to 50 (account numbers, field names,
+// statuses). Light screens are read exactly as before.
+export async function prepareForOCR(src) {
+  const img = await loadImage(src)
+  const probe = document.createElement("canvas")
+  probe.width = 64; probe.height = 36
+  const pc = probe.getContext("2d", { willReadFrequently: true })
+  pc.drawImage(img, 0, 0, 64, 36)
+  const pd = pc.getImageData(0, 0, 64, 36).data
+  const hist = new Array(256).fill(0)
+  let mean = 0
+  for (let i = 0; i < 64 * 36; i++) { const l = Math.round(luma(pd, i)); hist[l]++; mean += l }
+  mean /= 64 * 36
+  if (mean >= 110) return { src, k: 1 }
+  // 1st and 99th percentile of the brightness, used to stretch the contrast
+  const pct = (q) => { let c = 0; for (let l = 0; l < 256; l++) { c += hist[l]; if (c >= q * 64 * 36) return l } return 255 }
+  const lo = pct(0.01), hi = Math.max(lo + 1, pct(0.99))
+  const k = img.width < 2200 ? 2 : 1
+  const c = document.createElement("canvas")
+  c.width = img.width * k; c.height = img.height * k
+  const ctx = c.getContext("2d", { willReadFrequently: true })
+  ctx.imageSmoothingQuality = "high"
+  ctx.drawImage(img, 0, 0, c.width, c.height)
+  const id = ctx.getImageData(0, 0, c.width, c.height)
+  const d = id.data
+  for (let i = 0; i < d.length; i += 4) {
+    const l = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]
+    const v = 255 - Math.max(0, Math.min(255, ((l - lo) * 255) / (hi - lo)))
+    d[i] = d[i + 1] = d[i + 2] = v
+  }
+  ctx.putImageData(id, 0, 0)
+  return { src: c, k }
+}
+
 export default function useOCR() {
   // frames: [{timestamp, imageData}], transcriptText: string (for extra tool hints)
   const runOCR = useCallback(async (frames, transcriptText = "", onProgress) => {
@@ -347,7 +420,7 @@ export default function useOCR() {
       langPath: "/tesseract/lang",
     })
     // Keep spacing between words/columns — helps read tables, ribbons and menus.
-    try { await worker.setParameters({ preserve_interword_spaces: "1" }) } catch { /* older tesseract.js */ }
+    try { await worker.setParameters({ preserve_interword_spaces: "1", tessedit_pageseg_mode: PAGE_MODE }) } catch { /* older tesseract.js */ }
 
     const { keyframes, sceneCuts } = await selectKeyframes(frames)
     const frameTexts = []
@@ -359,12 +432,13 @@ export default function useOCR() {
       try {
         // Request word/line confidence so we can drop garbled, low-confidence OCR
         // (e.g. unreadable enterprise-UI text) instead of feeding it to the model.
-        const { data } = await worker.recognize(keyframes[i].imageData, {}, { text: true, blocks: true })
+        const { src, k } = await prepareForOCR(keyframes[i].imageData)
+        const { data } = await worker.recognize(src, {}, { text: true, blocks: true })
         const frameNames = new Set()
         const text = cleanOCR(data, 55, frameNames).replace(/\s+\n/g, "\n").trim()
         for (const n of frameNames) nameCounts.set(n, (nameCounts.get(n) || 0) + 1)
         if (text) {
-          let words = wordBoxes(data)
+          let words = wordBoxes(data, 55, k)
           try { words = mergeWords(words, await buttonWords(worker, keyframes[i].imageData), 1) } catch { /* first pass boxes are enough */ }
           frameTexts.push({ timestamp: keyframes[i].timestamp, text, words })
           combined += text + "\n"
@@ -386,10 +460,17 @@ export default function useOCR() {
 }
 
 // Find the OCR text captured nearest a given timestamp (for annotation context).
-export function ocrNear(frameTexts, ts, windowSecs = 8) {
+// Each distinct line once: several frames of the same screen would otherwise
+// fill the budget with repeats.
+export function ocrNear(frameTexts, ts, windowSecs = 8, maxChars = 400) {
   if (!frameTexts?.length) return ""
-  const hits = frameTexts
-    .filter((f) => Math.abs(f.timestamp - ts) <= windowSecs)
-    .map((f) => f.text)
-  return hits.join(" ").slice(0, 400)
+  const seen = new Set(), lines = []
+  for (const f of frameTexts) {
+    if (Math.abs(f.timestamp - ts) > windowSecs) continue
+    for (const l of (f.text || "").split("\n")) {
+      const k = l.trim().toLowerCase()
+      if (k && !seen.has(k)) { seen.add(k); lines.push(l.trim()) }
+    }
+  }
+  return lines.join("\n").slice(0, maxChars)
 }

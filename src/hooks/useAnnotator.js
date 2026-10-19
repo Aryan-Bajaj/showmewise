@@ -9,6 +9,7 @@ import {
 import { callOllama, callWebLLM, callLocalEngine, WEBLLM_NO_VISION } from "../lib/llm"
 import { smartCrop } from "../lib/smartCrop"
 import { ocrNear } from "./useOCR"
+import { keyTerms, missingTerms, worthRetry, COVERAGE_ADDENDUM } from "../lib/coverage"
 
 // ── Screen-share start detection ──
 // A meeting recording often opens with minutes of webcams only — transcript but
@@ -19,7 +20,7 @@ import { ocrNear } from "./useOCR"
 // frame can't open the gate early. No rich frames at all → gate off (a video
 // where OCR failed everywhere should still be documented from the transcript).
 const RICH_OCR_LEN = 60
-function screenShareStart(ocrFrameTexts, participants = []) {
+export function screenShareStart(ocrFrameTexts, participants = []) {
   // "Rich" must mean a real application screen — NOT a webcam frame whose only text
   // is the burned-in speaker-name captions ("Lastname, Firstname (ORG, CODE)"),
   // which alone can exceed 60 chars and used to open the gate at second 10 over a
@@ -115,7 +116,7 @@ function sceneBoundaries(ocrFrameTexts, t0, maxT) {
 //   3. Fixed time slicing — last resort.
 // Long segments split (dense work → separate steps), tiny ones merged.
 const MIN_WINDOW = 25, MAX_WINDOW = 70
-function buildSegments(ocrFrameTexts, maxT, shareStart, sceneCuts = [], speechCuts = []) {
+export function buildSegments(ocrFrameTexts, maxT, shareStart, sceneCuts = [], speechCuts = []) {
   const t0 = shareStart ?? 0
   const span = maxT - t0
   // Window sizes scale down for short recordings: the 25-70 s range suits long
@@ -197,6 +198,16 @@ function pickFrame(frames, ocrFrameTexts, a, b, center) {
   return nearestFrame(frames, bestTs ?? center)
 }
 
+// Up to 3 frames for one part: near its start, the most readable one, near
+// its end, in time order. One picture of a 60 s part hid every click between.
+function pickFrames(frames, best, a, b) {
+  const inWin = (frames || []).filter((f) => f.timestamp >= a && f.timestamp < b)
+  if (inWin.length <= 3) return inWin.length ? inWin : best ? [best] : []
+  const at = (t) => nearestFrame(inWin, t)
+  const picks = [at(a + (b - a) * 0.12), best || at((a + b) / 2), at(b - (b - a) * 0.12)]
+  return [...new Map(picks.filter(Boolean).map((f) => [f.timestamp, f])).values()].sort((x, y) => x.timestamp - y.timestamp)
+}
+
 // Flatten a parsed procedure step back into plain text — used by the doc chat /
 // RAG so it can still search the procedure content.
 function stepToText(step) {
@@ -273,7 +284,7 @@ export default function useAnnotator() {
       const text = cleanTranscriptText((chunks || [])
         .filter((c) => { const s = c.timestamp?.[0] ?? 0; return s >= a && s < b })
         .map((c) => c.text.trim()).join(' ').trim())
-      const ocr = ocrNear(ocrFrameTexts, center, Math.max((b - a) / 2 + 6, 12))
+      const ocr = ocrNear(ocrFrameTexts, center, Math.max((b - a) / 2 + 6, 12), 1500)
       // Keep the window when ANY evidence channel is live. OCR regularly fails
       // wholesale on blurry meeting recordings, so an empty `ocr` must NEVER
       // drop a window on its own — with vision the model still SEES the screen,
@@ -281,6 +292,11 @@ export default function useAnnotator() {
       if (!text && !ocr && !useVision) continue
       windows.push({ a, b, center, text, ocr })
     }
+
+    // Every part that is dropped says why, in the browser console: missing
+    // content must always be traceable to a rule, never a mystery.
+    const why = (label, reason) => console.info(`[VideoDoc] part ${label} dropped: ${reason}`)
+    console.info(`[VideoDoc] ${windows.length} parts: ${windows.map((w) => `${formatTS(w.a)}-${formatTS(w.b)}`).join(", ")}`)
 
     const results = []
     let lastError = null
@@ -343,7 +359,8 @@ export default function useAnnotator() {
       // instruction; the schema makes the engines enforce it at the sampler.
       const prompt = sysPrefix + (useImg ? PROCEDURE_PROMPT + VISION_ADDENDUM : PROCEDURE_PROMPT) + extra + JSON_ADDENDUM
       const userMsg = buildContextPrompt(win.text, label, prev, next, useImg ? null : win.ocr)
-      const images = useImg ? [frame.imageData] : undefined
+      // up to 3 pictures of the part in time order, so the model sees the sequence
+      const images = useImg ? (win.pics?.length ? win.pics : [frame]).map((f) => f.imageData) : undefined
       const schema = STEP_JSON_SCHEMA
       return aiMode === "ollama"
         ? callOllama(userMsg, prompt, ollamaModel, { images, schema })
@@ -357,6 +374,7 @@ export default function useAnnotator() {
       const win = windows[i]
       const label = formatTS(win.a)
       const frame = pickFrame(frames, ocrFrameTexts, win.a, win.b, win.center)
+      win.pics = pickFrames(frames, frame, win.a, win.b)
       const prevText = windows[i - 1]?.text ?? null
       const nextText = windows[i + 1]?.text ?? null
 
@@ -367,7 +385,7 @@ export default function useAnnotator() {
       // into a step. Only drops when the screen text is also empty — a window
       // that shows actual work is always sent to the model.
       const ocrLen = (win.ocr || "").replace(/\s+/g, " ").trim().length
-      if (isMeetingNoise(win.text) && ocrLen < 40) continue
+      if (isMeetingNoise(win.text) && ocrLen < 40) { why(label, "only meeting chatter and no screen text"); continue }
 
       // Multi-window awareness: a HARD vocabulary turnover vs the previous
       // window's screen text means a different app/window is now in front
@@ -398,6 +416,7 @@ export default function useAnnotator() {
         okCount++
       } catch (e) {
         lastError = e // remember it; surfaced below if nothing succeeds
+        why(label, `model error: ${e?.message}`)
         continue
       }
 
@@ -411,15 +430,15 @@ export default function useAnnotator() {
         // ONE second look; if the model still skips, trust it.
         const strongEvidence = hasActionWords(win.text) || ocrLen >= 80
           || (visionLive && !!frame?.imageData && (win.text || "").length >= 60)
-        if (!strongEvidence) continue
+        if (!strongEvidence) { why(label, "model found no step and the evidence is thin"); continue }
         try {
           const raw2 = await runWindow(win, frame, label, prevText, nextText, visionLive && !!frame?.imageData, RECALL_ADDENDUM)
           step = parseProcedureStep(raw2)
           fromRetry = true
-        } catch { continue }
-        if (step.skip) continue // confirmed: nothing real here
+        } catch (e) { why(label, `second look failed: ${e?.message}`); continue }
+        if (step.skip) { why(label, "model found no step, twice"); continue } // confirmed: nothing real here
       }
-      if (isLogisticsStep(step)) continue // meeting logistics / webcam-name tile → not a procedure step
+      if (isLogisticsStep(step)) { why(label, `meeting logistics: "${step.title}"`); continue } // meeting logistics / webcam-name tile → not a procedure step
 
       // Screenless-frame backstop: the frame carries no real UI text (only webcam
       // + speaker captions), so a step here is built on a virtual background, not
@@ -429,7 +448,7 @@ export default function useAnnotator() {
       // deleting real work on blurry (heavily-downscaled Teams) application frames. The
       // early webcam stretch is already handled by the screenShareStart gate.
       const sawScreen = visionLive && !!frame?.imageData
-      if (!sawScreen && ocrLen < 25 && isScreenlessFrame(win.ocr, participants)) continue
+      if (!sawScreen && ocrLen < 25 && isScreenlessFrame(win.ocr, participants)) { why(label, "no application on screen"); continue }
 
       // A participant's name drifted into the step ("Winters Alvarez, Jamie" →
       // "Open Wintors Alvares Page"). The prompt warning alone doesn't stop small
@@ -449,8 +468,8 @@ export default function useAnnotator() {
         nameSuspect = resemblesParticipant(step.title, participants)
           || (step.steps || []).some((s) => resemblesParticipant(s, participants))
           || resemblesParticipant(step.result, participants)
-        if (nameSuspect && !scrubParticipantStep(step, participants)) continue
-        if (isLogisticsStep(step)) continue
+        if (nameSuspect && !scrubParticipantStep(step, participants)) { why(label, "only a participant name was left"); continue }
+        if (isLogisticsStep(step)) { why(label, "meeting logistics after the name fix"); continue }
       }
 
       // Evidence grounding: strip domain nouns the vision model confabulated when
@@ -459,9 +478,27 @@ export default function useAnnotator() {
       // NEITHER the OCR nor the speech. Drops the step when its whole identity was
       // the fabrication; otherwise keeps the true remainder.
       const grounded = groundStepInEvidence(step, win.ocr, win.text)
-      if (grounded.drop) continue
+      if (grounded.drop) { why(label, `not backed by the screen or the speech: "${step.title}"`); continue }
       const groundingEdited = grounded.changed
       step = grounded.step
+
+      // Completeness: codes, numbers, values and said-and-shown field names of
+      // this part must reach the step. Missing ones → ONE rewrite that names
+      // them; kept only when it covers more and drops no action.
+      const terms = keyTerms(win.text, win.ocr)
+      let miss = missingTerms(step, terms)
+      if (worthRetry(miss)) {
+        try {
+          const rawC = await runWindow(win, frame, label, prevText, nextText, visionLive && !!frame?.imageData, COVERAGE_ADDENDUM(miss))
+          const stepC = parseProcedureStep(rawC)
+          const gC = !stepC.skip && stepC.steps?.length ? groundStepInEvidence(stepC, win.ocr, win.text) : null
+          if (gC && !gC.drop) {
+            const missC = missingTerms(gC.step, terms)
+            if (missC.length < miss.length && (gC.step.steps?.length || 0) >= (step.steps?.length || 0)) { step = gC.step; miss = missC }
+          }
+        } catch { /* keep the first step */ }
+      }
+      if (miss.length) console.info(`[VideoDoc] part ${label} does not mention: ${miss.join(", ")}`)
 
       // Confidence flag for the reviewer: a step the model first skipped, one
       // written from thin evidence (little speech AND little readable screen

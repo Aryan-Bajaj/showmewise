@@ -61,7 +61,7 @@ GROUNDING RULES — follow strictly. Inventing ANY detail destroys the document'
 // behaves like a human: listens AND looks, and resolves vague spoken references.
 export const VISION_ADDENDUM = `
 
-You are ALSO given a SCREENSHOT of this exact moment. Use BOTH the spoken transcript AND the screen together, like a person watching the recording:
+You are ALSO given SCREENSHOTS of this part, in time order (first to last): together they show what the user did, so describe the actions in that order. Use BOTH the spoken transcript AND the screen together, like a person watching the recording:
 - Focus ONLY on the shared application window. IGNORE the small webcam / video-call tiles and the people's names listed beside them — they are NOT part of the procedure and must NEVER be used as data, values, names, or search terms in a step.
 - Meeting recordings BURN the current speaker's name into a corner of every frame as a caption like "Lastname, Firstname (ORG-UNIT, CODE)". That caption is a PERSON on the call, not screen content — NEVER read it as a file, report, dashboard, page, table, or view name.
 - Identify the application ONLY from what is actually visible (title bar, tab labels, the URL in the address bar, menu names). State its name only if you can read it. Do NOT assume it is Excel, Power BI, Word, or any specific product unless its name is on screen.
@@ -69,7 +69,7 @@ You are ALSO given a SCREENSHOT of this exact moment. Use BOTH the spoken transc
 - The screenshot is evidence of EQUAL weight to the transcript. In a working session people mostly talk vaguely while doing concrete things — when the speech says little but the screen clearly shows an open dialog, menu, panel, or configuration in progress, document what the SCREEN shows and name the visible elements.
 - When the speaker says vague words like "here", "this", "that" or "click there", LOOK at the screen to find the EXACT button, menu, tab, or field, and name it.
 - Only state UI text you can actually READ on screen. Do NOT guess or invent labels, menus, dialogs, or tools you cannot clearly see.
-- If the screenshot shows only a webcam, a photo, a desktop, or no real application screen, reply SKIP.
+- If EVERY screenshot shows only a webcam, a photo, a desktop, or no real application screen, reply SKIP.
 - If the screen shows a loading/waiting state (a spinner, progress bar, "Loading your story", "Please wait", a splash screen) with no user action visible, reply SKIP — the user did not DO anything during a loading screen.`
 
 // ── Constrained JSON output ──
