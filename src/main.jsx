@@ -7,9 +7,11 @@ import App from './App.jsx'
 import DocChatApp from './DocChatApp.jsx'
 import PolicyPage from './components/PolicyPage.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
+import MobileNotice from './components/MobileNotice.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
+    <MobileNotice />
     <HashRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />

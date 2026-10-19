@@ -71,7 +71,7 @@ export default function DocChatApp() {
   const approxTokens = Math.round(totalChars / 4)
 
   return (
-    <div className="min-h-screen text-white font-mono" style={{ position: "relative", background: "#0d0d2b" }}>
+    <div className="min-h-screen text-white font-sans" style={{ position: "relative", background: "#0d0d2b" }}>
       <div ref={vantaRef} style={{ position: "fixed", inset: 0, zIndex: 0 }} />
       <div style={{ position: "fixed", inset: 0, zIndex: 0, background: "rgba(8,5,20,0.72)", pointerEvents: "none" }} />
 

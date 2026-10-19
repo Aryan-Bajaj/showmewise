@@ -13,7 +13,7 @@ The manual release: the clicks marked on the screen, in documents that read like
 * **Vid Chat shows the step** it answered from, with its marked screenshot and a play button, plus an optional web search.
 * **Simple editing** with plain fields and labelled buttons.
 * **Fixes.** The whole audio is transcribed (each window used to stop after 30 seconds), short videos split into several steps, and app names must appear on screen or in the audio. A screen error in one panel no longer blanks the page: the rest of the guide and the exports keep working.
-* **Site.** New logo, privacy and terms page, share previews, sitemap, security headers, updated dependencies.
+* **Site.** New logo, privacy and terms page, share previews, sitemap, security headers, updated dependencies. On a phone, a notice says up front that VideoDoc is made for a computer and how much it would download. The in-browser model sizes on the site now match the app.
 
 ## v4
 

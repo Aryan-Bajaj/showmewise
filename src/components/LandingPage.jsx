@@ -94,6 +94,7 @@ const CSS = `
   /* ── Mobile ──────────────────────────────────────────── */
   @media (max-width: 640px) {
     .lp-nav        { padding: 14px 20px !important; }
+    .lp-nav-btn    { padding: 8px 12px !important; white-space: nowrap; font-size: 12.5px !important; }
     .lp-satellite  { display: none !important; }
     .lp-steps-line { display: none !important; }
     .lp-section    { padding: 64px 20px !important; }
@@ -227,9 +228,11 @@ export default function LandingPage() {
         scaleMobile: 1.0,
         color: 0x3f62ff,
         backgroundColor: 0x23153c,
-        points: 10,
-        maxDistance: 20,
-        spacing: 15,
+        // a phone shows the same net in a narrow column, right behind the
+        // hero text: thinner there so the words stay easy to read
+        points: innerWidth < 640 ? 6 : 10,
+        maxDistance: innerWidth < 640 ? 15 : 20,
+        spacing: innerWidth < 640 ? 20 : 15,
         showDots: true,
       })
     } catch (e) {
@@ -870,9 +873,9 @@ export default function LandingPage() {
                 {/* In-browser model picker — user chooses speed vs accuracy */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginBottom: 14 }}>
                   {[
-                    { label: 'Fast · 1B',     size: '~0.9 GB', acc: 'Good',   eta: '10 to 30s' },
-                    { label: 'Balanced · 3B', size: '~2.2 GB', acc: 'Strong', eta: '30s to 1m', tag: 'Default' },
-                    { label: 'Max · 7B',      size: '~5.5 GB', acc: 'Best',   eta: '1 to 3m' },
+                    { label: 'Fast · 1B',     size: '~0.8 GB', acc: 'Good',   eta: '10 to 30s' },
+                    { label: 'Balanced · 3B', size: '~1.9 GB', acc: 'Strong', eta: '30s to 1m', tag: 'Default' },
+                    { label: 'Quality · 3.8B', size: '~2.2 GB', acc: 'Best text', eta: '1 to 3m' },
                     { label: 'Vision · 4.2B', size: '~3.5 GB', acc: 'Sees screen', eta: '1 to 3m', tag: 'New' },
                   ].map((m, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(167,139,250,0.18)' }}>
@@ -976,7 +979,7 @@ export default function LandingPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
             {[
               { icon: '🎙', name: 'Whisper Small (speech to text)', size: '~970 MB', when: 'On your first video. The more accurate model that nails names and jargon.', color: '#06b6d4' },
-              { icon: '🧠', name: 'WebLLM (writes the steps)', size: '~2.2 to 5.5 GB', when: 'First annotation in browser mode. Pick Balanced (Qwen2.5-3B, default), Quality (Phi-3.5) or Max (Qwen2.5-7B)', color: '#a78bfa' },
+              { icon: '🧠', name: 'WebLLM (writes the steps)', size: '~0.8 to 2.2 GB', when: 'First annotation in browser mode. Pick Fast (Llama 3.2 1B), Balanced (Qwen2.5 3B, default) or Quality (Phi-3.5 mini)', color: '#a78bfa' },
               { icon: '👁', name: 'Vision model (optional)', size: '~3.5 GB', when: 'Browser Vision mode, where the AI sees the screen (Phi-3.5-Vision). With Ollama, gemma3 does this, no download.', color: '#7b96ff' },
               { icon: '💬', name: 'Embeddings (doc chat)', size: '~90 MB', when: 'First time you ask your documentation a question', color: '#34d399' },
               { icon: '🔤', name: 'OCR (reads the screen)', size: '~12 MB', when: 'Reads on-screen text from frames (used when not in Vision mode)', color: '#22d3ee' },

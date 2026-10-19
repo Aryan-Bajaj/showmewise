@@ -131,7 +131,7 @@ Version 3 is the biggest leap yet. The AI now **watches the screen and hears eve
 * **RAG-grounded FAQ.** Questions are generated from the actual discussion (diverse angles, no near-duplicates), then each answer is retrieved from the relevant transcript passages and enriched with the model's general knowledge, without inventing specifics.
 * **Clean phased flow diagram.** Every step is kept, but grouped into phases (steps flow left to right inside a phase, phases stack top to bottom), so the chart stays readable instead of one long vertical chain.
 * **Hidden transcript for AI.** The full transcript is embedded in the exported HTML but hidden from readers, so the document can be pasted into any AI assistant for deeper Q&A.
-* **Stronger model picker.** WebLLM now offers Fast (1B), Balanced (Qwen2.5-3B, default), Max (Qwen2.5-7B) and a Vision model, each with accuracy and speed shown up front. The app falls back to a lighter model if a GPU cannot load the chosen one.
+* **Stronger model picker.** WebLLM now offers Fast (1B), Balanced (Qwen2.5-3B, default), Max (Qwen2.5-7B, removed later because it needs 6 to 8 GB of graphics memory) and a Vision model, each with accuracy and speed shown up front. The app falls back to a lighter model if a GPU cannot load the chosen one.
 * **Faster, safer pipeline.** Frame extraction no longer stalls on long videos, transcription runs in 5-minute windows with real progress and a Cancel button, and an overall progress bar shows the whole run at a glance. Known domain mishearings are auto-corrected.
 
 ### Coming next
@@ -298,7 +298,7 @@ Dropdown → llama3.2 / mistral / gemma3 / deepseek-r1 / ...
 | Output quality | ★★★★★ (full-size model) |
 | Privacy | 100% local |
 | Speed | Depends on your GPU/CPU |
-| Best models | Llama 3.2, Mistral 7B |
+| Best models | gemma3 (4B, or 12B for the most accurate steps) |
 | Avoid | Gemma 2 (outputs `<think>` blocks, auto-stripped but messy) |
 
 Each segment gets this prompt structure:
