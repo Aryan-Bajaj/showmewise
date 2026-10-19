@@ -2,9 +2,22 @@
 
 All notable changes to VideoDoc, version by version. Newest first.
 
-## v4 (current)
+## v5 (current)
 
-Accuracy release, driven by testing against a real 32 minute enterprise meeting recording and checking every generated step against the actual video.
+The manual release: the clicks marked on the screen, in documents that read like a real process manual.
+
+* **Marked screenshots.** Each action is pinned to its exact button or field with a numbered marker, using the OCR word positions and the narration timing. No marker is ever guessed.
+* **Reads buttons and popups.** Short how-tos are read in full HD, and coloured buttons are found and read one by one.
+* **Markers in clips and GIFs**, taken down as soon as the screen changes.
+* **Process manual exports.** PDF, Word and HTML share one structure: cover, contents, purpose, what you need, the process at a glance, Part A, B, C with numbered actions and marked screenshots, result and tip boxes, checklist, quick reference, FAQ, page numbers.
+* **Vid Chat shows the step** it answered from, with its marked screenshot and a play button, plus an optional web search.
+* **Simple editing** with plain fields and labelled buttons.
+* **Fixes.** The whole audio is transcribed (each window used to stop after 30 seconds), short videos split into several steps, and app names must appear on screen or in the audio. A screen error in one panel no longer blanks the page: the rest of the guide and the exports keep working.
+* **Site.** New logo, privacy and terms page, share previews, sitemap, security headers, updated dependencies.
+
+## v4
+
+Accuracy release, driven by testing against a real 32 minute screen recording of a business app and checking every generated step against the actual video.
 
 * **Structured output.** The model replies in schema constrained JSON on every engine (Ollama, llama.cpp, WebLLM), so malformed or chatty replies are impossible. The schema forces the model to describe what it sees on screen before it may decide a segment has no step, which fixed the biggest source of missed steps in real meeting recordings.
 * **Screen share detection.** Webcam only minutes at the start of a meeting can no longer produce fabricated steps.

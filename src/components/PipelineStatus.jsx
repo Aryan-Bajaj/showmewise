@@ -22,7 +22,7 @@ function StepIcon({ status }) {
     </div>
   )
   if (status === 'active') return (
-    <div className="w-5 h-5 rounded-full border-2 border-emerald-400 border-t-transparent animate-spin shrink-0" />
+    <div className="w-5 h-5 rounded-full border-2 border-violet-400 border-t-transparent animate-spin shrink-0" />
   )
   if (status === 'error') return (
     <div className="w-5 h-5 rounded-full bg-red-500/15 border border-red-600 flex items-center justify-center shrink-0 text-red-400 text-sm leading-none">
@@ -39,13 +39,15 @@ export default function PipelineStatus({ steps, etaHint = null }) {
   // (download → compile shaders), which would otherwise jerk the bar backwards.
   const maxPctRef = useRef(0)
 
-  // Tick every second while any step is active
+  // Tick every second while any step is active. Keyed on the boolean, not on
+  // steps: progress updates arrive many times a second and would restart the
+  // timer before it ever fired (the elapsed time froze at 0s).
+  const hasActive = !!steps?.some(s => s.status === 'active')
   useEffect(() => {
-    const hasActive = steps?.some(s => s.status === 'active')
     if (!hasActive) return
     const id = setInterval(() => setNow(Date.now()), 1000)
     return () => clearInterval(id)
-  }, [steps])
+  }, [hasActive])
 
   if (!steps?.length) return null
 
@@ -71,17 +73,17 @@ export default function PipelineStatus({ steps, etaHint = null }) {
   maxPctRef.current = overallPct
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+    <div className="bg-[#120c2c]/85 backdrop-blur-md border border-violet-400/15 rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(10,5,40,0.45)]">
       {/* Overall progress header */}
-      <div className="px-4 py-3 border-b border-zinc-800 bg-black/20">
+      <div className="px-5 py-4 border-b border-white/5 bg-gradient-to-r from-violet-500/10 to-transparent">
         <div className="flex items-center justify-between mb-2">
           <span className={`text-xs font-semibold uppercase tracking-widest ${anyError ? 'text-red-400' : allDone ? 'text-emerald-400' : 'text-zinc-300'}`}>
             {anyError ? 'Stopped' : allDone ? 'Complete' : `Processing · step ${Math.min(doneCount + 1, totalSteps)} of ${totalSteps}`}
           </span>
-          <span className="text-sm font-mono font-bold text-emerald-400">{overallPct}%</span>
+          <span className="text-lg font-bold tabular-nums bg-gradient-to-r from-violet-300 to-cyan-300 bg-clip-text text-transparent">{overallPct}%</span>
         </div>
-        <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
-          <div className="h-full bg-emerald-500 rounded-full transition-all duration-500" style={{ width: `${overallPct}%` }} />
+        <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+          <div className="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-violet-500 via-indigo-500 to-cyan-400 shadow-[0_0_14px_rgba(124,92,255,0.7)]" style={{ width: `${overallPct}%` }} />
         </div>
         {/* Whole-run expectation, shown from the very first second so nobody
             wonders if the app hung. Refined per backend in the AI settings. */}
@@ -118,7 +120,7 @@ export default function PipelineStatus({ steps, etaHint = null }) {
         }
 
         return (
-          <div key={step.id} className={`px-4 py-3 ${i > 0 ? 'border-t border-zinc-800' : ''}`}>
+          <div key={step.id} className={`px-5 py-3 transition-colors ${i > 0 ? 'border-t border-white/5' : ''} ${isActive ? 'bg-violet-500/[0.06]' : ''}`}>
             {/* Main row */}
             <div className="flex items-center gap-3">
               <StepIcon status={step.status} />
@@ -138,7 +140,7 @@ export default function PipelineStatus({ steps, etaHint = null }) {
                   <span className="text-zinc-400">{step.step}/{step.total}</span>
                 )}
                 {isActive && fillPct != null && (
-                  <span className="text-emerald-400 font-mono font-semibold">{fillPct}%</span>
+                  <span className="text-violet-300 font-semibold tabular-nums">{fillPct}%</span>
                 )}
                 {isActive && elapsed != null && (
                   <span className="text-zinc-500">{formatTime(elapsed)}</span>
@@ -166,14 +168,14 @@ export default function PipelineStatus({ steps, etaHint = null }) {
             {/* Progress bar (active only) */}
             {isActive && (
               <div className="mt-2 ml-8 space-y-1.5">
-                <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
                   {fillPct != null ? (
                     <div
-                      className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                      className="h-full bg-gradient-to-r from-violet-500 to-cyan-400 rounded-full transition-all duration-500"
                       style={{ width: `${Math.min(fillPct, 100)}%` }}
                     />
                   ) : (
-                    <div className="h-full w-1/3 bg-emerald-500 rounded-full animate-[indeterminate_1.4s_ease-in-out_infinite]" />
+                    <div className="h-full w-1/3 bg-gradient-to-r from-violet-500 to-cyan-400 rounded-full animate-[indeterminate_1.4s_ease-in-out_infinite]" />
                   )}
                 </div>
               </div>

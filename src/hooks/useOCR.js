@@ -198,6 +198,139 @@ function cleanOCR(data, minConf = 55, nameSink = null) {
   } catch { return data?.text || "" }
 }
 
+// Confident word boxes (image pixels) so a step's "click 'New dashboard'" can be
+// pinned to the exact spot on the screenshot. Tile labels are left out.
+function wordBoxes(data, minConf = 55) {
+  const out = []
+  try {
+    for (const b of data?.blocks || []) for (const p of (b.paragraphs || [])) for (const l of (p.lines || [])) {
+      const line = (l.words || []).map((w) => w.text || "").join(" ")
+      if (isTileLabelLine(line)) continue
+      for (const w of l.words || []) {
+        const t = (w.text || "").trim()
+        if (!t || (w.confidence ?? 100) < minConf || !w.bbox) continue
+        out.push({ t, x0: w.bbox.x0, y0: w.bbox.y0, x1: w.bbox.x1, y1: w.bbox.y1 })
+      }
+    }
+  } catch { /* boxes are a bonus */ }
+  return out
+}
+
+// A second look for the marker boxes only: Tesseract's page layout drops small
+// coloured buttons ("Create", "Share", "Save"), the very things a step clicks.
+// Find solid coloured rectangles, then read each one as a single line at 2x,
+// inverted when the text is light on a dark fill.
+function findButtons(img) {
+  const S = 2 // work at half size
+  const w = Math.floor(img.width / S), h = Math.floor(img.height / S)
+  const c = document.createElement("canvas")
+  c.width = w; c.height = h
+  const ctx = c.getContext("2d", { willReadFrequently: true })
+  ctx.drawImage(img, 0, 0, w, h)
+  const px = ctx.getImageData(0, 0, w, h).data
+  const mask = new Uint8Array(w * h)
+  for (let i = 0; i < w * h; i++) {
+    const r = px[i * 4], g = px[i * 4 + 1], b = px[i * 4 + 2]
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b)
+    if (mx > 70 && (mx - mn) / mx > 0.38) mask[i] = 1 // saturated colour fill
+  }
+  const seen = new Uint8Array(w * h), out = [], stack = []
+  for (let i = 0; i < w * h; i++) {
+    if (!mask[i] || seen[i]) continue
+    let x0 = w, y0 = h, x1 = 0, y1 = 0, n = 0
+    stack.push(i); seen[i] = 1
+    while (stack.length) {
+      const k = stack.pop(), x = k % w, y = (k - x) / w
+      n++; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y
+      for (const q of [k - 1, k + 1, k - w, k + w]) {
+        if (q < 0 || q >= w * h || seen[q] || !mask[q]) continue
+        if ((q === k - 1 && x === 0) || (q === k + 1 && x === w - 1)) continue
+        seen[q] = 1; stack.push(q)
+      }
+    }
+    const bw = (x1 - x0 + 1) * S, bh = (y1 - y0 + 1) * S
+    // button sized, mostly filled (text holes allowed), wider than tall
+    if (bw < 28 || bw > 520 || bh < 16 || bh > 90 || bw < bh * 0.9) continue
+    if (n * S * S < bw * bh * 0.45) continue
+    out.push({ x: x0 * S, y: y0 * S, w: bw, h: bh })
+    if (out.length >= 24) break
+  }
+  return out
+}
+
+async function buttonWords(worker, src) {
+  const img = await loadImage(src)
+  const boxes = findButtons(img)
+  if (!boxes.length) return []
+  const words = []
+  await worker.setParameters({ tessedit_pageseg_mode: "7" })
+  try {
+    for (const b of boxes) {
+      const k = 3, pad = 2
+      const c = document.createElement("canvas")
+      c.width = (b.w + pad * 2) * k; c.height = (b.h + pad * 2) * k
+      const ctx = c.getContext("2d", { willReadFrequently: true })
+      ctx.imageSmoothingQuality = "high"
+      ctx.drawImage(img, b.x - pad, b.y - pad, b.w + pad * 2, b.h + pad * 2, 0, 0, c.width, c.height)
+      const d = ctx.getImageData(0, 0, c.width, c.height), px = d.data
+      // grey + Otsu threshold → crisp dark text on white, whatever the button colour
+      const lum = new Uint8Array(px.length / 4), hist = new Array(256).fill(0)
+      for (let i = 0; i < lum.length; i++) { lum[i] = 0.299 * px[i * 4] + 0.587 * px[i * 4 + 1] + 0.114 * px[i * 4 + 2]; hist[lum[i]]++ }
+      let sumAll = 0; for (let t = 0; t < 256; t++) sumAll += t * hist[t]
+      let wB = 0, sumB = 0, best = 0, thr = 128
+      for (let t = 0; t < 256; t++) {
+        wB += hist[t]; if (!wB) continue
+        const wF = lum.length - wB; if (!wF) break
+        sumB += t * hist[t]
+        const between = wB * wF * (sumB / wB - (sumAll - sumB) / wF) ** 2
+        if (between > best) { best = between; thr = t }
+      }
+      let above = 0; for (let i = 0; i < lum.length; i++) if (lum[i] > thr) above++
+      const lightText = above < lum.length / 2 // the minority side is the text
+      const ink = new Uint8Array(lum.length)
+      for (let i = 0; i < lum.length; i++) ink[i] = (lightText ? lum[i] > thr : lum[i] <= thr) ? 1 : 0
+      // ink touching the crop edge is the page around the rounded button, not text
+      const W = c.width, Hh = c.height, q = []
+      for (let x = 0; x < W; x++) { q.push(x, (Hh - 1) * W + x) }
+      for (let y = 0; y < Hh; y++) { q.push(y * W, y * W + W - 1) }
+      while (q.length) {
+        const k = q.pop()
+        if (!ink[k]) continue
+        ink[k] = 0
+        const x = k % W
+        if (x > 0) q.push(k - 1); if (x < W - 1) q.push(k + 1)
+        if (k >= W) q.push(k - W); if (k < W * (Hh - 1)) q.push(k + W)
+      }
+      for (let i = 0; i < lum.length; i++) px[i * 4] = px[i * 4 + 1] = px[i * 4 + 2] = ink[i] ? 0 : 255
+      ctx.putImageData(d, 0, 0)
+      try {
+        const { data } = await worker.recognize(c, {}, { blocks: true })
+        for (const wd of wordBoxes(data, 60)) {
+          if (!/[a-z0-9]/i.test(wd.t)) continue
+          words.push({ t: wd.t, x0: b.x - pad + wd.x0 / k, y0: b.y - pad + wd.y0 / k, x1: b.x - pad + wd.x1 / k, y1: b.y - pad + wd.y1 / k })
+        }
+      } catch { /* unreadable button */ }
+    }
+  } finally {
+    await worker.setParameters({ tessedit_pageseg_mode: "3" })
+  }
+  return words
+}
+
+function mergeWords(base, extra, scale) {
+  const out = [...base]
+  for (const w of extra) {
+    const b = { t: w.t, x0: w.x0 / scale, y0: w.y0 / scale, x1: w.x1 / scale, y1: w.y1 / scale }
+    const overlap = out.some((o) => {
+      const ix = Math.max(0, Math.min(o.x1, b.x1) - Math.max(o.x0, b.x0))
+      const iy = Math.max(0, Math.min(o.y1, b.y1) - Math.max(o.y0, b.y0))
+      return ix * iy > 0.3 * Math.min((o.x1 - o.x0) * (o.y1 - o.y0), (b.x1 - b.x0) * (b.y1 - b.y0))
+    })
+    if (!overlap) out.push(b)
+  }
+  return out
+}
+
 export default function useOCR() {
   // frames: [{timestamp, imageData}], transcriptText: string (for extra tool hints)
   const runOCR = useCallback(async (frames, transcriptText = "", onProgress) => {
@@ -231,7 +364,9 @@ export default function useOCR() {
         const text = cleanOCR(data, 55, frameNames).replace(/\s+\n/g, "\n").trim()
         for (const n of frameNames) nameCounts.set(n, (nameCounts.get(n) || 0) + 1)
         if (text) {
-          frameTexts.push({ timestamp: keyframes[i].timestamp, text })
+          let words = wordBoxes(data)
+          try { words = mergeWords(words, await buttonWords(worker, keyframes[i].imageData), 1) } catch { /* first pass boxes are enough */ }
+          frameTexts.push({ timestamp: keyframes[i].timestamp, text, words })
           combined += text + "\n"
         }
       } catch {

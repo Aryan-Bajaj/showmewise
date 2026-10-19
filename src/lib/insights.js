@@ -359,6 +359,9 @@ export async function generateInsights(docs, transcriptChunks, aiMode, model, on
   note("Listing prerequisites…")
   let prerequisites = []
   try { prerequisites = await genPrerequisites(outline, transcript, tools, aiMode, model, note) } catch { /* leave empty */ }
+  // "(e.g., Tableau, Power BI)" is the model guessing examples that were never
+  // on screen: drop such asides, the guide only names what was shown or said
+  prerequisites = (prerequisites || []).map((t) => String(t || "").replace(/\s*\((?:e\.?\s?g\.?|for example|such as|like)\b[^)]*\)/gi, "").trim()).filter(Boolean)
 
   if (shouldCancel()) return { ...empty, purpose, prerequisites, keyObservations }
   note("Writing summary…")

@@ -140,7 +140,7 @@ export default function AISettings({ onConfirm, onClose, suggestedSections, tool
           <p className="text-xs text-zinc-500 uppercase tracking-widest mb-2">Document Title</p>
           <input
             type="text" value={title} onChange={e => setTitle(e.target.value)}
-            placeholder="e.g. How to set up the R3 → S4 mapping macro"
+            placeholder="e.g. Create and share a dashboard"
             className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-emerald-500"
           />
           <p className="text-xs text-zinc-600 mt-1.5">Used as the guide heading. Leave blank for an auto title (not the video file name).</p>

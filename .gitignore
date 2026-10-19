@@ -37,3 +37,4 @@ eng.traineddata
 .env.*
 !.env.netlify
 !.env.desktop
+dev/

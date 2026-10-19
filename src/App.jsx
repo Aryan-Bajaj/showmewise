@@ -8,6 +8,8 @@ import AISettings from "./components/AISettings"
 import DocChat from "./components/DocChat"
 import PipelineStatus from "./components/PipelineStatus"
 import InsightsPanel from "./components/InsightsPanel"
+import VideoDocLogo from "./components/VideoDocLogo"
+import ErrorBoundary from "./components/ErrorBoundary"
 import useFrameExtractor from "./hooks/useFrameExtractor"
 import useAudioExtractor from "./hooks/useAudioExtractor"
 import useTranscriber from "./hooks/useTranscriber"
@@ -21,6 +23,7 @@ import { generateInsights } from "./lib/insights"
 import { consolidateProcedure, verifyProcedure, sanitizeDocs } from "./lib/refine"
 import { scrubSensitive } from "./lib/skillPrompt"
 import { fixTranscriptChunks } from "./lib/transcriptFixups"
+import { buildStepShots } from "./lib/stepShots"
 
 const INITIAL_STEPS = [
   { id: 'frames',     label: 'Extract Frames',   status: 'pending', detail: null },
@@ -58,6 +61,20 @@ export default function App() {
   const [pipelineSteps, setPipelineSteps] = useState(null)
   const [error, setError] = useState(null)
   const [ocrFrameTexts, setOcrFrameTexts] = useState([])
+  // Marked-up screenshots: each action pinned to its spot on screen. Rebuilt
+  // whenever a step is edited, so markers always match the written actions.
+  const markedDocs = useMemo(() => {
+    if (!annotatedDocs?.length) return annotatedDocs
+    try {
+      const shots = buildStepShots(annotatedDocs, ocrFrameTexts, frames, transcriptChunks)
+      return annotatedDocs.map((d, i) => ({ ...d, shots: shots[i].shots, marks: shots[i].marks }))
+    } catch (e) {
+      // markers are a bonus: a failure here must never cost the written guide
+      console.error("marked screenshots skipped", e)
+      return annotatedDocs
+    }
+  }, [annotatedDocs, ocrFrameTexts, frames, transcriptChunks])
+
   const [toolsUsed, setToolsUsed] = useState([])
   const [sceneCuts, setSceneCuts] = useState([]) // pixel-level screen-change timestamps (step boundaries)
   const [participants, setParticipants] = useState([]) // names from webcam tiles — blocked from becoming artifact names
@@ -97,18 +114,21 @@ export default function App() {
     setPipelineSteps(prev => prev?.map(s => {
       if (s.id !== 'transcribe') return s
       if (transcribeProgress.stage === 'downloading') {
-        return { ...s, status: 'active', detail: 'Downloading Whisper model (~970MB, first run only — cached after)', pct: transcribeProgress.pct, startedAt: s.startedAt ?? Date.now() }
+        const mb = transcribeProgress.mb
+        const detail = mb ? `Downloading the speech model: ${mb[0]} of ${mb[1]} MB (first run only, kept for next time)` : 'Downloading the speech model (first run only, kept for next time)'
+        return { ...s, status: 'active', detail, pct: transcribeProgress.pct, startedAt: s.startedAt ?? Date.now() }
       }
       if (transcribeProgress.stage === 'transcribing') {
-        const { pct, window, windows } = transcribeProgress
-        const detail = windows > 1 ? `Transcribing… part ${window}/${windows}` : 'Running speech-to-text...'
+        const { pct, window, windows, heard, of } = transcribeProgress
+        const detail = heard != null ? `Listening to the audio: minute ${heard} of ${of}`
+          : windows > 1 ? `Transcribing… part ${window}/${windows}` : 'Running speech-to-text...'
         return { ...s, status: 'active', detail, pct: pct ?? null, startedAt: s.startedAt ?? Date.now() }
       }
       return s
     }) ?? null)
   }, [transcribeProgress])
 
-  const handleVideoSelect = async (file) => {
+  const handleVideoSelect = async (file, opts = {}) => {
     setError(null)
     cancelRef.current = false
     setAnnotatedDocs([])
@@ -147,7 +167,7 @@ export default function App() {
       updateStep('audio', { status: 'done', detail: `${sampleRate / 1000}kHz mono`, endedAt: Date.now() })
 
       updateStep('transcribe', { status: 'active', detail: 'Loading model...', startedAt: Date.now() })
-      const result = await transcribe(audio, sampleRate)
+      const result = await transcribe(audio, sampleRate, opts.language || 'en')
       const chunks = fixTranscriptChunks(result?.chunks ?? [])           // correct known domain mis-hearings
         .map(c => ({ ...c, text: scrubSensitive(c.text) }))               // scrub ASR mis-hears like "Hitler" before anything sees them
       setTranscriptChunks(chunks)
@@ -212,8 +232,11 @@ export default function App() {
     const modelLabel = (isWeb ? `WebLLM · ${webLLMLabel(model)}` : aiMode === 'local' ? 'Bundled · gemma3' : (model || 'ollama')) + (useVision ? ' · 👁 vision' : '')
     updateStep('annotate', {
       status: isWeb ? 'pending' : 'active',
-      step: 0,
-      total: transcriptChunks.length,
+      // the real step count is only known after the narration pass: until then
+      // a moving bar, not a made-up "0/100"
+      step: null,
+      total: null,
+      pct: null,
       etaMs: null,
       detail: `${modelLabel}${sections?.length ? ` · ${sections.length} sections` : ' · auto steps'}`,
       startedAt: isWeb ? null : Date.now(),
@@ -416,7 +439,7 @@ export default function App() {
   const vantaRef = useVantaHalo()
 
   return (
-    <div className="min-h-screen text-white font-mono" style={{ position: 'relative', background: '#0d0d2b' }}>
+    <div className="min-h-screen text-white font-sans" style={{ position: 'relative', background: '#0d0d2b' }}>
       {/* Vanta HALO fixed background — inset:0 (not 100vw) so the vertical
           scrollbar that appears during processing can't cause horizontal overflow */}
       <div ref={vantaRef} style={{ position: 'fixed', inset: 0, zIndex: 0 }} />
@@ -435,14 +458,19 @@ export default function App() {
       )}
 
       <header className="border-b border-white/10 px-6 py-4 flex items-center gap-3 backdrop-blur-md bg-black/20 sticky top-0 z-40">
-        <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
         <button
           onClick={() => { window.location.href = '/#/' }}
-          className="text-lg font-semibold tracking-tight hover:text-emerald-400 transition-colors"
+          className="flex items-center gap-2.5 text-lg font-bold tracking-tight group"
+          title="Back to home"
         >
-          VideoDoc
+          <VideoDocLogo size={26} />
+          <span className="bg-gradient-to-r from-indigo-300 to-violet-300 bg-clip-text text-transparent group-hover:from-violet-200 group-hover:to-cyan-200 transition-colors">VideoDoc</span>
         </button>
-        <a href="/#/docchat" className="text-xs text-zinc-500 hover:text-emerald-400 transition-colors">· Doc Chat</a>
+        <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] text-emerald-300/90 bg-emerald-500/10 border border-emerald-400/20 rounded-full px-2.5 py-0.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Runs on your computer
+        </span>
+        <a href="/#/docchat" className="text-xs text-zinc-400 hover:text-violet-300 transition-colors">Doc Chat</a>
+        <a href="/#/policy" className="text-xs text-zinc-400 hover:text-violet-300 transition-colors">Privacy</a>
 
         {videoFile && !showAISettings && !isAnnotating && transcriptChunks.length > 0 && (
           <button
@@ -500,22 +528,25 @@ export default function App() {
                 <FrameStrip frames={frames} activeIndex={activeFrame} onSelect={handleFrameSelect} />
               </div>
               <div className="space-y-4">
-                <DocPreview
-                  transcriptChunks={transcriptChunks}
-                  annotatedDocs={annotatedDocs}
-                  onSeek={handleDocSeek}
-                  onEditStep={handleEditStep}
-                  onMoveStep={handleMoveStep}
-                  onDeleteStep={handleDeleteStep}
-                  onReplaceEverywhere={handleReplaceEverywhere}
-                />
+                <ErrorBoundary name="The guide preview">
+                  <DocPreview
+                    transcriptChunks={transcriptChunks}
+                    annotatedDocs={markedDocs}
+                    onSeek={handleDocSeek}
+                    onEditStep={handleEditStep}
+                    onMoveStep={handleMoveStep}
+                    onDeleteStep={handleDeleteStep}
+                    onReplaceEverywhere={handleReplaceEverywhere}
+                  />
+                </ErrorBoundary>
               </div>
             </div>
 
-            {insights && <InsightsPanel insights={insights} onChange={setInsights} />}
+            {insights && <ErrorBoundary name="Summary and FAQ"><InsightsPanel insights={insights} onChange={setInsights} /></ErrorBoundary>}
 
+            <ErrorBoundary name="Export">
             <ExportBar
-              annotatedDocs={annotatedDocs}
+              annotatedDocs={markedDocs}
               transcriptChunks={transcriptChunks}
               videoName={videoFile.name}
               videoFile={videoFile}
@@ -526,10 +557,12 @@ export default function App() {
               frames={frames}
               videoDuration={videoDuration}
             />
+            </ErrorBoundary>
 
             {(annotatedDocs.length > 0 || transcriptChunks.length > 0) && (
+              <ErrorBoundary name="Vid Chat">
               <DocChat
-                docs={annotatedDocs.length > 0 ? annotatedDocs : transcriptChunks.map(c => {
+                docs={annotatedDocs.length > 0 ? markedDocs : transcriptChunks.map(c => {
                   const ts = c.timestamp?.[0] ?? 0
                   const m = Math.floor(ts / 60).toString().padStart(2, "0")
                   const s = Math.floor(ts % 60).toString().padStart(2, "0")
@@ -542,6 +575,7 @@ export default function App() {
                 ollamaModel={aiModel}
                 onSeek={handleDocSeek}
               />
+              </ErrorBoundary>
             )}
           </>
         )}

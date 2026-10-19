@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
+import { renderShot } from "../lib/annotateImage"
 import { evaluateDoc } from "../lib/evalDoc"
 
 function formatTS(secs) {
@@ -53,7 +54,7 @@ function Highlighted({ text, verified, onClickAcr }) {
   return <>{out}</>
 }
 
-// ── Inline editor for one step ──
+// ── Inline editor for one step: plain labels, big fields, one box per action ──
 function StepEditor({ step, onSave, onCancel }) {
   const [title, setTitle] = useState(step?.title || "")
   const [lines, setLines] = useState(step?.steps?.length ? [...step.steps] : [""])
@@ -63,82 +64,84 @@ function StepEditor({ step, onSave, onCancel }) {
   const setLine = (i, v) => setLines(ls => ls.map((l, idx) => idx === i ? v : l))
   const addLine = () => setLines(ls => [...ls, ""])
   const delLine = (i) => setLines(ls => ls.filter((_, idx) => idx !== i).length ? ls.filter((_, idx) => idx !== i) : [""])
+  const save = () => onSave({ ...step, title: title.trim(), steps: lines.map(l => l.trim()).filter(Boolean), result: result.trim(), note: note.trim() })
+  const keys = (e) => {
+    if (e.key === "Escape") onCancel()
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) save()
+  }
 
-  const field = "w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 leading-relaxed focus:outline-none focus:border-emerald-500"
-  const label = "text-[11px] uppercase tracking-wider text-zinc-400 font-medium mb-1 block"
+  const field = "w-full bg-[#0f0b24] border border-white/15 rounded-lg px-3.5 py-2.5 text-[15px] text-zinc-100 leading-relaxed focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-500/25 transition"
+  const label = "text-sm font-semibold text-zinc-200 mb-1.5 block"
+  const hint = "text-xs text-zinc-500 font-normal ml-1"
 
   return (
-    <div className="mt-2 border border-emerald-700/50 rounded-xl p-4 space-y-3.5 bg-zinc-900 shadow-lg animate-[fadeIn_.15s_ease-out]">
+    <div onKeyDown={keys} className="mt-3 border border-violet-400/40 rounded-xl p-4 sm:p-5 space-y-4 bg-[#160f36] shadow-[0_12px_40px_rgba(30,15,90,0.45)] animate-[fadeIn_.15s_ease-out]">
       <div>
-        <label className={label}>Title</label>
-        <input className={field} value={title} onChange={e => setTitle(e.target.value)} placeholder="Step title" />
+        <label className={label}>Step title</label>
+        <input autoFocus className={field + " font-semibold"} value={title} onChange={e => setTitle(e.target.value)} placeholder="For example: Create a new dashboard" />
       </div>
       <div>
-        <label className={label}>Actions</label>
+        <label className={label}>What to do <span className={hint}>one action per box</span></label>
         <div className="space-y-2">
           {lines.map((l, i) => (
             <div key={i} className="flex items-start gap-2">
-              <span className="w-5 h-5 rounded-full bg-teal-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0 mt-2">{i + 1}</span>
-              <textarea className={field + " resize-y min-h-[42px]"} rows={2} value={l} onChange={e => setLine(i, e.target.value)} />
-              <button onClick={() => delLine(i)} className="text-zinc-500 hover:text-red-400 text-xl leading-none px-2 py-1.5 mt-1 rounded hover:bg-red-500/10 transition-colors" title="Remove this action">×</button>
+              <span className="min-w-[30px] h-[30px] rounded-lg bg-violet-600 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-1.5">{i + 1}</span>
+              <textarea className={field + " resize-y min-h-[46px]"} rows={1} value={l} onChange={e => setLine(i, e.target.value)} placeholder="For example: Click the Share button" />
+              <button onClick={() => delLine(i)} title="Remove this action"
+                className="shrink-0 mt-1 h-[38px] px-3 rounded-lg text-sm text-zinc-300 border border-white/10 hover:border-red-400/60 hover:text-red-300 hover:bg-red-500/10 transition">Remove</button>
             </div>
           ))}
         </div>
-        <button onClick={addLine} className="text-sm text-emerald-400 hover:text-emerald-300 font-medium mt-2 px-1 py-1">+ Add action</button>
+        <button onClick={addLine} className="mt-2.5 h-9 px-3.5 rounded-lg text-sm font-medium text-violet-200 border border-violet-400/40 hover:bg-violet-500/15 transition">+ Add an action</button>
       </div>
-      <div>
-        <label className={label}>Result</label>
-        <input className={field} value={result} onChange={e => setResult(e.target.value)} placeholder="What you get (optional)" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className={label}>What you get <span className={hint}>optional</span></label>
+          <textarea rows={2} className={field + " resize-y"} value={result} onChange={e => setResult(e.target.value)} placeholder="For example: The link is copied" />
+        </div>
+        <div>
+          <label className={label}>Tip <span className={hint}>optional</span></label>
+          <textarea rows={2} className={field + " resize-y"} value={note} onChange={e => setNote(e.target.value)} placeholder="Anything the reader should know" />
+        </div>
       </div>
-      <div>
-        <label className={label}>Note</label>
-        <input className={field} value={note} onChange={e => setNote(e.target.value)} placeholder="Tip / warning (optional)" />
-      </div>
-      <div className="flex gap-2 pt-1.5">
-        <button
-          onClick={() => onSave({ ...step, title: title.trim(), steps: lines.map(l => l.trim()).filter(Boolean), result: result.trim(), note: note.trim() })}
-          className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-sm font-semibold transition-colors">Save changes</button>
-        <button onClick={onCancel} className="px-5 py-2.5 border border-zinc-700 hover:border-zinc-500 rounded-lg text-sm transition-colors">Cancel</button>
+      <div className="flex flex-wrap items-center gap-2 pt-1">
+        <button onClick={save} className="h-10 px-6 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 rounded-lg text-sm font-semibold transition shadow-[0_6px_20px_rgba(109,74,255,0.35)]">Save changes</button>
+        <button onClick={onCancel} className="h-10 px-5 border border-white/15 hover:border-white/30 rounded-lg text-sm transition">Cancel</button>
+        <span className="text-xs text-zinc-500 ml-auto hidden sm:inline">Ctrl + Enter saves · Esc cancels</span>
       </div>
     </div>
   )
 }
 
-// Read-only step view with acronym highlighting. Click the title bar to edit.
-function StepView({ step, verified, onClickAcr, onEdit }) {
+// Read view of one step. The whole block is clickable: click any text to edit.
+function StepView({ step, letter, verified, onClickAcr, onEdit }) {
   if (!step) return null
   return (
-    <div className="mt-2 border border-zinc-700 rounded-lg overflow-hidden text-xs">
-      {step.title && (
-        <div
-          onClick={onEdit}
-          className="bg-teal-900/30 text-teal-300 px-2.5 py-2 text-[12px] font-semibold border-b border-zinc-700 flex items-center justify-between gap-2 cursor-text hover:bg-teal-900/45 transition-colors"
-          title="Click to edit this step">
-          <span className="min-w-0"><Highlighted text={step.title} verified={verified} onClickAcr={onClickAcr} /></span>
-          {onEdit && <span className="text-emerald-400/70 text-[10px] shrink-0">✎ edit</span>}
-        </div>
-      )}
+    <div onClick={onEdit} title="Click to edit this step"
+      className="mt-2.5 rounded-xl border border-white/10 bg-white/[0.02] hover:border-violet-400/40 hover:bg-violet-500/[0.04] transition cursor-pointer overflow-hidden">
       {step.steps?.map((s, i) => (
-        <div key={i} className="flex items-start gap-2 px-2.5 py-1.5 border-b border-zinc-800/60 last:border-b-0">
-          <span className="w-4 h-4 rounded-full bg-teal-600 text-white text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
-          <p className="text-zinc-300 leading-relaxed"><Highlighted text={s} verified={verified} onClickAcr={onClickAcr} /></p>
+        <div key={i} className="flex items-start gap-3 px-3.5 py-2.5 border-b border-white/5 last:border-b-0">
+          <span className="min-w-[34px] h-6 rounded-md bg-violet-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0">{letter}{i + 1}</span>
+          <p className="text-[14.5px] text-zinc-200 leading-relaxed"><Highlighted text={s} verified={verified} onClickAcr={onClickAcr} /></p>
         </div>
       ))}
       {step.result && (
-        <div className="flex items-start gap-2 px-2.5 py-1.5 bg-emerald-900/20 border-t border-zinc-800/60">
-          <span className="w-4 h-4 rounded-full bg-emerald-600 text-white text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5">✓</span>
-          <p className="text-emerald-300 leading-relaxed"><Highlighted text={step.result} verified={verified} onClickAcr={onClickAcr} /></p>
+        <div className="flex items-start gap-3 px-3.5 py-2.5 bg-emerald-500/[0.07] border-t border-white/5">
+          <span className="text-xs font-bold text-emerald-300 shrink-0 mt-0.5 w-[44px]">Result</span>
+          <p className="text-sm text-emerald-100/90 leading-relaxed"><Highlighted text={step.result} verified={verified} onClickAcr={onClickAcr} /></p>
         </div>
       )}
       {step.note && (
-        <div className="flex items-start gap-2 px-2.5 py-1.5 bg-amber-900/15 border-t border-zinc-800/60">
-          <span className="w-4 h-4 rounded-full bg-amber-600/80 text-white text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5">!</span>
-          <p className="text-amber-200/90 leading-relaxed italic"><Highlighted text={step.note} verified={verified} onClickAcr={onClickAcr} /></p>
+        <div className="flex items-start gap-3 px-3.5 py-2.5 bg-sky-500/[0.07] border-t border-white/5">
+          <span className="text-xs font-bold text-sky-300 shrink-0 mt-0.5 w-[44px]">Tip</span>
+          <p className="text-sm text-sky-100/90 leading-relaxed"><Highlighted text={step.note} verified={verified} onClickAcr={onClickAcr} /></p>
         </div>
       )}
     </div>
   )
 }
+
+const LETTER = (i) => { let s = "", n = i; do { s = String.fromCharCode(65 + (n % 26)) + s; n = Math.floor(n / 26) - 1 } while (n >= 0); return s }
 
 export default function DocPreview({ transcriptChunks, annotatedDocs, onSeek, onEditStep, onMoveStep, onDeleteStep, onReplaceEverywhere }) {
   const hasAnnotations = annotatedDocs?.length > 0
@@ -173,9 +176,9 @@ export default function DocPreview({ transcriptChunks, annotatedDocs, onSeek, on
     const openVerify = (a) => { setShowVerify(true); setDrafts(d => ({ ...d, [a]: d[a] ?? "" })) }
 
     return (
-      <div className="rounded-xl bg-zinc-900 border border-zinc-800 overflow-hidden flex flex-col" style={{ maxHeight: "65vh" }}>
-        <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between shrink-0 gap-2">
-          <p className="text-xs text-zinc-500 font-semibold uppercase tracking-wide">Procedure Steps · <span className="text-zinc-400 normal-case">tap any step to edit</span></p>
+      <div className="rounded-2xl bg-[#120c2c]/85 backdrop-blur-md border border-violet-400/15 overflow-hidden flex flex-col" style={{ maxHeight: "82vh" }}>
+        <div className="px-5 py-3.5 border-b border-white/5 flex items-center justify-between shrink-0 gap-2 flex-wrap">
+          <p className="text-sm font-semibold text-zinc-100">Your guide <span className="text-zinc-400 font-normal">· click any step to edit it</span></p>
           <div className="flex items-center gap-2 shrink-0">
             <span
               title={`Self-check (no manual answer key): ${evalResult.unclearRate}% steps unclear · ${evalResult.logisticsSteps} noise steps · apps named: ${evalResult.appsNamed.join(', ') || 'none'}`}
@@ -191,7 +194,7 @@ export default function DocPreview({ transcriptChunks, annotatedDocs, onSeek, on
                 ⚠ {toVerify.length} to verify
               </button>
             )}
-            <span className="text-xs text-emerald-400">{annotatedDocs.length} steps</span>
+            <span className="text-xs text-zinc-300">{annotatedDocs.length} parts</span>
           </div>
         </div>
 
@@ -218,59 +221,47 @@ export default function DocPreview({ transcriptChunks, annotatedDocs, onSeek, on
           </div>
         )}
 
-        <div className="overflow-y-auto divide-y divide-zinc-800/60">
+        <div className="overflow-y-auto divide-y divide-white/5">
           {annotatedDocs.map((doc, i) => (
-            <div key={i} className="p-4 flex gap-3 group">
-              {/* Thumbnail: image click enlarges (80px tells you nothing about a
-                  dense enterprise UI); the timestamp underneath seeks the video */}
-              <div className="shrink-0 w-20">
-                {doc.frame ? (
-                  <button onClick={() => setLightbox({ src: doc.frame, label: `Step ${i + 1} · ${doc.label}` })} title="Click to enlarge" className="block w-full cursor-zoom-in">
-                    <img src={doc.frame} alt="" className="w-20 h-12 object-cover rounded-lg opacity-75 group-hover:opacity-100 transition-opacity" />
-                  </button>
-                ) : (
-                  <div className="w-20 h-12 rounded-lg bg-zinc-800 flex items-center justify-center"><span className="text-zinc-600 text-xs font-mono">{doc.label}</span></div>
-                )}
-                <button onClick={() => onSeek?.(doc.timestamp, i)} title="Jump to this moment in the video"
-                  className="block w-full text-center text-emerald-400 hover:text-emerald-300 font-mono text-xs mt-1 transition-colors">{doc.label}</button>
-                {doc.zoomFrame && (
-                  <button onClick={() => setLightbox({ src: doc.zoomFrame, label: `Step ${i + 1} · where it happened` })}
-                    title="Zoomed view of exactly where the action happened"
-                    className="block w-full text-center text-[10px] text-amber-300/80 hover:text-amber-200 mt-0.5 transition-colors">🔍 zoom</button>
-                )}
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider flex items-center gap-1.5">
-                    Step {i + 1}
-                    {doc.lowConfidence && (
-                      <span title="Written from thin evidence (little narration and little readable screen text at this moment). Worth a quick review."
-                        className="inline-block w-2 h-2 rounded-full bg-amber-400/80 ring-2 ring-amber-400/25 cursor-help" />
-                    )}
-                  </span>
-                  {editing !== i && doc.step && (
-                    <div className="flex items-center gap-1">
-                      {/* Reorder + remove: the human editing the doc has the final say */}
-                      <button onClick={() => onMoveStep?.(i, -1)} disabled={i === 0} title="Move up"
-                        className="text-[11px] text-zinc-400 hover:text-zinc-200 disabled:opacity-25 disabled:cursor-default ring-1 ring-zinc-700 hover:ring-zinc-500 rounded-full w-6 h-6 flex items-center justify-center transition-colors">↑</button>
-                      <button onClick={() => onMoveStep?.(i, 1)} disabled={i === annotatedDocs.length - 1} title="Move down"
-                        className="text-[11px] text-zinc-400 hover:text-zinc-200 disabled:opacity-25 disabled:cursor-default ring-1 ring-zinc-700 hover:ring-zinc-500 rounded-full w-6 h-6 flex items-center justify-center transition-colors">↓</button>
-                      <button onClick={() => { if (window.confirm(`Remove step ${i + 1} "${doc.step.title || ''}" from the document?`)) onDeleteStep?.(i) }} title="Remove step"
-                        className="text-[11px] text-red-400/70 hover:text-red-300 ring-1 ring-zinc-700 hover:ring-red-500/50 rounded-full w-6 h-6 flex items-center justify-center transition-colors">✕</button>
-                      <button onClick={() => setEditing(i)} className="text-[11px] font-medium text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 ring-1 ring-emerald-500/30 rounded-full px-2.5 py-1 transition-colors ml-1">✎ Edit</button>
-                    </div>
+            <div key={i} className="p-4 sm:p-5">
+              {/* Header: part badge, title, time; labelled buttons are always visible */}
+              <div className="flex flex-wrap items-center gap-2.5">
+                <span className="text-xs font-bold text-white bg-violet-600 rounded-md px-2 py-1 shrink-0">Part {LETTER(i)}</span>
+                <h4 onClick={() => doc.step && setEditing(i)} className={`text-[15.5px] font-semibold text-zinc-50 leading-snug min-w-0 flex-1 ${doc.step ? "cursor-pointer hover:text-violet-200" : ""}`}>
+                  {doc.step?.title ? <Highlighted text={doc.step.title} verified={verified} onClickAcr={openVerify} /> : `Step ${i + 1}`}
+                  {doc.lowConfidence && (
+                    <span title="Written from thin evidence (little narration and little readable screen text at this moment). Worth a quick look."
+                      className="ml-2 align-middle text-[11px] font-medium text-amber-200 bg-amber-500/15 border border-amber-400/30 rounded-full px-2 py-0.5">check this</span>
                   )}
-                </div>
-                {editing === i && doc.step ? (
-                  <StepEditor step={doc.step} onSave={(ns) => { onEditStep?.(i, ns); setEditing(null) }} onCancel={() => setEditing(null)} />
-                ) : doc.step ? (
-                  <StepView step={doc.step} verified={verified} onClickAcr={openVerify} onEdit={() => setEditing(i)} />
-                ) : doc.annotation ? (
-                  <p className="text-zinc-400 text-xs leading-relaxed mt-1.5 line-clamp-3">{doc.annotation}</p>
-                ) : null}
+                </h4>
+                <button onClick={() => onSeek?.(doc.timestamp, i)} title="Play the video from this moment"
+                  className="text-xs font-semibold text-cyan-200 bg-cyan-500/10 border border-cyan-400/25 hover:bg-cyan-500/20 rounded-full px-2.5 py-1 tabular-nums transition">▶ {doc.label}</button>
               </div>
+              {editing !== i && doc.step && (
+                <div className="flex flex-wrap gap-1.5 mt-2.5">
+                  <button onClick={() => setEditing(i)} className="h-8 px-3 rounded-lg text-[13px] font-semibold text-white bg-violet-600 hover:bg-violet-500 transition">✎ Edit</button>
+                  <button onClick={() => onMoveStep?.(i, -1)} disabled={i === 0} className="h-8 px-3 rounded-lg text-[13px] text-zinc-200 border border-white/15 hover:border-white/30 disabled:opacity-30 disabled:cursor-default transition">↑ Move up</button>
+                  <button onClick={() => onMoveStep?.(i, 1)} disabled={i === annotatedDocs.length - 1} className="h-8 px-3 rounded-lg text-[13px] text-zinc-200 border border-white/15 hover:border-white/30 disabled:opacity-30 disabled:cursor-default transition">↓ Move down</button>
+                  <button onClick={() => { if (window.confirm(`Delete "${doc.step.title || "this step"}" from the guide?`)) onDeleteStep?.(i) }}
+                    className="h-8 px-3 rounded-lg text-[13px] text-red-200 border border-red-400/25 hover:bg-red-500/10 hover:border-red-400/50 transition">Delete</button>
+                </div>
+              )}
+
+              {editing === i && doc.step ? (
+                <StepEditor step={doc.step} onSave={(ns) => { onEditStep?.(i, ns); setEditing(null) }} onCancel={() => setEditing(null)} />
+              ) : doc.step ? (
+                <>
+                  <StepView step={doc.step} letter={LETTER(i)} verified={verified} onClickAcr={openVerify} onEdit={() => setEditing(i)} />
+                  <MarkedShots shots={doc.shots} onOpen={(src, k) => setLightbox({ src, label: `Part ${LETTER(i)} · screenshot ${k + 1}` })} />
+                  {!doc.shots?.length && doc.frame && (
+                    <button onClick={() => setLightbox({ src: doc.frame, label: `Part ${LETTER(i)} · ${doc.label}` })} className="mt-2.5 block w-40 cursor-zoom-in" title="Click to enlarge">
+                      <img src={doc.frame} alt="" className="w-full rounded-md ring-1 ring-white/10" />
+                    </button>
+                  )}
+                </>
+              ) : doc.annotation ? (
+                <p className="text-zinc-300 text-sm leading-relaxed mt-2">{doc.annotation}</p>
+              ) : null}
             </div>
           ))}
         </div>
@@ -304,6 +295,39 @@ export default function DocPreview({ transcriptChunks, annotatedDocs, onSeek, on
           </div>
         ))}
       </div>
+    </div>
+  )
+}
+
+// Screenshots with each action's marker burned in (box + numbered label).
+function MarkedShots({ shots, onOpen }) {
+  const [imgs, setImgs] = useState([])
+  useEffect(() => {
+    let live = true
+    ;(async () => {
+      const out = []
+      // each image carries its own count: the shots list can change (a merge,
+      // an edit) while an older render is still on screen
+      for (const s of shots || []) {
+        let src = null
+        try { src = (await renderShot(s.image, s.callouts, { maxW: 1100 })).dataUrl } catch { /* skip this one */ }
+        out.push({ src, n: s.callouts?.length || 0 })
+      }
+      if (live) setImgs(out)
+    })()
+    return () => { live = false }
+  }, [shots])
+  if (!shots?.length || !imgs.length) return null
+  return (
+    <div className="mt-2.5 grid grid-cols-2 gap-2">
+      {imgs.map(({ src, n }, k) => src && (
+        <button key={k} onClick={() => onOpen(src, k)} title="Click to enlarge" className="relative block cursor-zoom-in group/shot">
+          <img src={src} alt="" className="w-full rounded-md ring-1 ring-violet-500/30 group-hover/shot:ring-violet-400/70 transition" />
+          <span className="absolute bottom-1 right-1 text-[10px] font-semibold bg-violet-600/90 text-white rounded px-1.5 py-0.5">
+            {n} marked
+          </span>
+        </button>
+      ))}
     </div>
   )
 }

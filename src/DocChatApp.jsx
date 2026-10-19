@@ -52,7 +52,7 @@ export default function DocChatApp() {
         const text = await extractText(file)
         const chunks = chunkText(text)
         if (!chunks.length) throw new Error("Could not read any text from that file.")
-        setPassages(chunks.map((c, i) => ({ label: `Part ${i + 1}`, text: c, timestamp: null, frame: null, annotation: null })))
+        setPassages(chunks.map((c, i) => ({ label: `Passage ${i + 1}`, text: c, timestamp: null, frame: null, annotation: null })))
       } catch (e) {
         setError(e.message)
       } finally {

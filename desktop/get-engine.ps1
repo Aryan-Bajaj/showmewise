@@ -6,13 +6,15 @@
 # Usage:
 #   powershell -ExecutionPolicy Bypass -File get-engine.ps1            # 4B model (default, fast, ~4 GB)
 #   powershell -ExecutionPolicy Bypass -File get-engine.ps1 -Model 12b # 12B model (slower, reads dense UIs far better, ~8 GB)
+#   add -AllLanguages to also bundle the multilingual speech model (~970 MB) for recordings in other languages
 #
 # The 12B model is the recommended upgrade when the 4B model misreads a dense
-# enterprise UI and invents plausible-but-wrong labels. It runs on the same
+# business app and invents plausible-but-wrong labels. It runs on the same
 # machine via llama.cpp CPU/GPU offload — nothing leaves the device.
 param(
     [ValidateSet("4b", "12b")]
-    [string]$Model = "4b"
+    [string]$Model = "4b",
+    [switch]$AllLanguages
 )
 $ErrorActionPreference = "Stop"
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -68,23 +70,26 @@ if (-not (Test-Path $mmproj)) {
     Invoke-WebRequest "https://huggingface.co/ggml-org/$repo/resolve/main/$mmprojFile" -OutFile $mmproj
 } else { Write-Host "[3/4] Vision projector ($mmprojFile) already present, skipping." }
 
-# 4) the Whisper speech model, served from inside app\ so transcription never
-# calls Hugging Face. Without this the first transcription needs internet.
-$whisper = "$here\app\models\Xenova\whisper-small.en"
-$whisperBase = "https://huggingface.co/Xenova/whisper-small.en/resolve/main"
+# 4) the Whisper speech models, served from inside app\ so transcription never
+# calls Hugging Face. English always; the multilingual one with -AllLanguages.
 $whisperFiles = @(
     "config.json", "generation_config.json", "preprocessor_config.json",
     "tokenizer.json", "tokenizer_config.json", "special_tokens_map.json",
     "added_tokens.json", "normalizer.json", "vocab.json",
     "onnx/encoder_model.onnx", "onnx/decoder_model_merged.onnx"
 )
-if (-not (Test-Path "$whisper\onnx\decoder_model_merged.onnx")) {
-    Write-Host "[4/4] Downloading the Whisper speech model (~970 MB)..."
-    New-Item -ItemType Directory -Force "$whisper\onnx" | Out-Null
-    foreach ($f in $whisperFiles) {
-        Invoke-WebRequest "$whisperBase/$f" -OutFile "$whisper\$($f -replace '/', '\')"
-    }
-} else { Write-Host "[4/4] Whisper model already present, skipping." }
+function Get-Whisper($name, $label) {
+    $dir = "$herepp\models\Xenova\$name"
+    if (-not (Test-Path "$dir\onnx\decoder_model_merged.onnx")) {
+        Write-Host "[4/4] Downloading the $label speech model (~970 MB)..."
+        New-Item -ItemType Directory -Force "$dir\onnx" | Out-Null
+        foreach ($f in $whisperFiles) {
+            Invoke-WebRequest "https://huggingface.co/Xenova/$name/resolve/main/$f" -OutFile "$dir\$($f -replace '/', '')"
+        }
+    } else { Write-Host "[4/4] $label speech model already present, skipping." }
+}
+Get-Whisper "whisper-small.en" "English"
+if ($AllLanguages) { Get-Whisper "whisper-small" "multilingual" }
 
 Write-Host ""
 Write-Host "Setup complete ($Model model). Start VideoDoc with VideoDoc.bat"

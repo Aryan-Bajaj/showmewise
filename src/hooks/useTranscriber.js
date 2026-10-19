@@ -5,7 +5,7 @@ export default function useTranscriber() {
   const [transcribeStatus, setTranscribeStatus] = useState(null)
   const [transcribeProgress, setTranscribeProgress] = useState(null) // { stage, pct, file }
 
-  const transcribe = useCallback((audioData, sampleRate) => {
+  const transcribe = useCallback((audioData, sampleRate, language = 'en') => {
     return new Promise((resolve, reject) => {
       if (!workerRef.current) {
         workerRef.current = new Worker(
@@ -18,7 +18,7 @@ export default function useTranscriber() {
         if (data.type === 'status') {
           setTranscribeStatus(data.msg)
         } else if (data.type === 'progress') {
-          setTranscribeProgress({ stage: data.stage, pct: data.pct, file: data.file, window: data.window, windows: data.windows })
+          setTranscribeProgress(data)
         } else if (data.type === 'result') {
           setTranscribeProgress(null)
           setTranscribeStatus(null)
@@ -30,7 +30,7 @@ export default function useTranscriber() {
         }
       }
 
-      workerRef.current.postMessage({ audio: audioData, sampleRate }, [audioData.buffer])
+      workerRef.current.postMessage({ audio: audioData, sampleRate, language }, [audioData.buffer])
     })
   }, [])
 

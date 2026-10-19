@@ -1,23 +1,15 @@
-export default function VideoDocLogo({ size = 30 }) {
-  const id = `vd-grad-${size}`
+// The mark: a page (the guide) with a play button (the video it came from) and
+// a numbered marker, the way every click is marked in a VideoDoc guide.
+export default function VideoDocLogo({ size = 30, ring = "#0f0b24" }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id={id} x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#3f62ff" />
-          <stop offset="100%" stopColor="#a78bfa" />
-        </linearGradient>
-      </defs>
-      {/* Background */}
-      <rect width="32" height="32" rx="7" fill={`url(#${id})`} />
-      {/* Play triangle — left half */}
-      <path d="M7 11.5 L7 20.5 L14.5 16 Z" fill="white" fillOpacity="0.95" />
-      {/* Subtle divider */}
-      <line x1="17" y1="8" x2="17" y2="24" stroke="white" strokeOpacity="0.2" strokeWidth="1" />
-      {/* Document lines — right half */}
-      <rect x="19" y="11.5" width="7" height="1.8" rx="0.9" fill="white" fillOpacity="0.9" />
-      <rect x="19" y="15.1" width="7" height="1.8" rx="0.9" fill="white" fillOpacity="0.7" />
-      <rect x="19" y="18.7" width="5" height="1.8" rx="0.9" fill="white" fillOpacity="0.5" />
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="VideoDoc">
+      <path d="M8 3.5h11.5L26 10v15.5a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-19a3 3 0 0 1 3-3z" fill="#f4f1ff" />
+      <path d="M19.5 3.5V8a2 2 0 0 0 2 2H26" fill="#c9bcff" />
+      <path d="M9.5 12.2v7.6l6.2-3.8z" fill="#5b3df5" />
+      <rect x="17.5" y="14" width="5.5" height="1.7" rx=".85" fill="#5b3df5" opacity=".55" />
+      <rect x="17.5" y="17.6" width="4" height="1.7" rx=".85" fill="#5b3df5" opacity=".35" />
+      <circle cx="24.5" cy="24.5" r="5.6" fill="#5b3df5" stroke={ring} strokeWidth="1.6" />
+      <path d="M23.4 22.4l1.6-.9v6" stroke="#fff" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }

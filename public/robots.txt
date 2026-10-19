@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://videodoc.netlify.app/sitemap.xml

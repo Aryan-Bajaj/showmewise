@@ -2,11 +2,11 @@
 
 **Automated Video Documentation · AI Transcription · Local LLM Annotation · Beautiful Exports**
 
-`React` `Whisper AI` `Vision` `llama.cpp` `Ollama` `WebLLM` `RAG` `Three.js` `Vite` `License: MIT` `Version 4`
+`React` `Whisper AI` `Vision` `llama.cpp` `Ollama` `WebLLM` `RAG` `Three.js` `Vite` `License: MIT` `Version 5`
 
 > Turn any screen recording into polished, step-by-step documentation, entirely on your own machine. No server. No uploads. No subscription. Ever.
 
-> **Now on Version 4.** This release is about trust: every step is grounded in what was actually said and shown, steps line up with real screen changes, summaries no longer invent conclusions, and there are now two builds: a hosted web version and a fully offline desktop version with a bundled vision model. See [New in v4](#-new-in-v4).
+> **Now on Version 5, the manual release.** Each action in a guide now points at the exact spot on the screen with a numbered marker, on the screenshot and inside the step clip, and the PDF, Word and HTML exports read like a real process manual: cover, contents, what you need, the process at a glance, Part A, B, C with numbered actions, a checklist and a quick reference. See [New in v5](#-new-in-v5).
 
 > **Want the offline desktop installer?** → [Download & install instructions](INSTALL.md)
 
@@ -16,7 +16,8 @@
 
 1. [What Is This?](#-what-is-this)
 2. [Live Demo](#-live-demo)
-3. [New in v4](#-new-in-v4) `🆕`
+3. [New in v5](#-new-in-v5) `🆕`
+   - [New in v4](#-new-in-v4)
 4. [New in v3](#-new-in-v3)
 5. [New in v2](#-new-in-v2)
 6. [How It Works: The Full Pipeline](#-how-it-works-the-full-pipeline)
@@ -65,7 +66,7 @@ It works for:
 
 And the best part? **Everything runs in your browser.** No API keys. No cloud. No privacy trade-offs.
 
-P.S. Version 4 is here, focused on one thing: you should be able to trust every line of the generated document.
+P.S. Version 5 is here: the clicks marked on the screen, in a document that reads like a real manual.
 ---
 
 ## 🌐 Live Demo
@@ -78,9 +79,26 @@ P.S. Version 4 is here, focused on one thing: you should be able to trust every 
 
 ---
 
+## ✨ New in v5
+
+Version 5 is about making a guide easy to follow. Everything still runs on your own machine.
+
+* **Clicks marked on the screen.** Each action is pinned to its exact button or field with a numbered marker and a short label ("1 Click + New dashboard"). The position comes from the words the OCR read on screen, the timing from when it was said in the narration. Nothing is guessed: if a label cannot be found on screen, that action simply gets no marker.
+* **Reads coloured buttons and popups.** Short how-tos are read in full HD, and a second pass finds solid coloured buttons (Create, Save, Share) and reads each one on its own, the place where plain OCR fails most.
+* **Markers inside the step clips and GIFs.** The same numbered markers appear in the video clip of each step, and disappear the moment the screen changes, so a marker never points at the wrong screen.
+* **A real process manual in all three formats.** PDF, Word and HTML share one structure: cover with a details table, contents, purpose and a short summary, what you need before you start, the process at a glance, Part A, B, C with numbered actions (A1, A2) and marked screenshots with figure captions, result and tip boxes, a checklist, a quick reference and the FAQ. Headers, footers and page numbers in PDF and Word.
+* **One format per job.** HTML to share as a link (marked screenshots, step clips, a checklist that remembers ticks), PDF to print or email, Word to edit and make your own.
+* **Vid Chat shows the step.** An answer now comes with the marked screenshot of the step it came from and a button that plays that moment, plus an optional web search in a new tab.
+* **Simple editing.** Click any step to edit it. Plain fields (step title, what to do, what you get, tip) and labelled buttons to move or delete a step.
+* **Short videos, clean steps.** Step length now scales with the recording, so a one-minute how-to becomes several clear parts instead of one.
+* **Whole audio, always.** Fixed a bug where each five-minute window only transcribed its first 30 seconds.
+* **App names must be on screen.** The detected app name is only used when it really appears on screen or in the audio.
+
+---
+
 ## ✨ New in v4
 
-Version 4 is the accuracy and trust release. It was built by testing against a real 32-minute enterprise meeting recording and fixing every failure found by checking the generated document against the actual video, step by step. Everything still runs on your machine.
+Version 4 is the accuracy and trust release. It was built by testing against a real 32-minute screen recording of a business app and fixing every failure found by checking the generated document against the actual video, step by step. Everything still runs on your machine.
 
 * **The model must look before it may skip.** Output is schema-constrained JSON on every engine (Ollama, llama.cpp, WebLLM), and the schema forces the model to describe what the screenshot shows before deciding whether a segment contains a step. This single change fixed the biggest source of missed steps in real meeting recordings, where people talk vaguely while doing concrete work on screen.
 * **Steps follow the screen, not the clock.** Step boundaries come from pixel-level scene change detection, so a step starts where a dialog opened, not at an arbitrary time mark. The step budget scales with video length: a 90-minute recording gets proportionally more steps than a 20-minute one, and a low-memory machine gets a ceiling so it still finishes.
@@ -92,8 +110,8 @@ Version 4 is the accuracy and trust release. It was built by testing against a r
 * **Hears and sees the boundaries, not just the clock.** Step breaks now come from both the transcript (a cheap pass proposes breaks where the discussion moves to a new activity) and the screen (pixel scene changes), so several actions inside one static dialog no longer collapse into a single step.
 * **No more overheard names in the guide.** Meeting recordings burn the speaker's name into the video caption; that name, and anyone's spoken name, is now kept out of step titles and summaries.
 * **Smart screenshots.** Screenshots auto-zoom and crop to the exact spot the action happened, with the region highlighted, instead of showing the whole screen.
-* **Sharper vision by default.** The desktop build now ships the larger gemma 3 12B vision model, a meaningful accuracy jump over 4B for dense enterprise UIs at the cost of a slower first read. A 4B option remains for lower-spec machines.
-* **One-click installer for offline deployment.** `desktop/VideoDoc.iss` builds a self-contained Windows installer (engine + model + app, no internet needed to install, no admin rights required), with a silent-install switch for enterprise deployment tools. The vision model, the speech model and the OCR engine all ship inside it, so an installed copy makes no network requests at all. See [desktop/README.md](desktop/README.md).
+* **Sharper vision by default.** The desktop build now ships the larger gemma 3 12B vision model, a meaningful accuracy jump over 4B for dense business apps at the cost of a slower first read. A 4B option remains for lower-spec machines.
+* **One-click installer for offline deployment.** `desktop/VideoDoc.iss` builds a self-contained Windows installer (engine + model + app, no internet needed to install, no admin rights required), with a silent-install switch for software deployment tools. The vision model, the speech model and the OCR engine all ship inside it, so an installed copy makes no network requests at all. See [desktop/README.md](desktop/README.md).
 * **Two builds.**
   * `npm run build:netlify` builds the hosted web version, with per-video size and length limits so a huge file cannot crash a visitor's laptop (limits are set in `.env.netlify`).
   * `npm run build:desktop` builds the desktop version, which bundles the llama.cpp engine with a gemma 3 vision model (12B by default, 4B optional). See [desktop/README.md](desktop/README.md).
@@ -118,7 +136,7 @@ Version 3 is the biggest leap yet. The AI now **watches the screen and hears eve
 
 ### Coming next
 
-* **Smart screenshots** that auto-zoom and crop to the exact spot that was clicked.
+* **Smart screenshots** that point at the exact spot that was clicked (shipped in v5 as marked screenshots).
 * **Sharper vision** that reads small interface text more reliably.
 * **Meeting Minutes mode:** who said what, and who led the session.
 * **More languages** for non-English recordings.
@@ -133,7 +151,7 @@ Version 3 is the biggest leap yet. The AI now **watches the screen and hears eve
 
 Everything below runs client-side. No server, no API keys.
 
-* **Reads your screen (OCR).** Tesseract reads the on-screen text off the frames, so steps name the exact buttons, menus and files, and the tools you used (Excel, VBA, SAP, VS Code, Python and more) are detected automatically and listed in the guide.
+* **Reads your screen (OCR).** Tesseract reads the on-screen text off the frames, so steps name the exact buttons, menus and files, and the tools you used (Excel, Power BI, VS Code, Python and more) are detected automatically and listed in the guide.
 * **Animated step GIFs.** Each step becomes a smooth GIF of the real action: a clip from 3 seconds before to 3 seconds after the keyframe, encoded in the browser with `gifenc` and embedded into the HTML guide. Optimised with downscaling, low frame rate and a shared palette.
 * **Vid Chat (RAG).** Ask your recording questions, either after a full guide is built or right after transcription. Embeddings run in the browser (MiniLM via `transformers.js`), the closest moments are retrieved, and the local LLM answers, showing the matching frame and a jump-to-moment link. Summary or "what is this all about?" questions are detected and answered from passages sampled across the whole document, not just the four nearest. Live progress steps (searching, loading model, writing) replace any frozen spinner.
 * **Handles long videos (chunking) and covers the whole video.** The recording is split into time windows across its full length, not just where someone spoke, so silent stretches are still documented from the on-screen (OCR) text. Long recordings finish in a handful of focused passes instead of hundreds of tiny calls. Frame extraction auto-caps and downscales to stay within browser memory.
@@ -153,7 +171,7 @@ Everything below runs client-side. No server, no API keys.
 │  Upload     │──▶│  Extract             │──▶│  Whisper AI          │──▶│  Read Screen (OCR)   │
 │  Video      │   │  Frames + Audio      │   │  Transcription       │   │  on-screen text +    │
 │  (.mp4/.mov │   │  (auto-capped,       │   │  (Web Worker,        │   │  tools detected      │
-│  /.webm)    │   │  downscaled)         │   │  ~95% accuracy)      │   │  (Excel, VBA, SAP…)  │
+│  /.webm)    │   │  downscaled)         │   │  in your browser)    │   │  (Excel, Power BI…)  │
 └─────────────┘   └──────────────────────┘   └──────────────────────┘   └──────────┬───────────┘
                                                                                     │
         ┌───────────────────────────────────────────────────────────────────────────┘
@@ -245,7 +263,7 @@ Model:    Xenova/whisper-small.en
 Format:   fp32 (q4/q8 cause MatMulNBits errors in browser ONNX)
 Size:     ~970MB (downloaded once, cached in the browser forever)
 Output:   Timestamped segments [ { text, start, end }, ... ]
-Accuracy: ~95% on clear English audio
+Accuracy: strong on clear English audio (depends on the recording)
 ```
 
 **First run:** The model downloads (~970MB). Grab a coffee. The desktop build ships it inside the installer and skips this entirely.
@@ -344,7 +362,7 @@ Word-compatible document via the `docx` package. Paste directly into Notion, Con
 
 ### Module 6: Read Screen with OCR
 
-**🆕 New in v2.** After frames are captured, `tesseract.js` reads the actual on-screen text directly off the frames (sampled and bounded so it stays fast). That text is fed to the LLM so steps name the exact buttons, menus and files, and a signature scan detects the tools used (Excel, VBA, SAP, VS Code, Python and more) which are then listed in the guide.
+**🆕 New in v2.** After frames are captured, `tesseract.js` reads the actual on-screen text directly off the frames (sampled and bounded so it stays fast). That text is fed to the LLM so steps name the exact buttons, menus and files, and a signature scan detects the tools used (Excel, Power BI, VS Code, Python and more) which are then listed in the guide.
 
 | Parameter | Value |
 |---|---|

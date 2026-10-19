@@ -16,6 +16,7 @@ export default function useFrameExtractor() {
   const MIN_FRAMES = 12     // floor — even a 30s clip gets real coverage
   const MAX_FRAMES = 300    // ceiling — a 90-min recording still gets a frame every ~18s; memory stays bounded (~45 MB of JPEGs)
   const MAX_W = 1280
+  const MAX_W_SHORT = 1920 // short how-tos keep full HD so small UI labels can be read and marked
   const SEEK_TIMEOUT = 4000 // ms — skip a stalled seek instead of hanging
 
   // onProgress(done, total)
@@ -44,9 +45,12 @@ export default function useFrameExtractor() {
         if (!dur || !isFinite(dur)) { finish(); return }
         // Pick a frame count that scales with duration, clamped to [MIN, MAX],
         // then derive the interval from it — so density flexes with the video.
-        const targetFrames = Math.max(MIN_FRAMES, Math.min(MAX_FRAMES, Math.round(dur / TARGET_SPACING)))
+        // Short how-tos get a frame every ~2 s (up to 60) so every click has a
+        // screenshot to point at; long recordings keep the ~10 s spacing.
+        const dense = Math.min(60, Math.ceil(dur / 2))
+        const targetFrames = Math.max(MIN_FRAMES, dense, Math.min(MAX_FRAMES, Math.round(dur / TARGET_SPACING)))
         const interval = dur / targetFrames
-        const scale = Math.min(1, MAX_W / video.videoWidth)
+        const scale = Math.min(1, (dur <= 600 ? MAX_W_SHORT : MAX_W) / video.videoWidth)
         canvas.width = Math.round(video.videoWidth * scale)
         canvas.height = Math.round(video.videoHeight * scale)
 
@@ -73,6 +77,7 @@ export default function useFrameExtractor() {
                 frames.push({
                   timestamp: timestamps[index],
                   imageData: canvas.toDataURL("image/jpeg", 0.7),
+                  width: canvas.width,
                   label: formatTime(timestamps[index]),
                 })
               } catch { /* skip unreadable frame */ }

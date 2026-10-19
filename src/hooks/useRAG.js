@@ -133,6 +133,8 @@ ${context}`
       label: d.label,
       timestamp: d.timestamp,
       frame: d.frame || null,
+      title: d.step?.title || "",
+      shots: d.shots || [],
       text: (d.text || (typeof d.annotation === "string" ? d.annotation : "") || d.ocrText || "").slice(0, 600),
     }))
     return { answer, sources, notFound: false }

@@ -5,7 +5,7 @@ import { exportDOCX } from "../lib/exportDOCX"
 import { renderMermaidSVG, svgToPngDataURL } from "../lib/mermaidRender"
 import useClipMaker from "../hooks/useClipMaker"
 import useGifMaker from "../hooks/useGifMaker"
-import { Download } from "lucide-react"
+import { Download, Globe, FileText, FileType } from "lucide-react"
 
 function toExportDocs(annotatedDocs, transcriptChunks) {
   if (annotatedDocs?.length > 0) return annotatedDocs
@@ -78,29 +78,42 @@ export default function ExportBar({ annotatedDocs, transcriptChunks, videoName, 
     }
   }
 
+  const FORMATS = [
+    { type: "html", title: "HTML", sub: "Web guide", desc: "Marked screenshots, step clips, checklist and FAQ in one file.", Icon: Globe, grad: "from-violet-500/25 to-indigo-500/10", ring: "hover:border-violet-400/60" },
+    { type: "pdf", title: "PDF", sub: "Print ready", desc: "Cover, contents, numbered parts and page numbers.", Icon: FileText, grad: "from-rose-500/20 to-violet-500/10", ring: "hover:border-rose-300/60" },
+    { type: "docx", title: "DOCX", sub: "Editable Word", desc: "The same manual, ready to edit and reuse.", Icon: FileType, grad: "from-sky-500/20 to-violet-500/10", ring: "hover:border-sky-300/60" },
+  ]
+
   return (
-    <div className="border border-zinc-800 rounded-xl p-4 flex items-center gap-3">
-      <Download className="w-4 h-4 text-zinc-500 shrink-0" />
-      {!hasContent && (
-        <span className="text-xs text-zinc-600">Process a video to enable export</span>
-      )}
-      {gifMsg && <span className="text-xs text-emerald-400 mr-auto">{gifMsg}</span>}
-      {error && <span className="text-xs text-red-400 mr-auto">{error}</span>}
-      <div className="ml-auto flex gap-2">
-        {["html", "pdf", "docx"].map(type => (
-          <button
-            key={type}
-            onClick={() => handle(type)}
-            disabled={!hasContent || !!busy}
-            className={`px-4 py-2 text-xs font-semibold uppercase rounded-lg transition-all
-              ${hasContent && !busy
-                ? "bg-zinc-800 hover:bg-zinc-700 text-zinc-200 cursor-pointer"
-                : "bg-zinc-900 text-zinc-600 cursor-not-allowed"
-              }`}
-          >
-            {busy === type ? "..." : type}
-          </button>
-        ))}
+    <div className="rounded-2xl border border-violet-400/15 bg-[#120c2c]/80 backdrop-blur-md p-5">
+      <div className="flex items-center gap-2.5 mb-4">
+        <Download className="w-4 h-4 text-violet-300 shrink-0" />
+        <span className="text-sm font-semibold text-zinc-100">Export your guide</span>
+        {!hasContent && <span className="text-xs text-zinc-500">· process a video to enable export</span>}
+        {gifMsg && <span className="text-xs text-violet-200 ml-auto animate-pulse">{gifMsg}</span>}
+        {error && <span className="text-xs text-red-300 ml-auto">{error}</span>}
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {FORMATS.map(({ type, title, sub, desc, Icon, grad, ring }) => {
+          const off = !hasContent || !!busy
+          return (
+            <button
+              key={type}
+              onClick={() => handle(type)}
+              disabled={off}
+              aria-label={title}
+              className={`text-left rounded-xl border border-white/10 bg-gradient-to-br ${grad} px-4 py-3.5 transition-all
+                ${off ? "opacity-50 cursor-not-allowed" : `cursor-pointer hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(60,30,160,0.35)] ${ring}`}`}
+            >
+              <span className="flex items-center gap-2.5">
+                <Icon className="w-5 h-5 text-white/90" />
+                <span className="text-sm font-bold tracking-wide text-white">{busy === type ? "Building…" : title}</span>
+                <span className="text-[11px] text-zinc-300/80 ml-auto">{sub}</span>
+              </span>
+              <span className="block text-xs text-zinc-300/75 mt-1.5 leading-relaxed">{desc}</span>
+            </button>
+          )
+        })}
       </div>
     </div>
   )

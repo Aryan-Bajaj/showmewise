@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react"
 import useRAG from "../hooks/useRAG"
+import { renderShot } from "../lib/annotateImage"
 import { MessageSquare, Send, CornerDownRight, Sparkles, Globe } from "lucide-react"
 
 function fmt(ts) {
@@ -37,6 +38,37 @@ function Progress({ status }) {
   )
 }
 
+const LETTER = (i) => { let s = "", n = i; do { s = String.fromCharCode(65 + (n % 26)) + s; n = Math.floor(n / 26) - 1 } while (n >= 0); return s }
+
+// The step an answer came from, shown the way the guide shows it: its marked
+// screenshot, its part letter and title, and a button that plays that moment.
+function SourceCard({ source, part, onSeek, onZoom }) {
+  const [img, setImg] = useState(null)
+  const shot = source.shots?.[0]
+  useEffect(() => {
+    let live = true
+    if (shot) renderShot(shot.image, shot.callouts, { maxW: 900 }).then((r) => live && setImg(r.dataUrl)).catch(() => {})
+    return () => { live = false }
+  }, [shot])
+  const src = img || source.frame
+  if (!src) return null
+  return (
+    <div className="rounded-xl overflow-hidden border border-violet-400/25 bg-[#120c2c] max-w-md">
+      <button onClick={() => onZoom?.(src)} className="block w-full cursor-zoom-in" title="Click to enlarge">
+        <img src={src} alt={source.title || "Step screenshot"} className="w-full block" />
+      </button>
+      <div className="flex items-center gap-2 px-3 py-2 text-xs">
+        {part && <span className="font-bold text-white bg-violet-600 rounded px-1.5 py-0.5 shrink-0">Part {part}</span>}
+        <span className="text-zinc-200 truncate">{source.title || "From your guide"}</span>
+        {source.timestamp != null && (
+          <button onClick={() => onSeek?.(source.timestamp)} title="Play this moment"
+            className="ml-auto shrink-0 font-semibold text-cyan-200 bg-cyan-500/10 border border-cyan-400/25 hover:bg-cyan-500/20 rounded-full px-2 py-0.5 tabular-nums transition">▶ {fmt(source.timestamp)}</button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function DocChat({ docs, aiMode, ollamaModel, onSeek, autoStart = false }) {
   const { buildIndex, ask, askGeneral, isReady } = useRAG()
   const [open, setOpen] = useState(autoStart)
@@ -46,6 +78,8 @@ export default function DocChat({ docs, aiMode, ollamaModel, onSeek, autoStart =
   const [busy, setBusy] = useState(false)
   const [messages, setMessages] = useState([]) // {q, a, sources}
   const [openSrc, setOpenSrc] = useState(null) // "msgIdx-srcIdx" of an expanded doc source
+  const [zoom, setZoom] = useState(null)        // enlarged screenshot
+  const partOf = (ts) => { if (ts == null) return ""; const k = (docs || []).findIndex((d) => d.timestamp === ts); return k >= 0 && docs[k].step ? LETTER(k) : "" }
 
   const onStatus = useCallback((label, pct = null, phase = null) => {
     setStatus(label ? { label, pct, phase } : null)
@@ -130,16 +164,21 @@ export default function DocChat({ docs, aiMode, ollamaModel, onSeek, autoStart =
   }
 
   return (
-    <div className="border border-zinc-700 rounded-xl overflow-hidden flex flex-col bg-zinc-900 shadow-xl" style={{ maxHeight: 520 }}>
-      <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2 bg-zinc-900">
-        <MessageSquare className="w-4 h-4 text-emerald-400" />
+    <div className="border border-violet-400/20 rounded-2xl overflow-hidden flex flex-col bg-[#120c2c]/90 backdrop-blur-md shadow-xl" style={{ maxHeight: 640 }}>
+      <div className="px-5 py-3.5 border-b border-white/5 flex items-center gap-2">
+        <MessageSquare className="w-4 h-4 text-emerald-300" />
         <span className="text-sm font-semibold text-white">Vid Chat</span>
-        {busy && <span className="text-xs text-emerald-400 ml-auto">Working...</span>}
+        <span className="text-xs text-zinc-400">· ask anything about this recording</span>
+        {busy && <span className="text-xs text-violet-300 ml-auto animate-pulse">Working...</span>}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-zinc-950">
+      <div className="flex-1 overflow-y-auto p-5 space-y-5">
         {messages.length === 0 && !busy && (
-          <p className="text-xs text-zinc-500">e.g. “What is this all about?” · “Which tools are used?” · “How do I run the macro?”</p>
+          <div className="flex flex-wrap gap-2">
+            {["What is this about?", "How do I share it?", "Which steps are there?"].map((q) => (
+              <button key={q} onClick={() => setInput(q)} className="text-xs text-zinc-200 border border-white/10 hover:border-violet-400/50 hover:bg-violet-500/10 rounded-full px-3 py-1.5 transition">{q}</button>
+            ))}
+          </div>
         )}
 
         {/* Indexing progress before the first question */}
@@ -149,7 +188,7 @@ export default function DocChat({ docs, aiMode, ollamaModel, onSeek, autoStart =
           const isLast = i === messages.length - 1
           return (
             <div key={i} className="space-y-2">
-              <div className="text-sm text-zinc-100"><span className="text-emerald-400 font-semibold">You: </span>{m.q}</div>
+              <div className="flex justify-end"><div className="text-[14.5px] text-emerald-50 bg-emerald-500/15 border border-emerald-400/25 rounded-xl rounded-br-sm px-3.5 py-2 max-w-[85%]">{m.q}</div></div>
               {m.a != null ? (
                 <div className="space-y-1.5">
                   {m.general && (
@@ -157,7 +196,14 @@ export default function DocChat({ docs, aiMode, ollamaModel, onSeek, autoStart =
                       <Sparkles className="w-3 h-3" /> From the AI model's general knowledge, not your document
                     </div>
                   )}
-                  <div className="text-sm text-zinc-100 whitespace-pre-wrap leading-relaxed bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2.5">{m.a}</div>
+                  <div className="text-[14.5px] text-zinc-100 whitespace-pre-wrap leading-relaxed bg-white/[0.04] border border-white/10 rounded-xl px-3.5 py-3">{m.a}</div>
+                  {!m.general && m.sources?.[0] && (
+                    <SourceCard source={m.sources[0]} part={partOf(m.sources[0].timestamp)} onSeek={onSeek} onZoom={setZoom} />
+                  )}
+                  <button onClick={() => searchWeb(m.query || m.q)}
+                    className="inline-flex items-center gap-1.5 text-xs text-zinc-300 hover:text-violet-200 border border-white/10 hover:border-violet-400/50 rounded-full px-3 py-1 transition">
+                    <Globe className="w-3.5 h-3.5" /> Search the web for more ↗
+                  </button>
                 </div>
               ) : m.notFound ? (
                 <div className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-3 space-y-2.5">
@@ -216,16 +262,21 @@ export default function DocChat({ docs, aiMode, ollamaModel, onSeek, autoStart =
         })}
       </div>
 
-      <div className="p-3 border-t border-zinc-800 flex gap-2 bg-zinc-900">
+      <div className="p-3 border-t border-white/5 flex gap-2">
         <input value={input} onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && submit()}
           placeholder="Ask about this recording..."
-          className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-emerald-500" />
-        <button onClick={submit} disabled={busy || !input.trim()}
-          className="px-3 bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-700 disabled:text-zinc-500 rounded-lg transition-colors">
+          className="flex-1 bg-[#0f0b24] border border-white/15 rounded-xl px-3.5 py-2.5 text-[14.5px] text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-500/25" />
+        <button onClick={submit} disabled={busy || !input.trim()} title="Send"
+          className="px-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 disabled:from-zinc-700 disabled:to-zinc-700 disabled:text-zinc-500 rounded-xl transition">
           <Send className="w-4 h-4" />
         </button>
       </div>
+      {zoom && (
+        <div className="fixed inset-0 z-[60] bg-black/85 flex items-center justify-center p-6 cursor-zoom-out" onClick={() => setZoom(null)}>
+          <img src={zoom} alt="" className="max-w-full max-h-[88vh] rounded-lg shadow-2xl" />
+        </div>
+      )}
     </div>
   )
 }

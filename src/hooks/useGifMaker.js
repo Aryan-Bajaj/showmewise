@@ -1,4 +1,5 @@
 import { useCallback } from "react"
+import { markerOverlay } from "../lib/annotateImage"
 
 // Build an animated GIF (browser-only, no server) for each documented step:
 // a short ±window clip around the step's timestamp, optimised for small size.
@@ -68,29 +69,41 @@ export default function useGifMaker() {
       const lo = doc.timestamp ?? 0
       const hi = doc.endTimestamp ?? dur
       const center = Math.min(hi, Math.max(lo, doc.frameTimestamp ?? lo))
-      const start = Math.max(0, lo, center - window)
-      const end = Math.min(dur, hi, center + window)
+      let start = Math.max(0, lo, center - window)
+      let end = Math.min(dur, hi, center + window)
+      // Marked steps: stretch so each marker is shown (same rule as the clips).
+      const shots = doc.shots || []
+      if (shots.length) {
+        start = Math.max(0, lo - 1, Math.min(start, shots[0].ts - 1.2))
+        end = Math.min(dur, hi + 1, Math.max(end, shots[shots.length - 1].ts + 3), start + 24)
+      }
+      const srcW = Math.round(video.videoWidth * Math.min(1, 1280 / video.videoWidth))
+      const overlay = markerOverlay(shots, srcW, W, H)
       const times = []
       for (let t = start; t <= end; t += 1 / fps) times.push(t)
       if (times.length < 2) { continue }
 
       // Capture + merge near-identical consecutive frames (hold them longer).
-      const merged = [] // { data, delay }
+      const merged = [] // { data, delay, marked }
       for (const t of times) {
         await seek(t)
         ctx.drawImage(video, 0, 0, W, H)
+        overlay?.(ctx, t)
+        const on = !!overlay && shots.some((s) => t >= s.ts - 0.6 && t < s.ts + 4) // palette sample hint
         const data = new Uint8Array(ctx.getImageData(0, 0, W, H).data.buffer.slice(0))
         const prev = merged[merged.length - 1]
         if (prev && frameDiff(prev.data, data, px) < diffThreshold) {
           prev.delay += baseDelay        // static screen → just extend the hold
         } else {
-          merged.push({ data, delay: baseDelay })
+          merged.push({ data, delay: baseDelay, marked: !!on })
         }
       }
       if (!merged.length) continue
 
       // One shared palette from sampled frames → smaller + no flicker.
-      const sampleIdx = [0, merged.length >> 1, merged.length - 1]
+      // (a marked frame joins the sample so the marker colour survives the palette)
+      const markedIdx = merged.findIndex((f) => f.marked)
+      const sampleIdx = [0, merged.length >> 1, merged.length - 1, ...(markedIdx >= 0 ? [markedIdx] : [])]
       const sample = new Uint8Array(sampleIdx.length * px * 4)
       sampleIdx.forEach((fi, k) => sample.set(merged[fi].data, k * px * 4))
       const palette = quantize(sample, colors)

@@ -1,4 +1,5 @@
 import { useCallback } from "react"
+import { markerOverlay } from "../lib/annotateImage"
 
 // Build a short, sharp WebM video clip per step (true colour, far clearer than a
 // GIF, and smaller). Captured in-browser via canvas.captureStream + MediaRecorder,
@@ -22,7 +23,7 @@ function blobToDataURL(blob) {
 }
 
 // Record the video from `start` to `end` (real-time) into a WebM blob.
-function recordRange(video, canvas, ctx, start, end, fps, mime, seek) {
+function recordRange(video, canvas, ctx, start, end, fps, mime, seek, overlay = null) {
   return new Promise((resolve, reject) => {
     const stream = canvas.captureStream(fps)
     const chunks = []
@@ -37,7 +38,10 @@ function recordRange(video, canvas, ctx, start, end, fps, mime, seek) {
     let drawing = true
     const draw = () => {
       if (!drawing) return
-      try { ctx.drawImage(video, 0, 0, canvas.width, canvas.height) } catch { /* frame not ready */ }
+      try {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+        overlay?.(ctx, video.currentTime)
+      } catch { /* frame not ready */ }
       requestAnimationFrame(draw)
     }
     const onTime = () => {
@@ -95,11 +99,20 @@ export default function useClipMaker() {
       const lo = doc.timestamp ?? 0
       const hi = doc.endTimestamp ?? dur
       const center = Math.min(hi, Math.max(lo, doc.frameTimestamp ?? lo))
-      const start = Math.max(0, lo, center - pad)
-      const end = Math.min(dur, hi, center + pad)
+      let start = Math.max(0, lo, center - pad)
+      let end = Math.min(dur, hi, center + pad)
+      // Marked steps: stretch the clip so every marker gets its moment on screen.
+      const shots = doc.shots || []
+      if (shots.length) {
+        start = Math.max(0, lo - 1, Math.min(start, shots[0].ts - 1.2))
+        end = Math.min(dur, hi + 1, Math.max(end, shots[shots.length - 1].ts + 3), start + 24)
+      }
       if (end - start < 1) continue
+      // Frames (and so the marker boxes) were captured at the extractor's width.
+      const srcW = Math.round(video.videoWidth * Math.min(1, 1280 / video.videoWidth))
+      const overlay = markerOverlay(shots, srcW, W, H)
       try {
-        const blob = await recordRange(video, canvas, ctx, start, end, fps, mime, seek)
+        const blob = await recordRange(video, canvas, ctx, start, end, fps, mime, seek, overlay)
         if (blob && blob.size) clips.set(doc.timestamp ?? center, await blobToDataURL(blob))
       } catch { /* skip this clip */ }
     }

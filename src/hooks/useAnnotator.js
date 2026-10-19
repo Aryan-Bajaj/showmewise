@@ -71,7 +71,7 @@ async function speechBoundaries(chunks, maxT, aiMode, model, onStatus) {
   }
   const msg = lines.join("\n").slice(0, 7000)
   try {
-    onStatus?.("Listening for activity changes in the narration…")
+    onStatus?.("Reading the whole narration to find where each task starts (one AI pass, a few minutes on a slow computer)…")
     const opts = { schema: SEGMENT_SCHEMA, maxTokens: 400, temperature: 0.1 }
     const raw = aiMode === "ollama"
       ? await callOllama(msg, SEGMENT_PROMPT, model, opts)
