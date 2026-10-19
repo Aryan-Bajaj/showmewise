@@ -3,7 +3,6 @@ import { X, Globe, Cpu, Plus, FileText, ChevronDown, Eye, Gauge, AlertTriangle }
 import { DEFAULT_SECTIONS } from "../hooks/useDocParser"
 import { WEBLLM_MODELS, DEFAULT_WEBLLM_MODEL, isWebLLMVision, ollamaModelHasVision, recommendModel, modelGB, localEngineStatus } from "../lib/llm"
 import { probeSystem } from "../lib/systemCheck"
-import { estimateRunMinutes } from "../lib/estimate"
 
 // Desktop build ships ONE engine (bundled llama.cpp + gemma3 vision) so a
 // non-technical user on an office laptop never has to choose or install
@@ -381,14 +380,12 @@ export default function AISettings({ onConfirm, onClose, suggestedSections, tool
         </div>
 
         {(() => {
-          const est = estimateRunMinutes(videoDuration, mode, webModel, selfVerify)
-          if (!est) return null
-          const durMin = Math.round(videoDuration / 60)
+          if (!videoDuration) return null
           return (
             <div className="flex items-start gap-2 text-xs text-zinc-400 bg-zinc-800/60 border border-zinc-700/60 rounded-lg px-3 py-2.5">
               <Gauge className="w-3.5 h-3.5 shrink-0 mt-0.5 text-emerald-400" />
               <span>
-                <span className="text-zinc-200 font-medium">Expect roughly {est.lo} to {est.hi} minutes</span> for this {durMin} minute video with the current settings, plus a one-time model download on first run. Steps appear live as they are written, so you can watch the document grow.
+                <span className="text-zinc-200 font-medium">Run time depends on this computer.</span> With a strong graphics card a 10 minute video takes minutes. On a laptop without one, the most accurate model (gemma3 12B) took about 70 minutes for a 10 minute video in our test. The time left is measured live once writing starts, and steps appear as they are written.
               </span>
             </div>
           )

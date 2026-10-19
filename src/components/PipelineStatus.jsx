@@ -72,6 +72,18 @@ export default function PipelineStatus({ steps, etaHint = null }) {
   const overallPct = Math.max(maxPctRef.current, rawPct)
   maxPctRef.current = overallPct
 
+  // Time left for the whole run, from the speed measured on THIS computer: the
+  // average time per part so far × the parts still to write, plus the check
+  // (one shorter call per part) and the summary (a few calls) still to come.
+  const byId = Object.fromEntries(steps.map((s) => [s.id, s]))
+  let leftMs = null
+  const perPart = (s) => (s?.status === 'active' && s.startedAt && s.step > 1 ? (now - s.startedAt) / (s.step - 1) : null)
+  const w = byId.annotate, v = byId.verify, ins = byId.insights
+  const pw = perPart(w), pv = perPart(v)
+  if (pw) leftMs = pw * (w.total - w.step + 1) + (v?.status === 'pending' ? pw * 0.6 * w.total : 0) + (ins?.status === 'pending' ? pw * 3 : 0)
+  else if (pv) leftMs = pv * (v.total - v.step + 1) + (ins?.status === 'pending' ? pv * 5 : 0)
+  const leftText = leftMs == null ? null : leftMs < 90000 ? 'About a minute left' : `About ${Math.round(leftMs / 60000)} minutes left`
+
   return (
     <div className="bg-[#120c2c]/85 backdrop-blur-md border border-violet-400/15 rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(10,5,40,0.45)]">
       {/* Overall progress header */}
@@ -87,7 +99,9 @@ export default function PipelineStatus({ steps, etaHint = null }) {
         </div>
         {/* Whole-run expectation, shown from the very first second so nobody
             wonders if the app hung. Refined per backend in the AI settings. */}
-        {etaHint && !allDone && !anyError && (
+        {leftText && !allDone && !anyError ? (
+          <p className="text-[11px] text-zinc-400 mt-2"><b className="text-zinc-200">{leftText}</b>, measured on this computer from the parts written so far. Steps appear live as they are written.</p>
+        ) : etaHint && !allDone && !anyError && (
           <p className="text-[11px] text-zinc-500 mt-2">{etaHint}</p>
         )}
       </div>

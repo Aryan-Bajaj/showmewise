@@ -16,13 +16,13 @@ const TOOL_SIGNATURES = [
   ["SAP", /\bsap\b|s4hana|s\/4hana|\bt-code\b|sap ibp/i],
   ["VS Code", /visual studio code|vs code/i],
   ["Visual Studio", /visual studio(?! code)/i],
-  ["Terminal / CLI", /\$\s|>\s*npm|command prompt|powershell|bash|terminal/i],
+  ["Terminal / CLI", /command prompt|powershell|\bbash\b|\bnpm (?:run|install|i)\b|\bPS [A-Z]:/i],
   ["Chrome", /google chrome|chrome:\/\//i],
   ["Edge", /microsoft edge\b/i],
   ["Figma", /\bfigma\b/i],
   ["Photoshop", /photoshop|\.psd\b/i],
   ["Notion", /\bnotion\b/i],
-  ["Python", /\bpython\b|\.py\b|import \w+|def \w+\(/i],
+  ["Python", /\bpython\b|\.py\b|\bdef \w+\(/i],
   ["GitHub", /github\.com|git push|git commit|pull request/i],
   ["Jira", /\bjira\b/i],
   ["Salesforce", /salesforce|lightning experience/i],
@@ -33,7 +33,9 @@ const TOOL_SIGNATURES = [
   ["Outlook", /\boutlook\b/i],
   ["Google Sheets", /google sheets|docs\.google\.com\/spreadsheets/i],
   ["Slack", /\bslack\b/i],
-  ["SQL / Database", /\bselect\b.*\bfrom\b|\bsql\b|ssms|mysql|postgres/i],
+  // real SQL is written in capitals ("SELECT name FROM ..."); "select ... from"
+  // in normal speech or a screen label ("Select Postings at Year End") is not SQL
+  ["SQL / Database", /\bSELECT\b[^\n]{1,80}\bFROM\b|\bsql\b|\bssms\b|\bmysql\b|\bpostgres/],
 ]
 
 export function detectTools(text) {

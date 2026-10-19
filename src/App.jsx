@@ -17,12 +17,12 @@ import useAnnotator from "./hooks/useAnnotator"
 import useDocParser from "./hooks/useDocParser"
 import useOCR from "./hooks/useOCR"
 import useVantaHalo from "./hooks/useVantaHalo"
-import { webLLMLabel, isWebLLMVision, ollamaModelHasVision, DEFAULT_WEBLLM_MODEL } from "./lib/llm"
-import { estimateRunMinutes } from "./lib/estimate"
+import { webLLMLabel, isWebLLMVision, ollamaModelHasVision } from "./lib/llm"
 import { generateInsights } from "./lib/insights"
 import { consolidateProcedure, verifyProcedure, sanitizeDocs } from "./lib/refine"
 import { scrubSensitive } from "./lib/skillPrompt"
 import { fixTranscriptChunks } from "./lib/transcriptFixups"
+import { fixChunksWithScreen } from "./lib/screenVocab"
 import { buildStepShots } from "./lib/stepShots"
 
 const INITIAL_STEPS = [
@@ -46,11 +46,9 @@ export default function App() {
   // to the slow end (in-browser model); the AI settings dialog refines it.
   const runEtaHint = useMemo(() => {
     if (!videoDuration) return null
-    const fast = estimateRunMinutes(videoDuration, "ollama", null, true)
-    const slow = estimateRunMinutes(videoDuration, "webllm", DEFAULT_WEBLLM_MODEL, true)
-    if (!fast || !slow) return null
-    const durMin = Math.max(1, Math.round(videoDuration / 60))
-    return `This ${durMin} minute video should take roughly ${fast.lo} to ${slow.hi} minutes end to end, depending on the AI model you pick. Steps appear live once writing starts.`
+    // No guessed number: run time differs ten-fold between computers and models.
+    // The time left is measured live once the AI has written its first part.
+    return "How long this takes depends on your computer and the AI model you pick. The time left appears as soon as the AI has written its first part, measured on this computer. Steps appear live as they are written."
   }, [videoDuration])
   const [frames, setFrames] = useState([])
   const [activeFrame, setActiveFrame] = useState(null)
@@ -183,6 +181,9 @@ export default function App() {
       const { frameTexts, tools, sceneCuts: cuts, participants: people } = await runOCR(extracted, transcriptText,
         (i, total) => updateStep('ocr', { step: i + 1, total }))
       setOcrFrameTexts(frameTexts)
+      // the screen spells the app's abbreviations right: "KBI report" heard,
+      // "KPI Report" shown → the transcript takes the screen's spelling
+      setTranscriptChunks(fixChunksWithScreen(chunks, frameTexts))
       setSceneCuts(cuts || [])
       setParticipants(people || [])
       setToolsUsed(tools)
