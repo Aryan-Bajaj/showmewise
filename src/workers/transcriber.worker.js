@@ -21,8 +21,43 @@ let cancelled = false
 // English, so the guide is always written from an English transcript.
 const MODEL_EN = 'Xenova/whisper-small.en'
 const MODEL_ALL = 'Xenova/whisper-small'
+// "Accurate": whisper-large-v3-turbo. On a real recording (Hindi and English
+// mixed) it heard about twice as much as small: the codes, the field values, the
+// periods. ~1.6 GB once; on the graphics card (WebGPU) when the browser has one.
+const MODEL_ACCURATE = 'onnx-community/whisper-large-v3-turbo'
 
-async function load(onProgress, language = 'en') {
+// Laptops have two graphics chips; ask for the strong one (a test laptop got its
+// weak built-in chip, where the model hung). Loading gets 3 minutes; if the card
+// still fails, the worker reports it and the app restarts the job in a fresh
+// worker on the processor (a hung card also blocks the engine in this worker).
+if (env.backends?.onnx?.webgpu) env.backends.onnx.webgpu.powerPreference = 'high-performance'
+const GPU_LOAD_LIMIT = 180000
+// q4 everywhere: ~760 MB, one download for the card and the processor alike
+const ACCURATE_DTYPE = { encoder_model: 'q4', decoder_model_merged: 'q4' }
+async function load(onProgress, language = 'en', accurate = false, cpuOnly = false) {
+  if (accurate) {
+    const adapter = !cpuOnly && self.navigator?.gpu
+      ? await self.navigator.gpu.requestAdapter({ powerPreference: 'high-performance' }).catch(() => null) : null
+    if (adapter) {
+      const info = adapter.info || {}
+      console.info('[VideoDoc] speech on the graphics card:', info.vendor || '', info.architecture || '', info.description || '')
+    }
+    const key = MODEL_ACCURATE + (adapter ? ':gpu' : ':cpu')
+    if (!pipes[key] && adapter) {
+      self.postMessage({ type: 'status', stage: 'loading', msg: 'Loading the accurate speech model onto the graphics card...' })
+      try {
+        pipes[key] = await Promise.race([
+          pipeline('automatic-speech-recognition', MODEL_ACCURATE, { device: 'webgpu', dtype: ACCURATE_DTYPE, progress_callback: onProgress }),
+          new Promise((_, no) => setTimeout(() => no(new Error('graphics card did not finish loading in 3 minutes')), GPU_LOAD_LIMIT)),
+        ])
+      } catch (e) {
+        console.info('[VideoDoc] speech falls back to the processor:', e?.message)
+        throw Object.assign(new Error(e?.message), { gpuFailed: true })
+      }
+    }
+    if (!pipes[key]) pipes[key] = await pipeline('automatic-speech-recognition', MODEL_ACCURATE, { dtype: ACCURATE_DTYPE, progress_callback: onProgress })
+    return pipes[key]
+  }
   const id = language === 'en' ? MODEL_EN : MODEL_ALL
   if (!pipes[id]) {
     // whisper-small.en — best accuracy on accented / technical speech (names,
@@ -46,6 +81,9 @@ self.onmessage = async ({ data }) => {
     self.postMessage({ type: 'status', stage: 'loading', msg: 'Loading Whisper model (first run ~970MB, cached after)...' })
 
     const language = data.language || 'en'
+    // developer diagnosis only: the engine's own step-by-step log
+    if (data.debug && env.backends?.onnx) { env.backends.onnx.logLevel = 'verbose'; env.backends.onnx.debug = true }
+    const accurate = !!data.accurate && import.meta.env.VITE_BUILD_TARGET !== 'desktop'
     // Several model files download at once, each with its own %: report one
     // combined % (bytes so far / all bytes) so the bar never jumps between files.
     // Only the big weight files count: tiny config files hit 100% at once.
@@ -59,8 +97,11 @@ self.onmessage = async ({ data }) => {
         const pct = Math.floor((got / all) * 100)
         if (pct !== last) { last = pct; self.postMessage({ type: 'progress', stage: 'downloading', pct, mb: [Math.round(got / 1e6), Math.round(all / 1e6)], file: p.file ?? '' }) }
       }
-    }, language)
-    const langOpts = language === 'en' ? {} : { task: 'translate', ...(language !== 'auto' ? { language } : {}) }
+    }, language, accurate, !!data.cpuOnly)
+    // the accurate model writes mixed or foreign speech straight in English when
+    // asked for English (better than its translate mode in our test)
+    const langOpts = accurate ? (language === 'en' ? {} : { language: 'en', task: 'transcribe' })
+      : language === 'en' ? {} : { task: 'translate', ...(language !== 'auto' ? { language } : {}) }
 
     self.postMessage({ type: 'status', stage: 'transcribing', msg: 'Transcribing audio...' })
 
@@ -115,6 +156,7 @@ self.onmessage = async ({ data }) => {
 
     self.postMessage({ type: 'result', data: { text: fullText.trim(), chunks: allChunks, cancelled } })
   } catch (e) {
+    if (e?.gpuFailed) { self.postMessage({ type: 'gpu-failed', msg: e.message }); return }
     const missing = data?.language && data.language !== 'en' && import.meta.env.VITE_BUILD_TARGET === 'desktop'
     self.postMessage({ type: 'error', msg: missing
       ? 'This copy only has the English speech model. Run the setup again with -AllLanguages to add other languages.'

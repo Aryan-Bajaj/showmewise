@@ -9,6 +9,12 @@ export default function Uploader({ onVideoSelect, onCodeSelect, onDocSelect, doc
   const [limitError, setLimitError] = useState("")
   const [dragging, setDragging] = useState(false)
   const [language, setLanguage] = useState("en")
+  // Accurate speech is a choice, not the default: it hears names and codes
+  // better, but without a fast graphics card it takes 3 to 4 times longer
+  // (measured). The desktop copy only bundles the small model.
+  const desktop = import.meta.env.VITE_BUILD_TARGET === "desktop"
+  const [accurate, setAccurate] = useState(false)
+  const useAccurate = !desktop && accurate
 
   // Enforce build-level limits BEFORE the pipeline touches the file, so a
   // too-big video is a friendly message instead of a crashed browser tab.
@@ -22,7 +28,7 @@ export default function Uploader({ onVideoSelect, onCodeSelect, onDocSelect, doc
     if (sizeErr) { setLimitError(sizeErr); return }
     const durErr = await checkVideoDuration(file)
     if (durErr) { setLimitError(durErr); return }
-    onVideoSelect(file, { language })
+    onVideoSelect(file, { language, accurate: useAccurate })
   }
 
   const limitHint = [
@@ -82,7 +88,22 @@ export default function Uploader({ onVideoSelect, onCodeSelect, onDocSelect, doc
           <option value="french">French</option>
           <option value="auto">Another language (detect it)</option>
         </select>
-        {language !== "en" && <span className="text-xs text-zinc-400 w-full text-center">The speech is translated, so the guide is written in English. First use downloads one more model (~970 MB).</span>}
+        {!desktop && (
+          <span className="flex items-center gap-2 w-full justify-center">
+            <label htmlFor="vd-speech" className="text-zinc-300">Speech recognition</label>
+            <select id="vd-speech" value={useAccurate ? "accurate" : "fast"} onChange={(e) => setAccurate(e.target.value === "accurate")}
+              className="bg-[#160f33] border border-violet-400/30 rounded-lg px-2 py-1 text-zinc-100">
+              <option value="fast">Fast (~970 MB once)</option>
+              <option value="accurate">Accurate (~1.6 GB once)</option>
+            </select>
+          </span>
+        )}
+        <span className="text-xs text-zinc-400 w-full text-center">
+          {useAccurate
+            ? "Accurate hears names, codes and mixed languages better. Without a fast graphics card it takes 3 to 4 times longer."
+            : language !== "en" ? "Fast suits clear speech. Choose Accurate when names and codes matter." : "Best for clear English speech."}
+          {language !== "en" ? " The guide is written in English." : ""}
+        </span>
       </div>
 
       {/* Trust row */}

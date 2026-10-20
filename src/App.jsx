@@ -181,7 +181,7 @@ export default function App() {
       updateStep('audio', { status: 'done', detail: `${sampleRate / 1000}kHz mono`, endedAt: Date.now() })
 
       updateStep('transcribe', { status: 'active', detail: 'Loading model...', startedAt: Date.now() })
-      const result = await transcribe(audio, sampleRate, opts.language || 'en')
+      const result = await transcribe(audio, sampleRate, opts.language || 'en', !!opts.accurate)
       const chunks = fixTranscriptChunks(result?.chunks ?? [])           // correct known domain mis-hearings
         .map(c => ({ ...c, text: scrubSensitive(c.text) }))               // scrub ASR mis-hears like "Hitler" before anything sees them
       setTranscriptChunks(chunks)

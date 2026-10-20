@@ -126,10 +126,21 @@ export default function DocChat({ docs, aiMode, ollamaModel, onSeek, autoStart =
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoStart, docs])
 
-  const submit = async () => {
+  // A question asked while the index is still being built is kept and sent as
+  // soon as it is ready (it used to be dropped without a word).
+  const [queued, setQueued] = useState(null)
+  const submit = () => {
     const q = input.trim()
-    if (!q || busy) return
+    if (!q) return
     setInput("")
+    if (busy) { setQueued(q); return }
+    send(q)
+  }
+  useEffect(() => {
+    if (!busy && queued) { const q = queued; setQueued(null); send(q) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [busy, queued])
+  const send = async (q) => {
     setBusy(true)
     setMessages((m) => [...m, { q, a: null, sources: [] }])
     try {
@@ -188,7 +199,7 @@ export default function DocChat({ docs, aiMode, ollamaModel, onSeek, autoStart =
       <div className="flex-1 overflow-y-auto p-5 space-y-5">
         {messages.length === 0 && !busy && (
           <div className="flex flex-wrap gap-2">
-            {["What is this about?", "How do I share it?", "Which steps are there?"].map((q) => (
+            {["What is this about?", "Which steps are there?", "What do I need before I start?"].map((q) => (
               <button key={q} onClick={() => setInput(q)} className="text-xs text-zinc-200 border border-white/10 hover:border-violet-400/50 hover:bg-violet-500/10 rounded-full px-3 py-1.5 transition">{q}</button>
             ))}
           </div>
@@ -196,6 +207,7 @@ export default function DocChat({ docs, aiMode, ollamaModel, onSeek, autoStart =
 
         {/* Indexing progress before the first question */}
         {messages.length === 0 && busy && status && <Progress status={status} />}
+        {queued && <p className="text-xs text-zinc-400">Your question "{queued}" is asked as soon as the chat is ready.</p>}
 
         {messages.map((m, i) => {
           const isLast = i === messages.length - 1

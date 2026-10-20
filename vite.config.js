@@ -22,6 +22,12 @@ const RUNTIME_ASSETS = {
   'ort/ort-wasm-simd-threaded.asyncify.wasm': 'onnxruntime-web/dist/ort-wasm-simd-threaded.asyncify.wasm',
   'ort/ort-wasm-simd-threaded.mjs': 'onnxruntime-web/dist/ort-wasm-simd-threaded.mjs',
   'ort/ort-wasm-simd-threaded.wasm': 'onnxruntime-web/dist/ort-wasm-simd-threaded.wasm',
+  // The graphics-card builds (WebGPU). Without them a browser that has WebGPU
+  // asked for these files, got a 404 and the speech model hung without an error.
+  'ort/ort-wasm-simd-threaded.jsep.mjs': 'onnxruntime-web/dist/ort-wasm-simd-threaded.jsep.mjs',
+  'ort/ort-wasm-simd-threaded.jsep.wasm': 'onnxruntime-web/dist/ort-wasm-simd-threaded.jsep.wasm',
+  'ort/ort-wasm-simd-threaded.jspi.mjs': 'onnxruntime-web/dist/ort-wasm-simd-threaded.jspi.mjs',
+  'ort/ort-wasm-simd-threaded.jspi.wasm': 'onnxruntime-web/dist/ort-wasm-simd-threaded.jspi.wasm',
 }
 
 const MIME = { '.js': 'text/javascript', '.mjs': 'text/javascript', '.wasm': 'application/wasm' }
