@@ -35,7 +35,7 @@ TITLE: <short phase title, max 8 words, e.g. "Open the monthly analysis">
 STEPS:
 1. <one concrete action a reader can follow — name the EXACT menu / button / tab / field / shortcut seen on screen>
 2. <next action, in order>
-3. <continue, 1-6 actions>
+3. <continue: one line per action, EVERY action the speaker describes or the screen shows, in order; a busy part often has 6 to 12>
 RESULT: <what the user achieves or sees after these actions; one sentence>
 NOTE: <one key observation, tip, or warning — or "-" if none>
 
@@ -49,11 +49,12 @@ GROUNDING RULES — follow strictly. Inventing ANY detail destroys the document'
 - NEVER invent a tool, feature, dialog, ribbon, or button that is not on screen (for example: do NOT invent "AI Comparison tool", "Get Data", "Data Validation", "Change Column Type", "Query Designer" unless you can read it).
 - NEVER use a person's name (a meeting participant, a name shown beside a webcam tile) as a field value, query, search term, file name, or data entry. Those are people on the call, not procedure data.
 - Write imperative, followable steps in the order they happen: "Go to the Analysis tab", "Click Reports", "Select the monthly query".
+- Steps done OUTSIDE the app that the speaker names as part of the process ARE steps: asking a colleague or team for a value, getting an approval or a confirmation, waiting for a reply. Write them as actions ("Ask the finance team for the final number", "Get confirmation from the business owner").
 - Prefer the SPECIFIC action over generic navigation. If a setting is changed, a value typed, a dimension/field added, an option toggled, or an item configured, THAT is the step — capture it concretely (e.g. "Set Row Height to Compact", "Add the Region dimension to Rows", "Swap the axes", "Set the table type to Pivot"). Do NOT reduce real configuration work to a vague "open" or "navigate to" a screen when an actual change is being made.
 - People talk casually while they work — vague speech ("yeah", "let me see", "that should be fine") does NOT mean nothing happened. If the on-screen evidence shows a concrete UI state or change (an open dialog, a menu, a selection, a value), document THAT. Vague talk + clear screen = document the screen.
 - STATE vs ACTION: write "Click/Open/Select X" ONLY when that action is evidenced (spoken, or the screen shows it happening). If the screen simply SHOWS a view that is already open, phrase the step from the state: "On the X view, review/configure …" — never fabricate the click that got there.
-- A transient system message (session expired, unsaved-changes warning, autosave popup) is NOT a procedure step. If relevant, mention it in NOTE ("If a warning about unsaved changes appears, choose Save"); never make "read the message" a step.
-- If this segment only CONTINUES an action already covered in [Previous] and shows nothing new, output SKIP. Never repeat a step already done.
+- A transient system message that just pops up (session expired, unsaved-changes warning, autosave popup) is NOT a procedure step; if relevant, mention it in NOTE. But the RESULT of the user's own action (the message list after Execute or Save, a success or an error) IS part of the procedure: write "Check the messages" and, when it is said or shown, what a good and a bad result look like.
+- [Previous] and [Next] are context only. Never write an action that belongs to them (the same field filled, the same code entered). If this segment only CONTINUES an action already covered in [Previous] and shows nothing new, output SKIP.
 - IGNORE meeting and audio/video logistics — they are talk ABOUT the call, never steps of the procedure. This includes (not an exhaustive list): muting / unmuting and mic checks ("you're muted", "mute yourself", "can you hear me"), screen-share coordination ("can you see my screen", "let me share", "are you seeing this"), connection problems ("you're breaking up", "I lost you", "your video froze"), camera talk, greetings, goodbyes, scheduling, recording reminders, and any small talk. Never turn "how to mute" or "how to share your screen" into a documented step. If a segment is only this kind of talk, output SKIP.
 - Output SKIP only when BOTH the narration AND the screen evidence give too little for a real action. A short, accurate procedure is better than an invented one — but a missing step someone needed is just as bad as an invented one.`
 
@@ -89,7 +90,9 @@ export const STEP_JSON_SCHEMA = {
     screen: { type: "string" },
     skip: { type: "boolean" },
     title: { type: "string" },
-    steps: { type: "array", items: { type: "string" }, maxItems: 6 },
+    // room for every action of a busy part: a cap of 6 made the engine cram four
+    // clicks into one line and drop the rest
+    steps: { type: "array", items: { type: "string" }, maxItems: 14 },
     result: { type: "string" },
     note: { type: "string" },
   },

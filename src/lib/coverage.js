@@ -92,7 +92,7 @@ Rewrite the step so each of them appears in the action where it belongs (the cod
 // the column, subtotal"). A model writing a long part tends to keep two of them.
 // Pulled out here in code and handed over as a checklist; afterwards each one
 // must be found in the written step.
-const ACT = /\b(?:click|double[- ]?click|right[- ]?click|open|select|choose|go to|go back|navigate|type|enter|put|fill|set|add|remove|delete|drag|move|bring|copy|paste|execute|run|save|submit|tick|untick|uncheck|check|search|close|release|change|edit|press|confirm)\b/i
+const ACT = /\b(?:click|double[- ]?click|right[- ]?click|open|select|choose|go to|go back|navigate|type|enter|put|fill|set|add|remove|delete|drag|move|bring|copy|paste|execute|run|save|submit|tick|untick|uncheck|check|search|close|release|change|edit|press|confirm|ask|get|request|wait|approve|send)\b/i
 const FILLER = new Set([...STOP, "here", "this", "that", "them", "will", "then", "after", "now", "also", "just", "one", "some", "need", "should", "first", "next", "which", "where", "like", "always", "because", "going", "want"])
 
 export function spokenActions(text) {
@@ -117,14 +117,13 @@ export function missingActions(step, actions) {
 }
 
 // One step, cleaned: two actions that differ only by a number heard vs read
-// ("enter 7731520" / "enter 7731320") keep the one the screen shows; a bare
-// remark that something "is displayed" is not an action.
+// ("enter 7731520" / "enter 7731320") keep the one the screen shows. A remark
+// like "the error message is displayed" STAYS: it can be the check a user needs.
 export function tidyActions(steps, screen = "") {
   const skeleton = (a) => a.toLowerCase().replace(/\d+/g, "#").replace(/[^a-z# ]/g, "").replace(/\s+/g, " ").trim()
   const nums = (a) => a.match(/\d{3,}/g) || []
   const out = []
   for (const a of steps || []) {
-    if (/^(?:note|notice|observe|see)\b.*\b(?:is|are) (?:displayed|shown|visible|open)\b/i.test(a) && (steps || []).length > 1) continue
     const twin = out.findIndex((b) => skeleton(b) === skeleton(a) && nums(a).length && nums(a).every((n, i) => near(n, nums(b)[i] || "")))
     if (twin < 0) { out.push(a); continue }
     if (nums(a).every((n) => (screen || "").includes(n)) && !nums(out[twin]).every((n) => (screen || "").includes(n))) out[twin] = a

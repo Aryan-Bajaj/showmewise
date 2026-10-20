@@ -48,7 +48,7 @@ export default function App() {
     if (!videoDuration) return null
     // No guessed number: run time differs ten-fold between computers and models.
     // The time left is measured live once the AI has written its first part.
-    return "How long this takes depends on your computer and the AI model you pick. The time left appears as soon as the AI has written its first part, measured on this computer. Steps appear live as they are written."
+    return "How long this takes depends on your computer and the AI model you pick. The time left appears as soon as the AI has written its first part, measured on this computer. Steps appear live as they are written. Keep this tab open and in front: then the computer stays awake until it is done."
   }, [videoDuration])
   const [frames, setFrames] = useState([])
   const [activeFrame, setActiveFrame] = useState(null)
@@ -106,6 +106,21 @@ export default function App() {
       s.status === 'active' ? { ...s, status: 'error', detail: 'Cancelled', endedAt: Date.now() } : s
     ) ?? null)
   }, [cancelTranscribe])
+
+  // A run takes up to an hour, and a laptop left alone falls asleep (often after
+  // 30 minutes), which cut two test runs in half. While anything is processing,
+  // ask the browser to keep the screen and so the computer awake; let go after.
+  const busy = !!pipelineSteps?.some(s => s.status === 'active')
+  useEffect(() => {
+    if (!busy || !navigator.wakeLock) return
+    let lock = null, live = true
+    const grab = async () => {
+      try { if (live && document.visibilityState === 'visible') lock = await navigator.wakeLock.request('screen') } catch { /* not allowed here: the note below still helps */ }
+    }
+    grab()
+    document.addEventListener('visibilitychange', grab) // the lock drops when the tab is hidden; take it back
+    return () => { live = false; document.removeEventListener('visibilitychange', grab); lock?.release().catch(() => {}) }
+  }, [busy])
 
   useEffect(() => {
     if (!transcribeProgress) return
@@ -305,6 +320,11 @@ export default function App() {
       }
 
       let finalDocs = docs
+      // Every stage lists what each part holds, in the browser console, so a lost
+      // action can always be traced to the stage that lost it.
+      const trace = (stage, list) => console.info(`[VideoDoc] after ${stage}: ` + list.map((d) =>
+        `${d.label} "${d.step?.title || ""}" [${(d.step?.steps || []).map((a) => a.slice(0, 50)).join(" | ")}]`).join(" ;; "))
+      trace("writing", finalDocs)
 
       // Self-verify pass: fact-check every step against its own evidence and drop
       // anything the model can't actually support. Best-effort.
@@ -320,6 +340,7 @@ export default function App() {
             participants,
           )
         } catch { /* keep drafts */ }
+        trace("checking", finalDocs)
         const dropped = before - finalDocs.length
         updateStep('verify', { status: 'done', detail: dropped > 0 ? `${finalDocs.length} kept · ${dropped} unsupported removed` : `${finalDocs.length} verified`, endedAt: Date.now() })
       } else {
@@ -333,6 +354,7 @@ export default function App() {
         try {
           finalDocs = await consolidateProcedure(finalDocs, aiMode, model, (m) => updateStep('consolidate', { detail: m }), () => cancelRef.current)
         } catch { /* keep as-is */ }
+        trace("tidying", finalDocs)
         updateStep('consolidate', { status: 'done', detail: `${finalDocs.length} coherent steps`, endedAt: Date.now() })
       } else {
         updateStep('consolidate', { status: 'done', detail: 'Skipped', endedAt: Date.now() })

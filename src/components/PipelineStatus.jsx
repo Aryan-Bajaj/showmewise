@@ -100,7 +100,7 @@ export default function PipelineStatus({ steps, etaHint = null }) {
         {/* Whole-run expectation, shown from the very first second so nobody
             wonders if the app hung. Refined per backend in the AI settings. */}
         {leftText && !allDone && !anyError ? (
-          <p className="text-[11px] text-zinc-400 mt-2"><b className="text-zinc-200">{leftText}</b>, measured on this computer from the parts written so far. Steps appear live as they are written.</p>
+          <p className="text-[11px] text-zinc-400 mt-2"><b className="text-zinc-200">{leftText}</b>, measured on this computer from the parts written so far. Keep this tab open and in front so the computer stays awake.</p>
         ) : etaHint && !allDone && !anyError && (
           <p className="text-[11px] text-zinc-500 mt-2">{etaHint}</p>
         )}
