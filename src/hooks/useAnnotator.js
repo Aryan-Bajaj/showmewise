@@ -519,7 +519,7 @@ export default function useAnnotator() {
           }
         } catch { /* keep the first step */ }
       }
-      step = { ...step, steps: screenSpelling(tidyActions(step.steps, win.ocr), numberVotes) }
+      step = { ...step, steps: screenSpelling(tidyActions(step.steps, win.ocr, win.text), numberVotes) }
       if (miss.length || missA.length) console.info(`[VideoDoc] part ${label} does not mention: ${[...miss, ...missA.map((a) => `"${a}"`)].join(", ")}`)
 
       // Confidence flag for the reviewer: a step the model first skipped, one

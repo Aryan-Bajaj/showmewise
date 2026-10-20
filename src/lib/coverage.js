@@ -13,6 +13,7 @@ const CODE = /\b(?=[a-z0-9]*\d)(?=[a-z0-9]*[a-z])[a-z]{1,5}\d{1,4}[a-z]?\b/gi
 const NUMBER = /\b\d{3,}\b/g
 const PERIOD = /\b(?:period|step|version|level)\s+\d{1,3}\b/gi
 const WORD = /^[a-z][a-z/.-]{2,}$/
+const QUOTED = /['"‘’“”]([^'"‘’“”]{1,48})['"‘’“”]/g
 const STOP = new Set(["the", "and", "then", "this", "that", "with", "from", "into", "have", "will", "here", "there", "what", "when", "your", "our", "you", "are", "was", "for", "can", "not", "all", "now", "see", "go", "we", "it", "is", "to", "of", "in", "on", "at", "so", "if", "or", "be", "do", "a", "an"])
 
 const squash = (t) => (t || "").toLowerCase().replace(/[^a-z0-9|]/g, "")
@@ -120,7 +121,7 @@ export function missingActions(step, actions) {
 // One step, cleaned: two actions that differ only by a number heard vs read
 // ("enter 7731520" / "enter 7731320") keep the one the screen shows. A remark
 // like "the error message is displayed" STAYS: it can be the check a user needs.
-export function tidyActions(steps, screen = "") {
+export function tidyActions(steps, screen = "", spoken = "") {
   const skeleton = (a) => a.toLowerCase().replace(/\d+/g, "#").replace(/[^a-z# ]/g, "").replace(/\s+/g, " ").trim()
   const nums = (a) => a.match(/\d{3,}/g) || []
   const out = []
@@ -129,7 +130,28 @@ export function tidyActions(steps, screen = "") {
     if (twin < 0) { out.push(a); continue }
     if (nums(a).every((n) => (screen || "").includes(n)) && !nums(out[twin]).every((n) => (screen || "").includes(n))) out[twin] = a
   }
-  return out
+  return dropScreenLists(out, spoken)
+}
+
+// A run of 4+ actions that differ only in a quoted name ("Expand the 'X' node"
+// for every folder in a menu tree), none of whose names was said, is the model
+// reading a list off the screen, not what the user did. Seen on a real run; a
+// prompt rule alone did not stop it.
+function dropScreenLists(steps, spoken = "") {
+  if (!spoken) return steps
+  const said = spoken.toLowerCase()
+  const shape = (a) => a.replace(QUOTED, "'_'").toLowerCase().replace(/\s+/g, " ").trim()
+  const name = (a) => ([...a.matchAll(QUOTED)][0]?.[1] || "").toLowerCase()
+  const out = []
+  for (let i = 0; i < steps.length;) {
+    let j = i + 1
+    while (j < steps.length && name(steps[i]) && shape(steps[j]) === shape(steps[i])) j++
+    const run = steps.slice(i, j)
+    const listed = run.length >= 4 && run.every((a) => name(a) && !said.includes(name(a)))
+    if (!listed) out.push(...run)
+    i = j
+  }
+  return out.length ? out : steps
 }
 
 // ── The screen's spelling of numbers ──
