@@ -163,19 +163,31 @@ function dropScreenLists(steps, spoken = "") {
 export function screenCounts(frameTexts) {
   const counts = new Map()
   for (const f of frameTexts || []) {
-    for (const n of new Set((f.text || "").match(/\b\d{3,}\b/g) || [])) counts.set(n, (counts.get(n) || 0) + 1)
+    // dates and times are not values: the taskbar clock ("10/16/2026", "4:45 PM")
+    // is in every frame and once outvoted a fiscal year
+    const text = (f.text || "").replace(/\b\d{1,4}[./-]\d{1,2}[./-]\d{2,4}\b/g, " ").replace(/\b\d{1,2}:\d{2}(?:\s?[AP]M)?\b/gi, " ")
+    for (const n of new Set(text.match(/\b\d{3,}\b/g) || [])) counts.set(n, (counts.get(n) || 0) + 1)
   }
   return counts
 }
 
+const YEAR = /^(19[5-9]\d|20\d\d)$/
+// A number read clearly on screen (2+ frames) stays as it is: only a number the
+// screen does not show (heard, or misread once) takes the screen's spelling,
+// same length first. (A looser vote turned "8800" into the "880" that sits in
+// every item number on that screen.)
 export function screenSpelling(steps, counts) {
   if (!counts?.size) return steps
   const best = (n) => {
-    const twins = [...counts].filter(([x]) => x === n || (Math.abs(x.length - n.length) <= 1 && near(x, n)))
-    if (!twins.length) return n
-    if (n.length === 4) { const year = twins.find(([x]) => /^(19[5-9]\d|20\d\d)$/.test(x)); if (year) return year[0] }
-    const [top, c] = twins.sort((a, b) => b[1] - a[1])[0]
-    return c >= 2 && top !== n ? top : n
+    const twins = [...counts].filter(([x]) => x !== n && Math.abs(x.length - n.length) <= 1 && near(x, n))
+    if (n.length === 4 && !YEAR.test(n)) {
+      const year = twins.filter(([x]) => x.length === 4 && YEAR.test(x)).sort((a, b) => b[1] - a[1])[0]
+      if (year) return year[0]
+    }
+    if ((counts.get(n) || 0) >= 2) return n
+    const cand = twins.filter(([, k]) => k >= 2)
+      .sort((a, b) => ((b[0].length === n.length) - (a[0].length === n.length)) || b[1] - a[1])[0]
+    return cand ? cand[0] : n
   }
   return (steps || []).map((a) => a.replace(/\b\d{3,}\b/g, best))
 }
