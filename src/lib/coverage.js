@@ -70,8 +70,9 @@ export function keyTerms(spoken = "", screen = "") {
 
 const stepText = (step) => [step?.title, ...(step?.steps || []), step?.result, step?.note].filter(Boolean).join(" ")
 
+// a code or value only in the title is not followable: it must be in an action
 export function missingTerms(step, terms) {
-  const have = squash(stepText(step))
+  const have = squash([...(step?.steps || []), step?.result].filter(Boolean).join(" "))
   return (terms || []).filter((t) => !t.split("|").some((alt) => have.includes(squash(alt))))
 }
 
@@ -92,7 +93,7 @@ Rewrite the step so each of them appears in the action where it belongs (the cod
 // the column, subtotal"). A model writing a long part tends to keep two of them.
 // Pulled out here in code and handed over as a checklist; afterwards each one
 // must be found in the written step.
-const ACT = /\b(?:click|double[- ]?click|right[- ]?click|open|select|choose|go to|go back|navigate|type|enter|put|fill|set|add|remove|delete|drag|move|bring|copy|paste|execute|run|save|submit|tick|untick|uncheck|check|search|close|release|change|edit|press|confirm|ask|get|request|wait|approve|send)\b/i
+const ACT = /\b(?:click|double[- ]?click|right[- ]?click|open|select|choose|go to|go back|navigate|type|enter|put|fill|set|add|remove|delete|drag|move|bring|copy|paste|execute|run|save|submit|tick|untick|uncheck|check|search|close|release|change|edit|press|confirm|ask|get|request|wait|approve|send|repeat|do this|do the same|until)\b/i
 const FILLER = new Set([...STOP, "here", "this", "that", "them", "will", "then", "after", "now", "also", "just", "one", "some", "need", "should", "first", "next", "which", "where", "like", "always", "because", "going", "want"])
 
 export function spokenActions(text) {
@@ -129,4 +130,30 @@ export function tidyActions(steps, screen = "") {
     if (nums(a).every((n) => (screen || "").includes(n)) && !nums(out[twin]).every((n) => (screen || "").includes(n))) out[twin] = a
   }
   return out
+}
+
+// ── The screen's spelling of numbers ──
+// A number written in an action ("4" heard as a digit, "7731520" heard for the
+// "7731320" on screen) takes the form the screen shows most often across all
+// frames: one OCR slip on one frame is outvoted by the frames that read it right.
+// A 4-digit value that has a real year among its look-alikes is that year
+// (OCR reads 2024 as 2624 or 2824 on dark screens).
+export function screenCounts(frameTexts) {
+  const counts = new Map()
+  for (const f of frameTexts || []) {
+    for (const n of new Set((f.text || "").match(/\b\d{3,}\b/g) || [])) counts.set(n, (counts.get(n) || 0) + 1)
+  }
+  return counts
+}
+
+export function screenSpelling(steps, counts) {
+  if (!counts?.size) return steps
+  const best = (n) => {
+    const twins = [...counts].filter(([x]) => x === n || (Math.abs(x.length - n.length) <= 1 && near(x, n)))
+    if (!twins.length) return n
+    if (n.length === 4) { const year = twins.find(([x]) => /^(19[5-9]\d|20\d\d)$/.test(x)); if (year) return year[0] }
+    const [top, c] = twins.sort((a, b) => b[1] - a[1])[0]
+    return c >= 2 && top !== n ? top : n
+  }
+  return (steps || []).map((a) => a.replace(/\b\d{3,}\b/g, best))
 }

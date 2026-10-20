@@ -9,7 +9,7 @@ import {
 import { callOllama, callWebLLM, callLocalEngine, WEBLLM_NO_VISION } from "../lib/llm"
 import { smartCrop } from "../lib/smartCrop"
 import { ocrNear } from "./useOCR"
-import { keyTerms, missingTerms, worthRetry, COVERAGE_ADDENDUM, spokenActions, missingActions, tidyActions } from "../lib/coverage"
+import { keyTerms, missingTerms, worthRetry, COVERAGE_ADDENDUM, spokenActions, missingActions, tidyActions, screenCounts, screenSpelling } from "../lib/coverage"
 
 // ── Screen-share start detection ──
 // A meeting recording often opens with minutes of webcams only — transcript but
@@ -298,6 +298,7 @@ export default function useAnnotator() {
     const why = (label, reason) => console.info(`[VideoDoc] part ${label} dropped: ${reason}`)
     console.info(`[VideoDoc] ${windows.length} parts: ${windows.map((w) => `${formatTS(w.a)}-${formatTS(w.b)}`).join(", ")}`)
 
+    const numberVotes = screenCounts(ocrFrameTexts) // how often each number was read on screen
     const results = []
     let lastError = null
     let okCount = 0
@@ -518,7 +519,7 @@ export default function useAnnotator() {
           }
         } catch { /* keep the first step */ }
       }
-      step = { ...step, steps: tidyActions(step.steps, win.ocr) }
+      step = { ...step, steps: screenSpelling(tidyActions(step.steps, win.ocr), numberVotes) }
       if (miss.length || missA.length) console.info(`[VideoDoc] part ${label} does not mention: ${[...miss, ...missA.map((a) => `"${a}"`)].join(", ")}`)
 
       // Confidence flag for the reviewer: a step the model first skipped, one

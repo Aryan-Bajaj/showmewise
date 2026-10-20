@@ -79,7 +79,20 @@ export default function DocChat({ docs, aiMode, ollamaModel, onSeek, autoStart =
   const [messages, setMessages] = useState([]) // {q, a, sources}
   const [openSrc, setOpenSrc] = useState(null) // "msgIdx-srcIdx" of an expanded doc source
   const [zoom, setZoom] = useState(null)        // enlarged screenshot
-  const partOf = (ts) => { if (ts == null) return ""; const k = (docs || []).findIndex((d) => d.timestamp === ts); return k >= 0 && docs[k].step ? LETTER(k) : "" }
+  // Chat answers come from the finished guide (text), so a big model running on
+  // the processor (one answer took over 12 minutes) is not needed: when a lighter
+  // model is installed in Ollama, the chat uses it and says so.
+  const [chatModel, setChatModel] = useState(ollamaModel)
+  useEffect(() => {
+    setChatModel(ollamaModel)
+    if (aiMode !== "ollama" || !/12b|27b|cpu/i.test(ollamaModel || "")) return
+    fetch("http://localhost:11434/api/tags").then((r) => r.json()).then((d) => {
+      const names = (d.models || []).map((m) => m.name)
+      const light = names.find((n) => /^gemma3:4b/.test(n)) || names.find((n) => /(^|[:-])(4b|3b)\b/i.test(n) && !/cpu|cloud/i.test(n))
+      if (light) setChatModel(light)
+    }).catch(() => {})
+  }, [aiMode, ollamaModel])
+  const partOf =(ts) => { if (ts == null) return ""; const k = (docs || []).findIndex((d) => d.timestamp === ts); return k >= 0 && docs[k].step ? LETTER(k) : "" }
 
   const onStatus = useCallback((label, pct = null, phase = null) => {
     setStatus(label ? { label, pct, phase } : null)
@@ -121,7 +134,7 @@ export default function DocChat({ docs, aiMode, ollamaModel, onSeek, autoStart =
     setMessages((m) => [...m, { q, a: null, sources: [] }])
     try {
       await ensureIndex()
-      const { answer, sources, notFound } = await ask(q, aiMode || "webllm", ollamaModel, onStatus)
+      const { answer, sources, notFound } = await ask(q, aiMode || "webllm", chatModel, onStatus)
       setMessages((m) => m.map((x, i) => i === m.length - 1 ? { ...x, a: answer, sources, notFound: !!notFound, query: q } : x))
     } catch (e) {
       setMessages((m) => m.map((x, i) => i === m.length - 1 ? { ...x, a: `⚠️ ${e.message}` } : x))
@@ -136,7 +149,7 @@ export default function DocChat({ docs, aiMode, ollamaModel, onSeek, autoStart =
     setBusy(true)
     setMessages((m) => m.map((x, i) => i === idx ? { ...x, notFound: false } : x))
     try {
-      const a = await askGeneral(q, aiMode || "webllm", ollamaModel, onStatus)
+      const a = await askGeneral(q, aiMode || "webllm", chatModel, onStatus)
       setMessages((m) => m.map((x, i) => i === idx ? { ...x, a, sources: [], general: true } : x))
     } catch (e) {
       setMessages((m) => m.map((x, i) => i === idx ? { ...x, a: `⚠️ ${e.message}`, notFound: true } : x))
@@ -158,7 +171,7 @@ export default function DocChat({ docs, aiMode, ollamaModel, onSeek, autoStart =
         className="w-full border border-emerald-700/40 bg-emerald-500/5 hover:bg-emerald-500/10 rounded-xl px-4 py-3 flex items-center gap-3 transition-all">
         <MessageSquare className="w-4 h-4 text-emerald-400" />
         <span className="text-sm font-medium text-emerald-300">Vid Chat</span>
-        <span className="text-xs text-zinc-500 ml-auto">Ask anything · answers cite the exact step</span>
+        <span className="text-xs text-zinc-500 ml-auto">Ask anything · answers cite the exact step{aiMode === "ollama" && chatModel && chatModel !== ollamaModel ? ` · answered by ${chatModel} (quicker for chat)` : ""}</span>
       </button>
     )
   }

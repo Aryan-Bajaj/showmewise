@@ -23,6 +23,7 @@ import { consolidateProcedure, verifyProcedure, sanitizeDocs } from "./lib/refin
 import { scrubSensitive } from "./lib/skillPrompt"
 import { fixTranscriptChunks } from "./lib/transcriptFixups"
 import { fixChunksWithScreen } from "./lib/screenVocab"
+import { screenCounts, screenSpelling } from "./lib/coverage"
 import { buildStepShots } from "./lib/stepShots"
 
 const INITIAL_STEPS = [
@@ -365,6 +366,11 @@ export default function App() {
       // participant's name as an artifact name. Deterministic scrub so nothing
       // poisoned reaches the document or the insights built from it.
       finalDocs = sanitizeDocs(finalDocs, participants)
+      // last word on numbers: the screen's most-read spelling (no later stage may
+      // bring back a heard "7731520" for the "7731320" on screen)
+      const votes = screenCounts(ocrFrameTexts)
+      finalDocs = finalDocs.map((d) => d.step ? { ...d, step: { ...d.step, steps: screenSpelling(d.step.steps, votes) } } : d)
+      trace("final", finalDocs)
 
       setAnnotatedDocs(finalDocs)
 
