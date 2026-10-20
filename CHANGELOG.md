@@ -17,6 +17,10 @@ The manual release: the clicks marked on the screen, in documents that read like
 * **Nothing important left out.** After each part is written, the codes, numbers, values, field names and actions that were said are checked against it; anything missing is asked for again by name. The AI also gets the screen text together with up to three pictures of each part.
 * **Sturdier runs.** A dropped request to the local AI is tried again, and a part that still fails gets a second chance at the end. Every part that is left out says why in the browser console.
 * **Honest progress.** No guessed run time: the time left is measured on your computer once writing starts. The transcription bar moves every few seconds and the download shows its size.
+* **Accurate speech (optional).** Whisper large v3 turbo on the graphics card, for names, codes and mixed languages. If the graphics card cannot load it, the processor takes over by itself.
+* **Long runs finish.** The page keeps the computer awake while a video is processed. The speech model is closed when the transcript is done, so its memory (up to 2 GB) goes back to the AI that writes the guide; a 16 GB laptop no longer swaps and each part is about 4 times faster. The AI gets a larger text window (8192 tokens), so long parts with three pictures are no longer refused.
+* **No more graphics crash.** The animated app background kept the graphics card busy for hours while the page only waited, and on a full laptop that ended in a Windows crash. The app now uses a still background (0 % graphics load while waiting, measured).
+* **Cleaner steps.** Folders of a menu tree read off the screen ("Expand Favorites") are no longer written as actions, and tips that only say something is irrelevant are dropped. A clear value on screen is never rewritten.
 * **Site.** New logo, privacy and terms page, share previews, sitemap, security headers, updated dependencies. On a phone, a notice says up front that VideoDoc is made for a computer and how much it would download. The in-browser model sizes on the site now match the app.
 
 ## v4

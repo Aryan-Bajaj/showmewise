@@ -979,6 +979,7 @@ export default function LandingPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
             {[
               { icon: '🎙', name: 'Whisper Small (speech to text)', size: '~970 MB', when: 'On your first video. The more accurate model that nails names and jargon.', color: '#06b6d4' },
+              { icon: '🎧', name: 'Accurate speech (optional)', size: '~1.6 GB', when: 'Only when you choose Accurate. Whisper large v3 turbo: hears names, codes and mixed languages better, slower without a fast graphics card.', color: '#0ea5e9' },
               { icon: '🧠', name: 'WebLLM (writes the steps)', size: '~0.8 to 2.2 GB', when: 'First annotation in browser mode. Pick Fast (Llama 3.2 1B), Balanced (Qwen2.5 3B, default) or Quality (Phi-3.5 mini)', color: '#a78bfa' },
               { icon: '👁', name: 'Vision model (optional)', size: '~3.5 GB', when: 'Browser Vision mode, where the AI sees the screen (Phi-3.5-Vision). With Ollama, gemma3 does this, no download.', color: '#7b96ff' },
               { icon: '💬', name: 'Embeddings (doc chat)', size: '~90 MB', when: 'First time you ask your documentation a question', color: '#34d399' },

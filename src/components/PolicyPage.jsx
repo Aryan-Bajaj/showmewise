@@ -4,7 +4,7 @@ import { MAX_VIDEO_MB, MAX_VIDEO_MIN } from '../lib/limits'
 
 // Privacy, terms and credits in plain English. Everything here describes what
 // the app really does (checked against the code): keep it true when the app changes.
-const UPDATED = '19 October 2026'
+const UPDATED = '21 October 2026'
 const REPO = 'https://github.com/Aryan-Bajaj/video-docs'
 
 const C = { bg: '#0f0b24', card: 'rgba(28,18,55,0.7)', line: 'rgba(167,139,250,0.18)', ink: '#ece9ff', body: 'rgba(236,233,255,0.78)', dim: 'rgba(236,233,255,0.55)', acc: '#a78bfa' }
@@ -85,7 +85,7 @@ export default function PolicyPage() {
             <><b>Search the web</b> in Vid Chat only runs when you click it. It opens a new tab on <b>Perplexity</b> with the question you typed, nothing else. Your video and your guide are not sent. Perplexity's own privacy policy applies there.</>,
           ]} />
           <H>What stays on your device</H>
-          <p style={{ margin: 0 }}>Downloaded model files stay in your browser's storage so the next run starts faster. An exported HTML guide can remember your checklist ticks in that browser. You can remove all of this at any time by clearing the site data in your browser settings.</p>
+          <p style={{ margin: 0 }}>Downloaded model files stay in your browser's storage so the next run starts faster. An exported HTML guide can remember your checklist ticks in that browser. While a video is processed, the page asks the browser to keep the screen on, so the computer does not go to sleep halfway; this ends when processing ends or when you leave the tab. You can remove all of this at any time by clearing the site data in your browser settings.</p>
           <H>Your rights</H>
           <p style={{ margin: 0 }}>Under data protection law such as the GDPR you have rights over your personal data. VideoDoc itself holds no personal data about you. For hosting logs, contact Netlify. For any question about this page, see Contact below.</p>
         </Section>
@@ -97,6 +97,7 @@ export default function PolicyPage() {
             'Only use recordings you are allowed to use, and remove personal or confidential information before you share a guide.',
             'Do not use VideoDoc for anything illegal or to harm others.',
             limit ? `The online version accepts videos up to ${limit}, to protect your browser from running out of memory. The desktop app has no limit.` : 'Very long videos can use a lot of memory in the browser. The desktop app is better for those.',
+            'Turning a video into a guide works your computer hard for a long time (memory, processor and, with some models, the graphics card). Keep the laptop plugged in, close programs you do not need and save your other work first.',
             'To the extent the law allows, there is no liability for any loss or damage from using VideoDoc. This does not limit liability that cannot be limited by law.',
           ]} />
         </Section>

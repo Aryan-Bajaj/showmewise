@@ -158,7 +158,7 @@ Everything below runs client-side. No server, no API keys.
 * **You name the guide.** The document title is asked up front, so the heading is never the raw video file name.
 * **Browser-first, and you pick the model.** WebLLM runs in your browser with zero install. A model picker shows the accuracy and per-segment time of each option (Fast 1B, Balanced 1.5B, Quality 3B); the app never auto-switches. The default is the 1B model so Intel / integrated graphics stay responsive. Ollama stays available as an opt-in upgrade for stronger local models.
 * **Two apps, one project.** **VideoDoc** turns a recording into a guide and lets you Vid Chat with it. **Doc Chat** lets you upload a document directly, chunk it, and chat with it, no video required. Both are reachable from the landing page.
-* **Resilient by design.** The animated background is wrapped so a missing WebGL context (low-end devices, hardware acceleration off) can never blank the page. Verified by an automated headless render test of every route.
+* **Resilient by design.** The app pages use a still background painted once, so the graphics card has nothing to do while a video is processed (an animated one kept it at 67 to 88 % for hours and, on a full 16 GB laptop, ended in a Windows graphics crash). The landing page animation is wrapped so a missing WebGL context can never blank the page. Verified by an automated headless render test of every route.
 
 ---
 
@@ -428,7 +428,6 @@ video-docs/
 │   ├── _redirects                ← Netlify SPA fallback
 │   ├── _headers                  ← COEP/COOP for drag-drop deploys
 │   ├── three.min.js              ← Three.js r134 (same-origin, bypasses COEP)
-│   ├── vanta.halo.min.js         ← Vanta HALO effect (app background)
 │   └── vanta.net.min.js          ← Vanta NET effect (landing background)
 │
 ├── desktop/                      ← Offline desktop bundle (v4/v5)
@@ -476,8 +475,7 @@ video-docs/
     │   ├── useGifMaker.js        ← Browser GIF encoding per step
     │   ├── useClipMaker.js       ← WebM step clips (real action, true colour)
     │   ├── useRAG.js             ← In-browser embeddings + retrieval
-    │   ├── useDocParser.js       ← headings + full-text extract + chunk
-    │   └── useVantaHalo.js       ← Vanta HALO background (WebGL-guarded)
+    │   └── useDocParser.js       ← headings + full-text extract + chunk
     │
     ├── workers/
     │   └── transcriber.worker.js ← Whisper in isolated Web Worker thread
@@ -512,7 +510,7 @@ video-docs/
 | **tesseract.js** | In-browser OCR (on-screen text + tool detection) |
 | **gifenc** | In-browser GIF encoding for animated step clips |
 | **Three.js r134** | 3D rendering engine for Vanta |
-| **Vanta.js** | Animated backgrounds (NET + HALO) |
+| **Vanta.js** | Animated landing page background (NET) |
 | **jsPDF** | Client-side PDF generation |
 | **docx** | Client-side DOCX generation |
 | **mammoth** | .docx to HTML parser (reference docs) |
@@ -632,8 +630,8 @@ In the AI Settings modal, add custom section names. These get injected into the 
 **Change export styling**
 Edit `src/lib/exportHTML.js`. All styles are inline in the generated HTML string.
 
-**Change Vanta HALO settings (app background)**
-Edit `src/hooks/useVantaHalo.js`. Adjust `baseColor`, `size`, `speed`, `amplitudeFactor`.
+**Change the app background**
+Edit `.app-bg` in `src/index.css` (glow colours and the faint frame-to-page pattern). Keep it still: an animation here runs for the whole processing time.
 
 **Change Vanta NET settings (landing page background)**
 In `src/components/LandingPage.jsx`, find the `window.VANTA.NET({...})` call and adjust `color`, `points`, `maxDistance`, `spacing`.
