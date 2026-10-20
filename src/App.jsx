@@ -95,7 +95,13 @@ export default function App() {
 
   const updateStep = useCallback((id, updates) => {
     setPipelineSteps(prev =>
-      prev?.map(s => s.id === id ? { ...s, ...updates } : s) ?? null
+      prev?.map(s => {
+        if (s.id !== id) return s
+        // a finished step ignores late progress (counts, %, detail); only a
+        // real new status, like a new run, may change it again
+        if ((s.status === 'done' || s.status === 'error') && !('status' in updates)) return s
+        return { ...s, ...updates }
+      }) ?? null
     )
   }, [])
 
@@ -127,6 +133,9 @@ export default function App() {
     if (!transcribeProgress) return
     setPipelineSteps(prev => prev?.map(s => {
       if (s.id !== 'transcribe') return s
+      // a late progress message must never reopen a finished step (it showed
+      // "Transcribe Audio" spinning next to the next step)
+      if (s.status === 'done' || s.status === 'error') return s
       if (transcribeProgress.stage === 'downloading') {
         const mb = transcribeProgress.mb
         const detail = mb ? `Downloading the speech model: ${mb[0]} of ${mb[1]} MB (first run only, kept for next time)` : 'Downloading the speech model (first run only, kept for next time)'
