@@ -29,10 +29,18 @@ export default function useTranscriber() {
           } else if (data.type === 'result') {
             setTranscribeProgress(null)
             setTranscribeStatus(null)
+            // Done with speech: close the worker so the speech model's memory
+            // (up to 2 GB) goes back to the AI that writes the guide. Kept, it
+            // pushed a 16 GB laptop into swapping and made writing 4x slower.
+            // A next video loads the model from the browser cache in seconds.
+            workerRef.current?.terminate()
+            workerRef.current = null
             resolve(data.data)
           } else if (data.type === 'error') {
             setTranscribeProgress(null)
             setTranscribeStatus(null)
+            workerRef.current?.terminate() // free its memory; a next try starts clean
+            workerRef.current = null
             reject(new Error(data.msg))
           }
         }
