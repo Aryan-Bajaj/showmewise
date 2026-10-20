@@ -13,6 +13,10 @@ The manual release: the clicks marked on the screen, in documents that read like
 * **Vid Chat shows the step** it answered from, with its marked screenshot and a play button, plus an optional web search.
 * **Simple editing** with plain fields and labelled buttons.
 * **Fixes.** The whole audio is transcribed (each window used to stop after 30 seconds), short videos split into several steps, and app names must appear on screen or in the audio. A screen error in one panel no longer blanks the page: the rest of the guide and the exports keep working.
+* **Reads meeting recordings and dark screens.** A shared screen inside a meeting window is cut out from the margins and webcam tiles, so the text, the AI, the screenshots and the clips all see the app at full size. Dark-theme apps are read properly (light text on a dark background used to give almost nothing). A frame is taken about every 3 seconds in full HD.
+* **Nothing important left out.** After each part is written, the codes, numbers, values, field names and actions that were said are checked against it; anything missing is asked for again by name. The AI also gets the screen text together with up to three pictures of each part.
+* **Sturdier runs.** A dropped request to the local AI is tried again, and a part that still fails gets a second chance at the end. Every part that is left out says why in the browser console.
+* **Honest progress.** No guessed run time: the time left is measured on your computer once writing starts. The transcription bar moves every few seconds and the download shows its size.
 * **Site.** New logo, privacy and terms page, share previews, sitemap, security headers, updated dependencies. On a phone, a notice says up front that VideoDoc is made for a computer and how much it would download. The in-browser model sizes on the site now match the app.
 
 ## v4
