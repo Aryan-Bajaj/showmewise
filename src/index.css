@@ -14,3 +14,28 @@ html, body { overflow-x: hidden; max-width: 100%; }
   from { opacity: 0; transform: translateY(-4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* App background, painted once: faint video frames turning into guide pages
+   (what the tool does) over soft glows. It replaced an animated WebGL
+   background that kept the graphics card busy for hours during processing. */
+.app-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(60vmax 45vmax at 12% 8%, rgba(42, 82, 190, 0.55), transparent 70%),
+    radial-gradient(50vmax 40vmax at 92% 28%, rgba(109, 74, 255, 0.42), transparent 70%),
+    radial-gradient(55vmax 45vmax at 50% 108%, rgba(26, 58, 122, 0.6), transparent 70%),
+    #0d0d2b;
+}
+.app-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='190' viewBox='-30 -20 300 190'><g fill='none' stroke='%23ffffff' stroke-opacity='0.075' stroke-width='1.2' stroke-linecap='round'><rect x='18' y='30' width='78' height='50' rx='7'/><path d='M51 46 L51 64 L65 55 Z' fill='%23ffffff' fill-opacity='0.06'/><path d='M18 88 H96' stroke-dasharray='3 5'/><path d='M108 55 H124 M119 50 L124 55 L119 60'/><rect x='136' y='22' width='84' height='66' rx='7'/><circle cx='150' cy='38' r='5'/><path d='M161 38 H206 M146 54 H206 M146 64 H192 M146 74 H200'/></g></svg>"), url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='150' viewBox='0 0 240 150'><g fill='none' stroke='%23ffffff' stroke-opacity='0.09' stroke-width='1.2' stroke-linecap='round'><rect x='18' y='30' width='78' height='50' rx='7'/><path d='M51 46 L51 64 L65 55 Z' fill='%23ffffff' fill-opacity='0.06'/><path d='M18 88 H96' stroke-dasharray='3 5'/><path d='M108 55 H124 M119 50 L124 55 L119 60'/><rect x='136' y='22' width='84' height='66' rx='7'/><circle cx='150' cy='38' r='5'/><path d='M161 38 H206 M146 54 H206 M146 64 H192 M146 74 H200'/></g></svg>");
+  background-size: 300px 190px;
+  background-position: 0 0, 150px 95px;
+  -webkit-mask-image: radial-gradient(ellipse 85% 75% at 50% 40%, #000 30%, transparent 100%);
+  mask-image: radial-gradient(ellipse 85% 75% at 50% 40%, #000 30%, transparent 100%);
+}

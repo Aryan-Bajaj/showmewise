@@ -16,7 +16,6 @@ import useTranscriber from "./hooks/useTranscriber"
 import useAnnotator from "./hooks/useAnnotator"
 import useDocParser from "./hooks/useDocParser"
 import useOCR from "./hooks/useOCR"
-import useVantaHalo from "./hooks/useVantaHalo"
 import { webLLMLabel, isWebLLMVision, ollamaModelHasVision } from "./lib/llm"
 import { generateInsights } from "./lib/insights"
 import { consolidateProcedure, verifyProcedure, sanitizeDocs } from "./lib/refine"
@@ -476,16 +475,15 @@ export default function App() {
   }, [])
 
   const isAnnotating = pipelineSteps?.find(s => s.id === 'annotate')?.status === 'active'
-  const vantaRef = useVantaHalo()
 
   return (
     <div className="min-h-screen text-white font-sans" style={{ position: 'relative', background: '#0d0d2b' }}>
-      {/* Vanta HALO fixed background — inset:0 (not 100vw) so the vertical
+      {/* Fixed background — inset:0 (not 100vw) so the vertical
           scrollbar that appears during processing can't cause horizontal overflow */}
-      <div ref={vantaRef} style={{ position: 'fixed', inset: 0, zIndex: 0 }} />
+      <div className="app-bg" />
       {/* Dark overlay for readability */}
-      <div style={{ position: 'fixed', inset: 0, zIndex: 0, background: 'rgba(8,5,20,0.72)', pointerEvents: 'none' }} />
-      {/* Content above Vanta */}
+      <div style={{ position: 'fixed', inset: 0, zIndex: 0, background: 'rgba(8,5,20,0.5)', pointerEvents: 'none' }} />
+      {/* Content above the background */}
       <div style={{ position: 'relative', zIndex: 1 }}>
       {showAISettings && (
         <AISettings
@@ -507,7 +505,7 @@ export default function App() {
           <span className="bg-gradient-to-r from-indigo-300 to-violet-300 bg-clip-text text-transparent group-hover:from-violet-200 group-hover:to-cyan-200 transition-colors">VideoDoc</span>
         </button>
         <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] text-emerald-300/90 bg-emerald-500/10 border border-emerald-400/20 rounded-full px-2.5 py-0.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Runs on your computer
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> Runs on your computer
         </span>
         <a href="/#/docchat" className="text-xs text-zinc-400 hover:text-violet-300 transition-colors">Doc Chat</a>
         <a href="/#/policy" className="text-xs text-zinc-400 hover:text-violet-300 transition-colors">Privacy</a>

@@ -3,10 +3,8 @@ import { FileText, Upload, Globe, Cpu, ChevronDown } from "lucide-react"
 import DocChat from "./components/DocChat"
 import { extractText, chunkText } from "./hooks/useDocParser"
 import { WEBLLM_MODELS, DEFAULT_WEBLLM_MODEL } from "./lib/llm"
-import useVantaHalo from "./hooks/useVantaHalo"
 
 export default function DocChatApp() {
-  const vantaRef = useVantaHalo()
   const fileRef = useRef()
   const [passages, setPassages] = useState([])
   const [fileName, setFileName] = useState("")
@@ -72,12 +70,12 @@ export default function DocChatApp() {
 
   return (
     <div className="min-h-screen text-white font-sans" style={{ position: "relative", background: "#0d0d2b" }}>
-      <div ref={vantaRef} style={{ position: "fixed", inset: 0, zIndex: 0 }} />
+      <div className="app-bg" />
       <div style={{ position: "fixed", inset: 0, zIndex: 0, background: "rgba(8,5,20,0.72)", pointerEvents: "none" }} />
 
       <div style={{ position: "relative", zIndex: 1 }}>
         <header className="border-b border-white/10 px-6 py-4 flex items-center gap-3 backdrop-blur-md bg-black/20 sticky top-0 z-40">
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="w-2 h-2 rounded-full bg-emerald-400" />
           <button onClick={() => { window.location.href = "/#/" }}
             className="text-lg font-semibold tracking-tight hover:text-emerald-400 transition-colors">
             VideoDoc
