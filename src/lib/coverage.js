@@ -136,7 +136,9 @@ export function tidyActions(steps, screen = "", spoken = "") {
 // A run of 4+ actions that differ only in a quoted name ("Expand the 'X' node"
 // for every folder in a menu tree), none of whose names was said, is the model
 // reading a list off the screen, not what the user did. Seen on a real run; a
-// prompt rule alone did not stop it.
+// prompt rule alone did not stop it. For opening tree folders ("Expand",
+// "Collapse") 3 are enough: a later run read just 3 folders off the menu tree.
+const TREE = /^(expand|collapse)\b/
 function dropScreenLists(steps, spoken = "") {
   if (!spoken) return steps
   const said = spoken.toLowerCase()
@@ -147,12 +149,16 @@ function dropScreenLists(steps, spoken = "") {
     let j = i + 1
     while (j < steps.length && name(steps[i]) && shape(steps[j]) === shape(steps[i])) j++
     const run = steps.slice(i, j)
-    const listed = run.length >= 4 && run.every((a) => name(a) && !said.includes(name(a)))
+    const listed = run.length >= (TREE.test(shape(steps[i])) ? 3 : 4) && run.every((a) => name(a) && !said.includes(name(a)))
     if (!listed) out.push(...run)
     i = j
   }
   return out.length ? out : steps
 }
+
+// A note about what to ignore ("the speaker mentions a test system, which is
+// irrelevant to the procedure") tells the reader nothing they can use.
+export const tidyNote = (note = "") => /\b(irrelevant|not relevant|unrelated to)\b/i.test(note) ? "" : note
 
 // ── The screen's spelling of numbers ──
 // A number written in an action ("4" heard as a digit, "7731520" heard for the
