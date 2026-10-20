@@ -177,7 +177,11 @@ export async function callOllama(userMsg, systemPrompt, model = "llama3.2", opts
     model,
     prompt: `${systemPrompt}\n\n${userMsg}`,
     stream: false,
-    options: { temperature: opts.temperature ?? 0.2, num_predict: opts.maxTokens ?? 512 },
+    // Ollama's default window (4096 tokens) is too small for 3 screenshots plus
+    // the screen text and a completeness rewrite: a real run had those refused
+    // (400, "exceeds the available context size"). One fixed size for every
+    // call, so the model is not reloaded between calls.
+    options: { temperature: opts.temperature ?? 0.2, num_predict: opts.maxTokens ?? 512, num_ctx: 8192 },
   }
   // Constrained decoding: Ollama grammar-forces the reply to match this JSON
   // schema — malformed / chatty output becomes impossible (Ollama ≥ 0.5).
@@ -190,7 +194,11 @@ export async function callOllama(userMsg, systemPrompt, model = "llama3.2", opts
   }
 
   const res = await postWithRetry("http://localhost:11434/api/generate", body)
-  if (!res.ok) throw new Error("Ollama not reachable — is it running on localhost:11434?")
+  if (!res.ok) {
+    const why = await res.text().catch(() => "")
+    console.info(`[VideoDoc] AI server refused the request (${res.status}): ${why.slice(0, 200)}`)
+    throw new Error(res.status === 400 ? `Ollama refused the request: ${why.slice(0, 200)}` : "Ollama not reachable — is it running on localhost:11434?")
+  }
   const data = await res.json()
   return cleanLLMOutput(data.response || "")
 }
