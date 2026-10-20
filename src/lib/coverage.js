@@ -1,7 +1,8 @@
 // Completeness check: the facts a step must not lose. Taken from the part's own
 // evidence (what was said and what the screen showed), never invented:
-//   • codes said or shown: transaction / screen codes like ME21N, VA01, MM03
-//   • numbers of 3+ digits: account numbers, company codes, years
+//   • codes that were SAID: transaction / screen codes like ME21N, VA01, MM03
+//   • numbers of 3+ digits that were SAID: account numbers, company codes
+//   (the screen gives the right spelling of what was said)
 //   • "period 3", "step 2" style values
 //   • two-word names that are BOTH said and on screen ("Processing Type",
 //     "Partial Capitalization", "Test Run"): strong evidence of a real field
@@ -28,26 +29,29 @@ function near(a, b) {
 }
 
 export function keyTerms(spoken = "", screen = "") {
-  const both = `${spoken} ${screen}`
   const out = new Map() // squashed → shown form
   const add = (t) => { const k = squash(t); if (k.length >= 3 && !out.has(k)) out.set(k, t.trim()) }
   // codes: the screen's spelling first; a spoken code one letter away from a
   // screen code is the same code misheard ("MN21N" said, "ME21N" shown)
-  const codes = []
-  for (const m of (screen || "").matchAll(CODE)) { const c = m[0].toUpperCase(); if (!codes.includes(c)) { codes.push(c); add(c) } }
+  // only codes that were SAID count; the screen gives their right spelling
+  const shownCodes = [...new Set([...(screen || "").matchAll(CODE)].map((m) => m[0].toUpperCase()))]
   for (const m of (spoken || "").matchAll(CODE)) {
     const c = m[0].toUpperCase()
-    const twin = codes.find((x) => x.length === c.length && near(x, c))
-    if (twin) { if (twin !== c && !out.get(squash(twin)).includes("|")) out.set(squash(twin), `${twin}|${c}`) } else { codes.push(c); add(c) }
+    const twin = shownCodes.find((x) => x.length === c.length && near(x, c))
+    if (!twin || twin === c) add(c)
+    else if (!out.has(squash(twin))) out.set(squash(twin), `${twin}|${c}`)
   }
   // a number heard and the same number read off the screen often differ by a
   // digit (7731520 / 7731320): one fact, either form counts
-  const nums = []
-  for (const m of both.matchAll(NUMBER)) {
+  // only numbers that were SAID count: a number only on screen is table data,
+  // not a step (a line-item list put 40 amounts into one part's "missing" list
+  // in a real test)
+  const shownNums = [...new Set([...(screen || "").matchAll(NUMBER)].map((m) => m[0]))]
+  for (const m of (spoken || "").matchAll(NUMBER)) {
     const n = m[0]
-    if (/^(19|20)\d\d$/.test(n) && both.split(n).length <= 2) continue // a lone year is rarely a step value
-    const twin = nums.find((x) => Math.abs(x.length - n.length) <= 1 && near(x, n))
-    if (twin) { if (twin !== n) out.set(squash(twin), `${out.get(squash(twin))}|${n}`) } else { nums.push(n); add(n) }
+    if (/^(19|20)\d\d$/.test(n)) continue // a year said in passing is rarely a step value
+    const twin = shownNums.find((x) => x !== n && Math.abs(x.length - n.length) <= 1 && near(x, n))
+    if (!out.has(squash(n))) out.set(squash(n), twin ? `${n}|${twin}` : n)
   }
   for (const m of spoken.matchAll(PERIOD)) add(m[0].toLowerCase())
   // two-word names on the screen that were also said
@@ -78,7 +82,52 @@ export function worthRetry(missing) {
   return hard.length >= 1 || missing.length >= 2
 }
 
-export const COVERAGE_ADDENDUM = (missing) => `
+export const COVERAGE_ADDENDUM = (missing, actions = []) => `
 
-YOUR STEP LEAVES OUT THINGS THE USER DID OR SAID in this part: ${missing.map((t) => `"${t.split("|").join('" or "')}"`).join(", ")}.
+YOUR STEP LEAVES OUT THINGS THE USER DID OR SAID in this part: ${[...missing.map((t) => `"${t.split("|").join('" or "')}"`), ...actions.map((t) => `the action "${t}"`)].join(", ")}.
 Rewrite the step so each of them appears in the action where it belongs (the code typed, the value entered, the field filled, the option chosen). Write a value the way the screen shows it when it is visible, otherwise as it was said. Keep every action you already had, keep them in the order they happened, and add nothing that was not said or shown.`
+
+// ── Actions said, in order ──
+// The narration lists the clicks ("add the column, search it, click it, select
+// the column, subtotal"). A model writing a long part tends to keep two of them.
+// Pulled out here in code and handed over as a checklist; afterwards each one
+// must be found in the written step.
+const ACT = /\b(?:click|double[- ]?click|right[- ]?click|open|select|choose|go to|go back|navigate|type|enter|put|fill|set|add|remove|delete|drag|move|bring|copy|paste|execute|run|save|submit|tick|untick|uncheck|check|search|close|release|change|edit|press|confirm)\b/i
+const FILLER = new Set([...STOP, "here", "this", "that", "them", "will", "then", "after", "now", "also", "just", "one", "some", "need", "should", "first", "next", "which", "where", "like", "always", "because", "going", "want"])
+
+export function spokenActions(text) {
+  const out = []
+  for (const piece of (text || "").split(/[.;!?]+|,\s*|\b(?:and then|after that|after this|then)\b/i)) {
+    const c = piece.trim().replace(/\s+/g, " ")
+    if (c.length < 6 || !ACT.test(c)) continue
+    const short = c.split(" ").slice(0, 14).join(" ")
+    if (!out.some((o) => o.toLowerCase() === short.toLowerCase())) out.push(short)
+    if (out.length >= 12) break
+  }
+  return out
+}
+
+// the words that make an action specific ("KPI", "column"), verbs and filler left out
+const actionKey = (a) => a.toLowerCase().replace(/[^a-z0-9 ]/g, " ").split(/\s+/)
+  .filter((w) => w.length >= 3 && !FILLER.has(w) && !ACT.test(w))
+
+export function missingActions(step, actions) {
+  const have = stepText(step).toLowerCase()
+  return (actions || []).filter((a) => { const k = actionKey(a); return k.length && !k.some((w) => have.includes(w.slice(0, 5))) })
+}
+
+// One step, cleaned: two actions that differ only by a number heard vs read
+// ("enter 7731520" / "enter 7731320") keep the one the screen shows; a bare
+// remark that something "is displayed" is not an action.
+export function tidyActions(steps, screen = "") {
+  const skeleton = (a) => a.toLowerCase().replace(/\d+/g, "#").replace(/[^a-z# ]/g, "").replace(/\s+/g, " ").trim()
+  const nums = (a) => a.match(/\d{3,}/g) || []
+  const out = []
+  for (const a of steps || []) {
+    if (/^(?:note|notice|observe|see)\b.*\b(?:is|are) (?:displayed|shown|visible|open)\b/i.test(a) && (steps || []).length > 1) continue
+    const twin = out.findIndex((b) => skeleton(b) === skeleton(a) && nums(a).length && nums(a).every((n, i) => near(n, nums(b)[i] || "")))
+    if (twin < 0) { out.push(a); continue }
+    if (nums(a).every((n) => (screen || "").includes(n)) && !nums(out[twin]).every((n) => (screen || "").includes(n))) out[twin] = a
+  }
+  return out
+}

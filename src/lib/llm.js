@@ -153,6 +153,25 @@ export async function downscaleForVision(dataUrl, maxSide = VISION_MAX_SIDE) {
   } catch { return dataUrl } // never let a resize failure block annotation
 }
 
+// A local AI server on a busy laptop can drop a request (memory pressure, a
+// restart). One such hiccup cost a test run 6 of 11 parts, so a failed
+// connection or a server error is tried again after 5 s, 20 s and 60 s before
+// it counts. A 4xx answer (wrong model name) fails at once: waiting won't fix it.
+const RETRY_WAITS = [5000, 20000, 60000]
+async function postWithRetry(url, body) {
+  const payload = JSON.stringify(body)
+  for (let i = 0; ; i++) {
+    try {
+      const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: payload })
+      if (res.status < 500 || i >= RETRY_WAITS.length) return res
+    } catch (e) {
+      if (i >= RETRY_WAITS.length) throw e
+    }
+    console.info(`[VideoDoc] AI server did not answer, trying again in ${RETRY_WAITS[i] / 1000} s`)
+    await new Promise((r) => setTimeout(r, RETRY_WAITS[i]))
+  }
+}
+
 export async function callOllama(userMsg, systemPrompt, model = "llama3.2", opts = {}) {
   const body = {
     model,
@@ -170,11 +189,7 @@ export async function callOllama(userMsg, systemPrompt, model = "llama3.2", opts
     body.images = imgs.map(stripDataUrl)
   }
 
-  const res = await fetch("http://localhost:11434/api/generate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  })
+  const res = await postWithRetry("http://localhost:11434/api/generate", body)
   if (!res.ok) throw new Error("Ollama not reachable — is it running on localhost:11434?")
   const data = await res.json()
   return cleanLLMOutput(data.response || "")
@@ -215,11 +230,7 @@ export async function callLocalEngine(userMsg, systemPrompt, _model, opts = {}) 
   // Constrained decoding: llama-server compiles the schema to a GBNF grammar —
   // the sampler literally cannot emit tokens that break the JSON structure.
   if (opts.schema) body.response_format = { type: "json_object", schema: opts.schema }
-  const res = await fetch(`${LOCAL_ENGINE_URL}/v1/chat/completions`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  })
+  const res = await postWithRetry(`${LOCAL_ENGINE_URL}/v1/chat/completions`, body)
   if (!res.ok) throw new Error("Local AI engine not reachable — is the desktop app's model running?")
   const data = await res.json()
   return cleanLLMOutput(data.choices?.[0]?.message?.content || "")

@@ -9,7 +9,7 @@ import {
 import { callOllama, callWebLLM, callLocalEngine, WEBLLM_NO_VISION } from "../lib/llm"
 import { smartCrop } from "../lib/smartCrop"
 import { ocrNear } from "./useOCR"
-import { keyTerms, missingTerms, worthRetry, COVERAGE_ADDENDUM } from "../lib/coverage"
+import { keyTerms, missingTerms, worthRetry, COVERAGE_ADDENDUM, spokenActions, missingActions, tidyActions } from "../lib/coverage"
 
 // ── Screen-share start detection ──
 // A meeting recording often opens with minutes of webcams only — transcript but
@@ -290,7 +290,7 @@ export default function useAnnotator() {
       // drop a window on its own — with vision the model still SEES the screen,
       // and the share gate above already removed the webcam-only intro.
       if (!text && !ocr && !useVision) continue
-      windows.push({ a, b, center, text, ocr })
+      windows.push({ a, b, center, text, ocr, actions: spokenActions(text) })
     }
 
     // Every part that is dropped says why, in the browser console: missing
@@ -358,7 +358,14 @@ export default function useAnnotator() {
       // JSON_ADDENDUM goes LAST so the format contract is the model's freshest
       // instruction; the schema makes the engines enforce it at the sampler.
       const prompt = sysPrefix + (useImg ? PROCEDURE_PROMPT + VISION_ADDENDUM : PROCEDURE_PROMPT) + extra + JSON_ADDENDUM
-      const userMsg = buildContextPrompt(win.text, label, prev, next, useImg ? null : win.ocr)
+      // the actions said in this part, in order: a checklist the step must cover
+      const said = win.actions?.length
+        ? `\n[Actions the speaker describes, in order. Each one must become an action of the step (merge two only if they are the same click)]:\n${win.actions.map((x, n) => `${n + 1}. ${x}`).join("\n")}`
+        : ""
+      // The screen text goes in with the pictures too: the model shrinks each
+      // picture to ~900 px, where small dense UI text is unreadable, while OCR
+      // read it at full size (it used to be left out whenever vision was on).
+      const userMsg = buildContextPrompt(win.text, label, prev, next, win.ocr) + said
       // up to 3 pictures of the part in time order, so the model sees the sequence
       const images = useImg ? (win.pics?.length ? win.pics : [frame]).map((f) => f.imageData) : undefined
       const schema = STEP_JSON_SCHEMA
@@ -369,7 +376,12 @@ export default function useAnnotator() {
         : callWebLLM(userMsg, prompt, onStatus, { model: ollamaModel, images, schema })
     }
 
-    for (let i = 0; i < windows.length; i++) {
+    // A part whose AI call fails gets a second chance at the end of the run
+    // (after the retries inside the call), instead of silently going missing.
+    const order = windows.map((_, i) => i)
+    const secondTry = new Set()
+    for (let q = 0; q < order.length; q++) {
+      const i = order[q]
       if (shouldCancel()) break // user cancelled — keep what we have so far
       const win = windows[i]
       const label = formatTS(win.a)
@@ -416,7 +428,11 @@ export default function useAnnotator() {
         okCount++
       } catch (e) {
         lastError = e // remember it; surfaced below if nothing succeeds
-        why(label, `model error: ${e?.message}`)
+        if (!secondTry.has(i)) {
+          secondTry.add(i)
+          order.push(i)
+          console.info(`[VideoDoc] part ${label} failed (${e?.message}), will try again at the end`)
+        } else why(label, `model error, twice: ${e?.message}`)
         continue
       }
 
@@ -485,20 +501,25 @@ export default function useAnnotator() {
       // Completeness: codes, numbers, values and said-and-shown field names of
       // this part must reach the step. Missing ones → ONE rewrite that names
       // them; kept only when it covers more and drops no action.
+      // The spoken actions are checked the same way.
       const terms = keyTerms(win.text, win.ocr)
       let miss = missingTerms(step, terms)
-      if (worthRetry(miss)) {
+      let missA = missingActions(step, win.actions)
+      if (worthRetry(miss) || missA.length >= 2) {
         try {
-          const rawC = await runWindow(win, frame, label, prevText, nextText, visionLive && !!frame?.imageData, COVERAGE_ADDENDUM(miss))
+          const rawC = await runWindow(win, frame, label, prevText, nextText, visionLive && !!frame?.imageData, COVERAGE_ADDENDUM(miss, missA))
           const stepC = parseProcedureStep(rawC)
           const gC = !stepC.skip && stepC.steps?.length ? groundStepInEvidence(stepC, win.ocr, win.text) : null
           if (gC && !gC.drop) {
-            const missC = missingTerms(gC.step, terms)
-            if (missC.length < miss.length && (gC.step.steps?.length || 0) >= (step.steps?.length || 0)) { step = gC.step; miss = missC }
+            const missC = missingTerms(gC.step, terms), missAC = missingActions(gC.step, win.actions)
+            if (missC.length + missAC.length < miss.length + missA.length && (gC.step.steps?.length || 0) >= (step.steps?.length || 0)) {
+              step = gC.step; miss = missC; missA = missAC
+            }
           }
         } catch { /* keep the first step */ }
       }
-      if (miss.length) console.info(`[VideoDoc] part ${label} does not mention: ${miss.join(", ")}`)
+      step = { ...step, steps: tidyActions(step.steps, win.ocr) }
+      if (miss.length || missA.length) console.info(`[VideoDoc] part ${label} does not mention: ${[...miss, ...missA.map((a) => `"${a}"`)].join(", ")}`)
 
       // Confidence flag for the reviewer: a step the model first skipped, one
       // written from thin evidence (little speech AND little readable screen
@@ -544,6 +565,7 @@ export default function useAnnotator() {
       throw new Error(`Annotation failed: ${lastError.message}. Check the selected model is installed (Ollama) or try WebLLM.`)
     }
 
+    results.sort((x, y) => x.timestamp - y.timestamp) // a part written on its second try goes back in its place
     const out = mergeDuplicateSteps(results)
     // Expose the LLM-identified app so the UI can show the real product name
     // instead of the OCR regex's broader vendor-level hit in Tools used.
