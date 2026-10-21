@@ -22,9 +22,11 @@ export default function AISettings({ onConfirm, onClose, suggestedSections, tool
   const [title, setTitle] = useState("")
   const [company, setCompany] = useState("")
   const [ollamaVision, setOllamaVision] = useState(false)
-  // Accuracy passes — both default ON. Self-verify fact-checks each step against
+  // Accuracy passes: Consolidate on, Self-verify off by default (see below). Self-verify fact-checks each step against
   // the evidence (~2x slower); Consolidation tidies titles into a coherent SOP.
-  const [selfVerify, setSelfVerify] = useState(true)
+  // Off by default: in two judged runs (21 Oct 2026) it removed correct details
+  // ("SAP Analytics Cloud tab", "Project Builder") and cost 20 to 30 minutes.
+  const [selfVerify, setSelfVerify] = useState(false)
   const [consolidate, setConsolidate] = useState(true)
   // System probe → model recommendation (browser-side; works on any OS/device).
   const [sys, setSys] = useState(null)
@@ -370,7 +372,7 @@ export default function AISettings({ onConfirm, onClose, suggestedSections, tool
             </span>
             <span>
               <span className="block text-sm font-medium text-zinc-200">Self-verify each step</span>
-              <span className="block text-xs text-zinc-500 leading-relaxed">The AI re-checks every step against the screen + transcript and drops anything it can't see. Much fewer made-up steps. ~2× slower.</span>
+              <span className="block text-xs text-zinc-500 leading-relaxed">The AI checks every step a second time against the screen and the speech. It can remove made-up steps, but in our tests it also removed correct details. Takes about a third longer.</span>
             </span>
           </button>
 
@@ -393,7 +395,7 @@ export default function AISettings({ onConfirm, onClose, suggestedSections, tool
             <div className="flex items-start gap-2 text-xs text-zinc-400 bg-zinc-800/60 border border-zinc-700/60 rounded-lg px-3 py-2.5">
               <Gauge className="w-3.5 h-3.5 shrink-0 mt-0.5 text-emerald-400" />
               <span>
-                <span className="text-zinc-200 font-medium">Run time depends on this computer.</span> With a strong graphics card a 10 minute video takes minutes. On a laptop without one, the most accurate model (gemma3 12B) took about 70 minutes for a 10 minute video in our test. The time left is measured live once writing starts, and steps appear as they are written.
+                <span className="text-zinc-200 font-medium">Run time depends on this computer.</span> On a 16 GB laptop without a strong graphics card, the most accurate model (gemma3 12B) took about 1¾ hours for a 10 minute video in our tests (about 2 hours with Self-verify). A smaller model is faster. The time left is measured live once writing starts, and steps appear as they are written.
               </span>
             </div>
           )

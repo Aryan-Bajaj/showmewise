@@ -126,10 +126,10 @@ export const HOWTO = [
   {
     id: "set-accuracy", title: "Step 3f. Accuracy options", img: "set-bottom",
     marks: [
-      { n: 1, x: 42.8, y: 40.2, dir: "right", text: "Self-verify each step: the AI checks every step a second time against the video and removes what it cannot see. Fewer mistakes, but it takes about twice as long." },
+      { n: 1, x: 42.8, y: 40.2, dir: "right", text: "Self-verify each step: off by default. The AI checks every step a second time and removes what it cannot see. In our tests it also removed correct details, and it takes about a third longer." },
       { n: 2, x: 46.1, y: 55.9, dir: "right", text: "Consolidate procedure: a last tidy-up of the step names. Steps that say the same thing are joined." },
     ],
-    body: ["Both are on. Turn Self-verify off if you need the guide faster."],
+    body: ["Consolidate is on, Self-verify is off. Switch Self-verify on only if a guide has steps that never happened in the video."],
   },
   {
     id: "set-generate", title: "Step 3g. Generate Procedure", img: "set-bottom",
@@ -145,7 +145,7 @@ export const HOWTO = [
     ],
     body: [
       "You can already read the first steps while the rest is written.",
-      "How long? A 1 minute video takes a few minutes. A 10 minute video can take an hour or more on a normal laptop.",
+      "How long? A 1 minute video takes a few minutes. With the most accurate model, a 10 minute video took about 1¾ hours on a normal 16 GB laptop in our tests. A smaller model is faster.",
     ],
   },
   {
@@ -263,7 +263,7 @@ export const HOWTO = [
     body: [
       "\"This file could not be read as a video\": the file is not a video, or it is broken. Choose an MP4, MOV or WEBM screen recording.",
       "\"Not detected\" next to Ollama: see Step 3d.",
-      "It is very slow: pick a smaller model, turn Self-verify off, close other programs and plug in the laptop. Cut a long video into shorter parts.",
+      "It is very slow: pick a smaller model, keep Self-verify off, close other programs and plug in the laptop. Cut a long video into shorter parts.",
       "The computer went to sleep, or the tab was closed: the work stops. Start again with New video.",
       "A step is wrong or missing: change it with Edit. Next time, try a bigger model or Accurate speech.",
       "The video is too big: the website takes up to the size shown on the upload page. Cut the video into parts.",

@@ -144,12 +144,15 @@ export function sanitizeDocs(docs, participants = []) {
 // repeat into the FIRST step that used that title, combining their unique actions
 // and keeping the first screenshot. Safe + deterministic.
 function foldDuplicateTitles(docs) {
+  // Only the part right before is merged into: folding a part from 09:21 into
+  // one at 02:42 (same title) put closing steps before the settlement in a
+  // real run. The guide must keep the order of the video.
   const out = []
-  const firstIdx = new Map() // normalised title -> index in `out`
   for (const d of docs || []) {
     const b = normTitle(d?.step?.title)
-    if (b && firstIdx.has(b) && d.step) {
-      const target = out[firstIdx.get(b)]
+    const prev = out[out.length - 1]
+    if (b && d.step && normTitle(prev?.step?.title) === b) {
+      const target = prev
       if (target?.step) {
         const seen = new Set((target.step.steps || []).map((s) => s.toLowerCase().trim()))
         for (const s of d.step.steps || []) {
@@ -163,7 +166,6 @@ function foldDuplicateTitles(docs) {
         continue
       }
     }
-    if (b) firstIdx.set(b, out.length)
     out.push(d)
   }
   return out
@@ -204,6 +206,6 @@ export async function consolidateProcedure(docs, aiMode, model, onStatus, should
     }
   } catch { /* keep original titles on any failure */ }
 
-  // 2) Fold any steps that now collide on title (anywhere, not just adjacent).
+  // 2) Fold neighbouring steps that now share a title (never across the video).
   return foldDuplicateTitles(docs)
 }
