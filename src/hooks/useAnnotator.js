@@ -8,7 +8,7 @@ import {
 } from "../lib/skillPrompt"
 import { callOllama, callWebLLM, callLocalEngine, WEBLLM_NO_VISION } from "../lib/llm"
 import { smartCrop } from "../lib/smartCrop"
-import { ocrNear } from "./useOCR"
+import { ocrNear, screenChanges } from "./useOCR"
 import { keyTerms, missingTerms, worthRetry, COVERAGE_ADDENDUM, spokenActions, missingActions, tidyActions, tidyNote, screenNames, screenCounts, screenSpelling } from "../lib/coverage"
 
 // ── Screen-share start detection ──
@@ -290,7 +290,11 @@ export default function useAnnotator() {
       // drop a window on its own — with vision the model still SEES the screen,
       // and the share gate above already removed the webcam-only intro.
       if (!text && !ocr && !useVision) continue
-      windows.push({ a, b, center, text, ocr, actions: spokenActions(text) })
+      // what opened or appeared later in the part (silent clicks), and all the
+      // screen text of the part for the checks below
+      const changes = screenChanges(ocrFrameTexts, a, b)
+      const seen = [ocr, ...changes.lines].filter(Boolean).join("\n")
+      windows.push({ a, b, center, text, ocr, seen, changes: changes.log, actions: spokenActions(text) })
     }
 
     // Every part that is dropped says why, in the browser console: missing
@@ -366,7 +370,10 @@ export default function useAnnotator() {
       // The screen text goes in with the pictures too: the model shrinks each
       // picture to ~900 px, where small dense UI text is unreadable, while OCR
       // read it at full size (it used to be left out whenever vision was on).
-      const userMsg = buildContextPrompt(win.text, label, prev, next, win.ocr) + said
+      const changed = win.changes
+        ? `\n[What newly appeared on the screen in this part, in time order. A window, menu, tab, field or button that appears is usually the result of a click just before it, also when nobody says it: write that click as an action, with the exact name shown. Ignore data values]:\n${win.changes}`
+        : ""
+      const userMsg = buildContextPrompt(win.text, label, prev, next, win.ocr) + said + changed
       // up to 3 pictures of the part in time order, so the model sees the sequence
       const images = useImg ? (win.pics?.length ? win.pics : [frame]).map((f) => f.imageData) : undefined
       const schema = STEP_JSON_SCHEMA
@@ -494,7 +501,7 @@ export default function useAnnotator() {
       // Builder", "Revenue Warehouse") — anything asserted that appears in
       // NEITHER the OCR nor the speech. Drops the step when its whole identity was
       // the fabrication; otherwise keeps the true remainder.
-      const grounded = groundStepInEvidence(step, win.ocr, win.text)
+      const grounded = groundStepInEvidence(step, win.seen, win.text)
       if (grounded.drop) { why(label, `not backed by the screen or the speech: "${step.title}"`); continue }
       const groundingEdited = grounded.changed
       step = grounded.step
@@ -503,14 +510,14 @@ export default function useAnnotator() {
       // this part must reach the step. Missing ones → ONE rewrite that names
       // them; kept only when it covers more and drops no action.
       // The spoken actions are checked the same way.
-      const terms = keyTerms(win.text, win.ocr)
+      const terms = keyTerms(win.text, win.seen)
       let miss = missingTerms(step, terms)
       let missA = missingActions(step, win.actions)
       if (worthRetry(miss) || missA.length >= 2) {
         try {
           const rawC = await runWindow(win, frame, label, prevText, nextText, visionLive && !!frame?.imageData, COVERAGE_ADDENDUM(miss, missA))
           const stepC = parseProcedureStep(rawC)
-          const gC = !stepC.skip && stepC.steps?.length ? groundStepInEvidence(stepC, win.ocr, win.text) : null
+          const gC = !stepC.skip && stepC.steps?.length ? groundStepInEvidence(stepC, win.seen, win.text) : null
           if (gC && !gC.drop) {
             const missC = missingTerms(gC.step, terms), missAC = missingActions(gC.step, win.actions)
             if (missC.length + missAC.length < miss.length + missA.length && (gC.step.steps?.length || 0) >= (step.steps?.length || 0)) {
@@ -519,7 +526,7 @@ export default function useAnnotator() {
           }
         } catch { /* keep the first step */ }
       }
-      step = { ...step, steps: screenNames(screenSpelling(tidyActions(step.steps, win.ocr, win.text), numberVotes), win.ocr), note: tidyNote(step.note) }
+      step = { ...step, steps: screenNames(screenSpelling(tidyActions(step.steps, win.seen, win.text), numberVotes), win.seen), note: tidyNote(step.note) }
       if (miss.length || missA.length) console.info(`[VideoDoc] part ${label} does not mention: ${[...miss, ...missA.map((a) => `"${a}"`)].join(", ")}`)
 
       // Confidence flag for the reviewer: a step the model first skipped, one
@@ -553,7 +560,7 @@ export default function useAnnotator() {
         // The moment the evidence screenshot was taken — step clips/GIFs center
         // HERE (where the action is visible), not on the window's start edge.
         frameTimestamp: frame?.timestamp ?? win.center,
-        ocrText: win.ocr || null,
+        ocrText: win.seen || null,
         lowConfidence,
       })
       // Live draft: let the UI render steps as they are written.

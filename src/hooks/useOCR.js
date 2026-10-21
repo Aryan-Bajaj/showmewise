@@ -464,6 +464,42 @@ export default function useOCR() {
 // Find the OCR text captured nearest a given timestamp (for annotation context).
 // Each distinct line once: several frames of the same screen would otherwise
 // fill the budget with repeats.
+// What newly appears on the screen during a part, in time order: short labels
+// (window titles, tabs, buttons, fields) that were not on any earlier frame of
+// the part and are still there on the next frame (so an OCR misread does not
+// count). ocrNear() keeps only the first ~1500 characters, so in a long part a
+// window that opens late (a silent click) never reached the AI before.
+// Returns { log: "01:52 new on screen: ...", lines: [labels] }.
+const LABEL_KEY = (l) => l.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim()
+const isLabel = (l, k) => k.length >= 3 && k.length <= 40 && k.split(" ").length <= 6
+  && (k.match(/[a-z]/g) || []).length >= 3 && (l.match(/[A-Za-z ]/g) || []).length / l.length >= 0.7
+export function screenChanges(frameTexts, a, b, maxChars = 700) {
+  const frames = (frameTexts || []).filter((f) => f.timestamp >= a - 2 && f.timestamp <= b + 2).sort((x, y) => x.timestamp - y.timestamp)
+  if (frames.length < 2) return { log: "", lines: [] }
+  const labels = frames.map((f) => {
+    const m = new Map()
+    for (const raw of (f.text || "").split("\n")) { const l = raw.trim(), k = LABEL_KEY(l); if (isLabel(l, k) && !m.has(k)) m.set(k, l) }
+    return m
+  })
+  const seen = new Set(labels[0].keys())
+  const events = [], lines = []
+  for (let i = 1; i < frames.length; i++) {
+    const next = labels[i + 1]
+    const fresh = [...labels[i]].filter(([k]) => !seen.has(k) && (!next || next.has(k)))
+    labels[i].forEach((_, k) => seen.add(k))
+    if (!fresh.length) continue
+    const t = Math.round(frames[i].timestamp), at = `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`
+    const names = fresh.map(([, l]) => l)
+    lines.push(...names)
+    events.push(names.length > 10
+      ? `${at} the screen changed (a new page or window), showing: ${names.slice(0, 5).map((n) => `"${n}"`).join(", ")}`
+      : `${at} new on screen: ${names.slice(0, 8).map((n) => `"${n}"`).join(", ")}`)
+  }
+  let log = ""
+  for (const e of events) { if ((log + e).length > maxChars) break; log += (log ? "\n" : "") + e }
+  return { log, lines }
+}
+
 export function ocrNear(frameTexts, ts, windowSecs = 8, maxChars = 400) {
   if (!frameTexts?.length) return ""
   const seen = new Set(), lines = []
