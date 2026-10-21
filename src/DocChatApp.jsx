@@ -12,8 +12,9 @@ export default function DocChatApp() {
   const [chunking, setChunking] = useState(false)
   const [error, setError] = useState(null)
 
-  // Model choice — the user picks, we never auto-switch.
+  // Ollama found → it is chosen once, with a quick model for chatting; the user can still switch.
   const [aiMode, setAiMode] = useState("webllm")
+  const autoPicked = useRef(false)
   const [webModel, setWebModel] = useState(DEFAULT_WEBLLM_MODEL)
   const [ollamaStatus, setOllamaStatus] = useState("checking")
   const [ollamaModels, setOllamaModels] = useState([])
@@ -24,10 +25,16 @@ export default function DocChatApp() {
     fetch("http://localhost:11434/api/tags", { signal: AbortSignal.timeout(3000) })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
-        if (data?.models?.length) {
-          const names = data.models.map((m) => m.name)
+        // ":cloud" models would send the document to another server: never offered
+        const local = (data?.models || []).filter((m) => !/cloud/.test(m.name))
+        if (local.length) {
+          const names = local.map((m) => m.name)
           setOllamaModels(names)
-          setOllamaModel((cur) => cur || names[0])
+          // chat wants quick answers: gemma3 4B first, else the smallest model
+          const size = (m) => parseFloat(m.details?.parameter_size) || 99
+          const quick = local.find((m) => /^gemma3:4b/.test(m.name)) || [...local].sort((a, b) => size(a) - size(b))[0]
+          setOllamaModel((cur) => names.includes(cur) ? cur : quick.name)
+          if (!autoPicked.current) { autoPicked.current = true; setAiMode("ollama") }
           setOllamaStatus("ok")
         } else setOllamaStatus("down")
       })
@@ -98,7 +105,7 @@ export default function DocChatApp() {
                 <span className="text-sm text-zinc-300">Upload a document</span>
                 <span className="text-xs text-zinc-600">.txt · .md · .html · .docx</span>
               </button>
-              {error && <p className="text-sm text-red-400 max-w-md text-center">{error}</p>}
+              {error && <p role="alert" className="text-sm text-red-400 max-w-md text-center">{error}</p>}
               <p className="text-xs text-zinc-600 max-w-md text-center">Everything runs in your browser. Nothing is uploaded. Big docs are chunked automatically.</p>
             </div>
           ) : (
@@ -188,7 +195,7 @@ export default function DocChatApp() {
               ) : (
                 <div className="border border-zinc-800 rounded-xl px-4 py-6 bg-zinc-900 text-sm text-zinc-400 flex items-center gap-3">
                   <span className="w-3.5 h-3.5 rounded-full border-2 border-emerald-400 border-t-transparent animate-spin" />
-                  {error ? <span className="text-red-400">{error}</span> : "Preparing the document… you can pick your model while this finishes."}
+                  {error ? <span role="alert" className="text-red-400">{error}</span> : "Preparing the document… you can pick your model while this finishes."}
                 </div>
               )}
             </>

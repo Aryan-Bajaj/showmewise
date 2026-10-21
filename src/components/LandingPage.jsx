@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import VideoDocLogo from './VideoDocLogo'
 import { MAX_VIDEO_MB, MAX_VIDEO_MIN } from '../lib/limits'
 import ProductDemo from './ProductDemo'
+import LimitBanner from './LimitBanner'
 import BeforeAfter from './BeforeAfter'
 import DocChatDemo from './DocChatDemo'
 
@@ -305,7 +306,8 @@ export default function LandingPage() {
             }}>VideoDoc</span>
           </div>
 
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <a href="/#/howto" style={{ color: 'rgba(236,233,255,0.75)', fontSize: 13, textDecoration: 'none', padding: '9px 8px' }}>How to use</a>
             <button onClick={handleDocChat} className="lp-nav-btn" style={{
               padding: '9px 18px', borderRadius: 100,
               background: 'transparent', border: '1px solid rgba(52,211,153,0.4)',
@@ -440,6 +442,8 @@ export default function LandingPage() {
               See how it works ↓
             </button>
           </div>
+
+          <LimitBanner style={{ marginTop: 26, maxWidth: 640 }} />
 
           {/* Stats row */}
           <div style={{

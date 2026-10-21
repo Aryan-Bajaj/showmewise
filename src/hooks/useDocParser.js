@@ -44,7 +44,7 @@ export async function extractText(file) {
     const { value } = await mammoth.default.extractRawText({ arrayBuffer: await file.arrayBuffer() })
     return value || ''
   }
-  throw new Error('Unsupported file. Use .txt, .md, .html or .docx (PDF support coming soon).')
+  throw new Error('This file type does not work here. Use a .txt, .md, .csv, .json, .html or .docx file. PDF files do not work.')
 }
 
 // Chunk long documents into overlapping passages so big docs index cleanly for RAG.

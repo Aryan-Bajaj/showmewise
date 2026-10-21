@@ -513,7 +513,7 @@ video-docs/
 | **Vanta.js** | Animated landing page background (NET) |
 | **jsPDF** | Client-side PDF generation |
 | **docx** | Client-side DOCX generation |
-| **mammoth** | .docx to HTML parser (reference docs) |
+| **mammoth** | .docx to HTML parser (Doc Chat) |
 | **lucide-react** | Icon library |
 | **react-router-dom v7** | HashRouter for SPA routing |
 | **Netlify** | Hosting (drag dist/ to deploy) |

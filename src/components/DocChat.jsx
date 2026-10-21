@@ -232,7 +232,7 @@ export default function DocChat({ docs, aiMode, ollamaModel, onSeek, autoStart =
                 </div>
               ) : m.notFound ? (
                 <div className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-3 space-y-2.5">
-                  <p className="text-sm text-zinc-200">I couldn't find this in your document.</p>
+                  <p className="text-sm text-zinc-200">I couldn't find this in it.</p>
                   <p className="text-xs text-zinc-500">Want an answer anyway?</p>
                   <div className="flex flex-wrap gap-2">
                     <button onClick={() => answerFromAI(i, m.query)} disabled={busy}

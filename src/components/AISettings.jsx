@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { X, Globe, Cpu, Plus, FileText, ChevronDown, Eye, Gauge, AlertTriangle } from "lucide-react"
 import { DEFAULT_SECTIONS } from "../hooks/useDocParser"
 import { WEBLLM_MODELS, DEFAULT_WEBLLM_MODEL, isWebLLMVision, ollamaModelHasVision, recommendModel, modelGB, localEngineStatus } from "../lib/llm"
@@ -12,6 +12,7 @@ const DESKTOP = import.meta.env.VITE_BUILD_TARGET === "desktop"
 export default function AISettings({ onConfirm, onClose, suggestedSections, toolsUsed = [], videoDuration = 0 }) {
   const [mode, setMode] = useState(DESKTOP ? "local" : "webllm") // browser-first on web: works for everyone, no install
   const [ollamaStatus, setOllamaStatus] = useState("checking")
+  const autoPicked = useRef(false) // switch to Ollama once; a later choice by the user stays
   const [ollamaModels, setOllamaModels] = useState([])
   const [selectedModel, setSelectedModel] = useState("")
   const [webModel, setWebModel] = useState(DEFAULT_WEBLLM_MODEL)
@@ -78,10 +79,17 @@ export default function AISettings({ onConfirm, onClose, suggestedSections, tool
     fetch("http://localhost:11434/api/tags", { signal: AbortSignal.timeout(3000) })
       .then(r => r.ok ? r.json() : null)
       .then(data => {
-        if (data?.models?.length) {
-          const names = data.models.map(m => m.name)
+        // ":cloud" models run on someone else's server: never offered, the video stays here
+        const local = (data?.models || []).filter(m => !/:cloud$|-cloud$/.test(m.name))
+        if (local.length) {
+          const names = local.map(m => m.name)
           setOllamaModels(names)
-          setSelectedModel(names[0])
+          // Ollama found: use it with its best model, the user changes nothing.
+          // gemma3 first (it reads screens without inventing), then the biggest.
+          const size = (m) => parseFloat(m.details?.parameter_size) || 0
+          const best = [...local].sort((a, b) => (/gemma3/.test(b.name) - /gemma3/.test(a.name)) || size(b) - size(a))[0]
+          if (!autoPicked.current) { autoPicked.current = true; setSelectedModel(best.name); if (!DESKTOP) setMode("ollama") }
+          else setSelectedModel((cur) => names.includes(cur) ? cur : best.name)
           setOllamaStatus("ok")
         } else {
           setOllamaStatus("down")

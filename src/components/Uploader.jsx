@@ -1,11 +1,10 @@
 import { useRef, useState } from "react"
-import { Video, FileCode, FileText, ShieldCheck, Sparkles, CloudUpload } from "lucide-react"
+import { Video, ShieldCheck, Sparkles, CloudUpload } from "lucide-react"
+import LimitBanner from "./LimitBanner"
 import { checkVideoSize, checkVideoDuration, MAX_VIDEO_MB, MAX_VIDEO_MIN } from "../lib/limits"
 
-export default function Uploader({ onVideoSelect, onCodeSelect, onDocSelect, docParsing, docSections }) {
+export default function Uploader({ onVideoSelect }) {
   const videoRef = useRef()
-  const codeRef = useRef()
-  const docRef = useRef()
   const [limitError, setLimitError] = useState("")
   const [dragging, setDragging] = useState(false)
   const [language, setLanguage] = useState("en")
@@ -54,6 +53,8 @@ export default function Uploader({ onVideoSelect, onCodeSelect, onDocSelect, doc
           VideoDoc listens, reads and looks at every step, then writes a guide with the clicks marked on the screen.
         </p>
       </div>
+
+      <LimitBanner style={{ maxWidth: 672, width: '100%' }} />
 
       {/* Main drop zone */}
       <button
@@ -115,59 +116,13 @@ export default function Uploader({ onVideoSelect, onCodeSelect, onDocSelect, doc
       </div>
 
       {limitError && (
-        <div className="max-w-2xl text-sm text-amber-200 bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3 text-center">
+        <div role="alert" className="max-w-2xl text-sm text-amber-200 bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3 text-center">
           {limitError}
-        </div>
-      )}
-
-      {/* Optional extras */}
-      <div className="w-full max-w-2xl">
-        <p className="text-[11px] uppercase tracking-[0.14em] text-zinc-500 text-center mb-3">Optional extras</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <button
-            onClick={() => codeRef.current.click()}
-            className="border border-white/10 hover:border-blue-400/60 rounded-xl px-4 py-3.5 flex items-center gap-3 transition-all group cursor-pointer bg-white/[0.03] text-left"
-          >
-            <FileCode className="w-5 h-5 text-zinc-400 group-hover:text-blue-300 transition-colors shrink-0" />
-            <span>
-              <span className="block text-sm text-zinc-200">Code Files</span>
-              <span className="block text-xs text-zinc-500">Extra context for coding walkthroughs</span>
-            </span>
-          </button>
-          <button
-            onClick={() => docRef.current.click()}
-            className={`border rounded-xl px-4 py-3.5 flex items-center gap-3 transition-all group cursor-pointer text-left
-              ${docSections?.length > 0 ? "border-amber-400/60 bg-amber-500/5" : "border-white/10 hover:border-amber-400/60 bg-white/[0.03]"}`}
-          >
-            <FileText className={`w-5 h-5 shrink-0 transition-colors ${docSections?.length > 0 ? "text-amber-300" : "text-zinc-400 group-hover:text-amber-300"}`} />
-            <span>
-              <span className="block text-sm text-zinc-200">
-                {docParsing ? "Reading the document..." : docSections?.length > 0 ? "Reference doc loaded ✓" : "Reference Doc"}
-              </span>
-              <span className="block text-xs text-zinc-500">
-                {docSections?.length > 0 ? `${docSections.length} sections found` : "Reuse the sections of an HTML or Word doc"}
-              </span>
-            </span>
-          </button>
-        </div>
-      </div>
-
-      {docSections?.length > 0 && (
-        <div className="flex flex-wrap gap-2 max-w-2xl justify-center">
-          {docSections.map(s => (
-            <span key={s} className="text-xs bg-amber-500/15 text-amber-300 border border-amber-500/30 px-2.5 py-1 rounded-full">
-              {s}
-            </span>
-          ))}
         </div>
       )}
 
       <input ref={videoRef} type="file" accept="video/*" className="hidden"
         onChange={e => e.target.files[0] && handleVideo(e.target.files[0])} />
-      <input ref={codeRef} type="file" multiple className="hidden"
-        onChange={e => onCodeSelect(Array.from(e.target.files))} />
-      <input ref={docRef} type="file" accept=".html,.htm,.docx" className="hidden"
-        onChange={e => e.target.files[0] && onDocSelect(e.target.files[0])} />
     </div>
   )
 }

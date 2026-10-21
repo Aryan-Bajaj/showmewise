@@ -86,7 +86,7 @@ function StepEditor({ step, onSave, onCancel }) {
           {lines.map((l, i) => (
             <div key={i} className="flex items-start gap-2">
               <span className="min-w-[30px] h-[30px] rounded-lg bg-violet-600 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-1.5">{i + 1}</span>
-              <textarea className={field + " resize-y min-h-[46px]"} rows={1} value={l} onChange={e => setLine(i, e.target.value)} placeholder="For example: Click the Share button" />
+              <textarea className={field + " resize-y min-h-[46px]"} style={{ fieldSizing: "content" }} rows={1} value={l} onChange={e => setLine(i, e.target.value)} placeholder="For example: Click the Share button" />
               <button onClick={() => delLine(i)} title="Remove this action"
                 className="shrink-0 mt-1 h-[38px] px-3 rounded-lg text-sm text-zinc-300 border border-white/10 hover:border-red-400/60 hover:text-red-300 hover:bg-red-500/10 transition">Remove</button>
             </div>
@@ -97,11 +97,11 @@ function StepEditor({ step, onSave, onCancel }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className={label}>What you get <span className={hint}>optional</span></label>
-          <textarea rows={2} className={field + " resize-y"} value={result} onChange={e => setResult(e.target.value)} placeholder="For example: The link is copied" />
+          <textarea rows={2} className={field + " resize-y"} style={{ fieldSizing: "content" }} value={result} onChange={e => setResult(e.target.value)} placeholder="For example: The link is copied" />
         </div>
         <div>
           <label className={label}>Tip <span className={hint}>optional</span></label>
-          <textarea rows={2} className={field + " resize-y"} value={note} onChange={e => setNote(e.target.value)} placeholder="Anything the reader should know" />
+          <textarea rows={2} className={field + " resize-y"} style={{ fieldSizing: "content" }} value={note} onChange={e => setNote(e.target.value)} placeholder="Anything the reader should know" />
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-2 pt-1">

@@ -7,9 +7,13 @@ import { callOllama, callWebLLM } from "../lib/llm"
 
 const EMBED_MODEL = "Xenova/all-MiniLM-L6-v2"
 
+// The written step comes first: it is what people ask about. (It used to be
+// left out, so "Which button do I click first?" found nothing on a finished guide.)
 function docText(doc) {
   const a = typeof doc.annotation === "string" ? doc.annotation : ""
-  return [`[${doc.label}]`, doc.text || "", a, doc.ocrText || ""].filter(Boolean).join("\n").slice(0, 1200)
+  const s = doc.step
+  const step = s ? [s.title, ...(s.steps || []), s.result, s.note].filter(Boolean).join("\n") : ""
+  return [`[${doc.label}]`, step, doc.text || "", a, doc.ocrText || ""].filter(Boolean).join("\n").slice(0, 1500)
 }
 
 function cosine(a, b) {
@@ -38,7 +42,7 @@ export default function useRAG() {
 
   // Build the vector index from documentation segments.
   const buildIndex = useCallback(async (docs, onStatus) => {
-    const items = (docs || []).filter((d) => (d.text || d.annotation))
+    const items = (docs || []).filter((d) => (d.text || d.annotation || d.step?.steps?.length))
     const index = []
     for (let i = 0; i < items.length; i++) {
       const pct = Math.round(((i + 1) / items.length) * 100)
@@ -67,6 +71,15 @@ export default function useRAG() {
       .sort((a, b) => b.score - a.score)
 
     const overview = isOverviewQuestion(question)
+    // "what do I do first / last": the answer is a position in the guide, which
+    // word meaning alone does not find
+    const order = /\b(first|start|begin|beginning)\b/i.test(question) ? 0 : /\b(last|final|end|finish)\b/i.test(question) ? -1 : null
+    if (order !== null) {
+      const at = indexRef.current.at(order)
+      const i = scored.findIndex((r) => r === at || r.doc === at?.doc)
+      if (i > 0) scored.unshift(...scored.splice(i, 1))
+      if (scored[0]) scored[0] = { ...scored[0], score: Math.max(scored[0].score, 1) }
+    }
 
     // If even the best match is weak, the document almost certainly doesn't
     // cover this. Don't force a useless "not covered" generation — tell the UI
@@ -119,7 +132,8 @@ ${context}`
       : `You answer questions about a software process, using ONLY the documentation excerpts below (extracted from a screen recording).
 - Be specific and reference the step time (e.g. "at ${picked[0]?.label}").
 - If the answer is not in the excerpts, say "That isn't covered in this documentation."
-- Keep it concise and practical.
+- For a "how do I" question, explain it as numbered steps (1, 2, 3), one action per step, with the exact button and field names.
+- Use simple, plain English. Keep it practical; no long introduction.
 
 DOCUMENTATION EXCERPTS:
 ${context}`

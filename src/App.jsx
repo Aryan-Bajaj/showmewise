@@ -14,7 +14,6 @@ import useFrameExtractor from "./hooks/useFrameExtractor"
 import useAudioExtractor from "./hooks/useAudioExtractor"
 import useTranscriber from "./hooks/useTranscriber"
 import useAnnotator from "./hooks/useAnnotator"
-import useDocParser from "./hooks/useDocParser"
 import useOCR from "./hooks/useOCR"
 import { webLLMLabel, isWebLLMVision, ollamaModelHasVision } from "./lib/llm"
 import { generateInsights } from "./lib/insights"
@@ -90,7 +89,6 @@ export default function App() {
   const { transcribe, cancelTranscribe, transcribeProgress } = useTranscriber()
   const { annotate } = useAnnotator()
   const { runOCR } = useOCR()
-  const { parseDoc, sections: docSections, parsing: docParsing } = useDocParser()
 
   const updateStep = useCallback((id, updates) => {
     setPipelineSteps(prev =>
@@ -127,6 +125,29 @@ export default function App() {
     document.addEventListener('visibilitychange', grab) // the lock drops when the tab is hidden; take it back
     return () => { live = false; document.removeEventListener('visibilitychange', grab); lock?.release().catch(() => {}) }
   }, [busy])
+
+  // Closing or reloading the tab mid-run throws away up to an hour of work
+  // without a word; the browser's own "Leave site?" question stops that.
+  useEffect(() => {
+    if (!busy) return
+    const stay = (e) => { e.preventDefault(); e.returnValue = '' }
+    window.addEventListener('beforeunload', stay)
+    return () => window.removeEventListener('beforeunload', stay)
+  }, [busy])
+
+  const handleNewVideo = () => {
+    if (annotatedDocs.length > 0 && !window.confirm('Start a new video? This guide is cleared, so export it first if you want to keep it.')) return
+    setVideoFile(null)
+    setPipelineSteps(null)
+    setError(null)
+    setAnnotatedDocs([])
+    setTranscriptChunks([])
+    setFrames([])
+    setOcrFrameTexts([])
+    setToolsUsed([])
+    setInsights(null)
+    setDocTitle("")
+  }
 
   useEffect(() => {
     if (!transcribeProgress) return
@@ -181,15 +202,19 @@ export default function App() {
       const extracted = await extractFrames(file, 5, (i, total) =>
         updateStep('frames', { detail: `${i}/${total} frames`, pct: total ? Math.round((i / total) * 100) : null })
       )
+      // a renamed text file or a broken download gives no pictures at all
+      if (!extracted.length) throw new Error("This file could not be read as a video. Choose a screen recording in MP4, MOV or WEBM.")
       setFrames(extracted)
       updateStep('frames', { status: 'done', detail: `${extracted.length} frames`, pct: 100, endedAt: Date.now() })
 
       updateStep('audio', { status: 'active', detail: 'Reading audio track...', startedAt: Date.now() })
-      const { audio, sampleRate } = await extractAudio(file)
-      updateStep('audio', { status: 'done', detail: `${sampleRate / 1000}kHz mono`, endedAt: Date.now() })
+      // Many screen recorders save no sound at all. The pictures are fine, so
+      // the guide is then written from the screen alone instead of stopping.
+      const sound = await extractAudio(file).catch(() => null)
+      updateStep('audio', { status: 'done', detail: sound ? `${sound.sampleRate / 1000}kHz mono` : 'No sound in this video (or it could not be read)', endedAt: Date.now() })
 
-      updateStep('transcribe', { status: 'active', detail: 'Loading model...', startedAt: Date.now() })
-      const result = await transcribe(audio, sampleRate, opts.language || 'en', !!opts.accurate)
+      updateStep('transcribe', { status: 'active', detail: sound ? 'Loading model...' : 'Skipped', startedAt: Date.now() })
+      const result = sound ? await transcribe(sound.audio, sound.sampleRate, opts.language || 'en', !!opts.accurate) : { chunks: [] }
       const chunks = fixTranscriptChunks(result?.chunks ?? [])           // correct known domain mis-hearings
         .map(c => ({ ...c, text: scrubSensitive(c.text) }))               // scrub ASR mis-hears like "Hitler" before anything sees them
       setTranscriptChunks(chunks)
@@ -197,7 +222,7 @@ export default function App() {
         updateStep('transcribe', { status: 'error', detail: `Cancelled · ${chunks.length} segments kept`, endedAt: Date.now() })
         return
       }
-      updateStep('transcribe', { status: 'done', detail: `${chunks.length} segments found`, endedAt: Date.now() })
+      updateStep('transcribe', { status: 'done', detail: chunks.length ? `${chunks.length} segments found` : 'No speech: the guide is written from the screen only', endedAt: Date.now() })
 
       // OCR: read on-screen text from frames → captures exact UI labels + detects tools used
       updateStep('ocr', { status: 'active', detail: 'Reading on-screen text...', startedAt: Date.now() })
@@ -213,7 +238,7 @@ export default function App() {
       setToolsUsed(tools)
       updateStep('ocr', { status: 'done', detail: tools.length ? `Tools: ${tools.join(', ')}` : `${frameTexts.length} frames read`, endedAt: Date.now() })
 
-      if (chunks.length > 0) setShowAISettings(true)
+      setShowAISettings(true)
     } catch (e) {
       setPipelineSteps(prev =>
         prev?.map(s =>
@@ -489,7 +514,6 @@ export default function App() {
         <AISettings
           onConfirm={handleStartAnnotation}
           onClose={() => setShowAISettings(false)}
-          suggestedSections={docSections}
           toolsUsed={toolsUsed}
           videoDuration={videoDuration}
         />
@@ -508,14 +532,24 @@ export default function App() {
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> Runs on your computer
         </span>
         <a href="/#/docchat" className="text-xs text-zinc-400 hover:text-violet-300 transition-colors">Doc Chat</a>
+        <a href="/#/howto" className="text-xs text-zinc-400 hover:text-violet-300 transition-colors">How to use</a>
         <a href="/#/policy" className="text-xs text-zinc-400 hover:text-violet-300 transition-colors">Privacy</a>
 
-        {videoFile && !showAISettings && !isAnnotating && transcriptChunks.length > 0 && (
+        {videoFile && !showAISettings && !isAnnotating && frames.length > 0 && !busy && (
           <button
             onClick={() => setShowAISettings(true)}
             className="ml-auto text-xs border border-zinc-700 hover:border-emerald-500 hover:text-emerald-400 text-zinc-400 rounded-lg px-3 py-1.5 transition-all"
           >
             {annotatedDocs.length > 0 ? "Re-annotate" : "Annotate"}
+          </button>
+        )}
+        {/* without this, a failed or finished video could only be replaced by reloading the page */}
+        {videoFile && !busy && !showAISettings && (
+          <button
+            onClick={handleNewVideo}
+            className={`${frames.length > 0 ? '' : 'ml-auto '}text-xs border border-violet-500/50 hover:border-violet-300 hover:text-violet-200 text-violet-300 rounded-lg px-3 py-1.5 transition-all`}
+          >
+            New video
           </button>
         )}
 
@@ -531,13 +565,7 @@ export default function App() {
 
       <main className="max-w-7xl mx-auto px-6 py-8 space-y-6">
         {!videoFile ? (
-          <Uploader
-            onVideoSelect={handleVideoSelect}
-            onCodeSelect={() => {}}
-            onDocSelect={parseDoc}
-            docParsing={docParsing}
-            docSections={docSections}
-          />
+          <Uploader onVideoSelect={handleVideoSelect} />
         ) : (
           <>
             {pipelineSteps && (
@@ -555,7 +583,7 @@ export default function App() {
             )}
 
             {error && (
-              <div className="bg-red-950/40 border border-red-800 rounded-xl px-4 py-3 text-sm text-red-300">
+              <div role="alert" className="bg-red-950/40 border border-red-800 rounded-xl px-4 py-3 text-sm text-red-300">
                 {error}
               </div>
             )}

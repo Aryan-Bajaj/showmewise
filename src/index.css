@@ -39,3 +39,16 @@ html, body { overflow-x: hidden; max-width: 100%; }
   -webkit-mask-image: radial-gradient(ellipse 85% 75% at 50% 40%, #000 30%, transparent 100%);
   mask-image: radial-gradient(ellipse 85% 75% at 50% 40%, #000 30%, transparent 100%);
 }
+
+/* Vidi's chat area: a film strip down both edges (it watches videos) over the
+   same faint frame-to-page pattern, kept dark so the bubbles read clearly. */
+.vidi-bg {
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 10px, rgba(167, 139, 250, 0.16) 10px 18px) left 4px top 0 / 6px 100% no-repeat,
+    repeating-linear-gradient(to bottom, transparent 0 10px, rgba(167, 139, 250, 0.16) 10px 18px) right 4px top 0 / 6px 100% no-repeat,
+    radial-gradient(120% 60% at 50% 0%, rgba(109, 74, 255, 0.18), transparent 70%),
+    #120c2b;
+  background-attachment: local, local, scroll, scroll;
+  padding-left: 18px !important;
+  padding-right: 18px !important;
+}
