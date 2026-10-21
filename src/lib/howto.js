@@ -6,7 +6,7 @@
 import { MAX_VIDEO_MB, MAX_VIDEO_MIN } from "./limits"
 
 const LIMIT = MAX_VIDEO_MB || MAX_VIDEO_MIN
-  ? `On this website, one video can be up to ${[MAX_VIDEO_MB && `${MAX_VIDEO_MB} MB`, MAX_VIDEO_MIN && `${MAX_VIDEO_MIN} minutes`].filter(Boolean).join(" and ")}. Is your recording longer? Cut it into shorter parts first, or use the desktop app, which has no limit.`
+  ? `Size limit: on this website, one video can be up to ${[MAX_VIDEO_MB && `${MAX_VIDEO_MB} MB`, MAX_VIDEO_MIN && `${MAX_VIDEO_MIN} minutes`].filter(Boolean).join(" and ")}. Is your recording longer? Cut it into shorter parts first, or use the desktop app, which has no limit.`
   : "There is no size limit in this version, but very long videos need a lot of memory."
 
 export const LIMIT_TEXT = LIMIT
@@ -22,7 +22,7 @@ export const HOWTO = [
     ],
   },
   {
-    id: "before", title: "Before you start",
+    id: "before", title: "Before you start", rank: 0.8,
     body: [
       "Use a laptop or a desktop computer with Chrome or Edge. Phones and tablets do not work.",
       "Your computer needs at least 8 GB of memory (RAM). 16 GB is better.",
@@ -45,12 +45,12 @@ export const HOWTO = [
     ],
   },
   {
-    id: "upload", title: "Step 1. Choose your video", img: "upload",
+    id: "upload", title: "Step 1. Start: choose your video", img: "upload",
     marks: [
-      { n: 1, x: 50, y: 40, text: "The size limit of the website. Check it before you choose a long recording." },
-      { n: 2, x: 50, y: 58, text: "Drop your video here, or click here to pick it from your computer. MP4, MOV and WEBM files work." },
-      { n: 3, x: 50, y: 80, text: "The language people speak in the video. If it is not in the list, pick Another language. The guide is always written in English." },
-      { n: 4, x: 50, y: 86, text: "How the speech is heard. Fast is good for clear English. Accurate hears names, codes and mixed languages better, but takes 3 to 4 times longer on most laptops." },
+      { n: 1, x: 50, y: 71, text: "The size limit of the website. Check it before you choose a long recording." },
+      { n: 2, x: 50, y: 52, text: "Drop your video here, or click here to pick it from your computer. MP4, MOV and WEBM files work." },
+      { n: 3, x: 54, y: 86, text: "The language people speak in the video. If it is not in the list, pick Another language. The guide is always written in English." },
+      { n: 4, x: 53, y: 92, text: "How the speech is heard. Fast is good for clear English. Accurate hears names, codes and mixed languages better, but takes 3 to 4 times longer on most laptops." },
     ],
     body: [
       "First pick the language and the speech option. Then choose the video. VideoDoc starts at once.",
@@ -60,8 +60,8 @@ export const HOWTO = [
   {
     id: "progress", title: "Step 2. Wait while VideoDoc reads the video", img: "progress",
     marks: [
-      { n: 1, x: 50, y: 14, text: "How far it is. The time left shows up once the AI has written the first part." },
-      { n: 2, x: 30, y: 40, text: "Each job, one after the other: taking pictures from the video, getting the sound, writing down the speech, reading the screen, starting the AI, writing the steps, checking the steps, tidying up, and writing the summary and questions." },
+      { n: 1, x: 50, y: 18, text: "How far it is. The time left shows up once the AI has written the first part." },
+      { n: 2, x: 9, y: 48, text: "Each job, one after the other: taking pictures from the video, getting the sound, writing down the speech, reading the screen, starting the AI, writing the steps, checking the steps, tidying up, and writing the summary and questions." },
     ],
     body: [
       "The first time, you see the speech part downloading (for example 300 of 968 MB). Next time it is already there.",
@@ -73,7 +73,7 @@ export const HOWTO = [
   {
     id: "settings", title: "Step 3. Choose your settings", img: "set-dialog",
     marks: [
-      { n: 1, x: 50, y: 6, text: "This window opens by itself when the speech and the screen have been read. The X closes it. Annotate in the top bar opens it again." },
+      { n: 1, x: 91, y: 6, text: "This window opens by itself when the speech and the screen have been read. The X closes it. Annotate in the top bar opens it again." },
     ],
     body: [
       "From top to bottom: the name of your guide, your company name, which AI writes the guide, what the guide will contain, two options for accuracy, and the start button.",
@@ -83,16 +83,16 @@ export const HOWTO = [
   {
     id: "set-title", title: "Step 3a. Name of the guide and company", img: "set-title",
     marks: [
-      { n: 1, x: 50, y: 22, text: "Document title: the heading of your guide, for example \"Create and share a dashboard\". Leave it empty and VideoDoc writes a title for you." },
-      { n: 2, x: 50, y: 66, text: "Company name (you can skip it): shown at the top right of the saved files." },
+      { n: 1, x: 50, y: 24, text: "Document title: the heading of your guide, for example \"Create and share a dashboard\". Leave it empty and VideoDoc writes a title for you." },
+      { n: 2, x: 50, y: 78, text: "Company name (you can skip it): shown at the top right of the saved files." },
     ],
     body: ["Detected tools: the programs VideoDoc saw in your video. Only shown when it found some."],
   },
   {
     id: "set-ollama", title: "Step 3b. Which AI writes the guide: Ollama", img: "set-backend-ollama",
     marks: [
-      { n: 1, x: 75, y: 30, text: "Ollama. If it is running on your computer, VideoDoc finds it and picks it for you. \"Running · 6 models\" means it found 6 models." },
-      { n: 2, x: 50, y: 78, text: "Select model: the best one is already picked. You can choose a smaller one to go faster." },
+      { n: 1, x: 75, y: 33, text: "Ollama. If it is running on your computer, VideoDoc finds it and picks it for you. \"Running · 6 models\" means it found 6 models." },
+      { n: 2, x: 50, y: 81, text: "Select model: the best one is already picked. You can choose a smaller one to go faster." },
     ],
     body: [
       "Models with \"cloud\" in the name are never shown, because they would send your data to another computer.",
@@ -103,18 +103,18 @@ export const HOWTO = [
     id: "set-webllm", title: "Step 3c. Which AI writes the guide: in the browser (WebLLM)", img: "set-backend-webllm",
     marks: [
       { n: 1, x: 25, y: 22, text: "WebLLM: the AI runs inside your browser. Nothing to install. It downloads once and is kept for next time." },
-      { n: 2, x: 20, y: 52, text: "Test my system: checks your computer and picks the model that fits it." },
+      { n: 2, x: 14, y: 48, text: "Test my system: checks your computer and picks the model that fits it." },
       { n: 3, x: 50, y: 64, text: "Browser model: Fast (0.8 GB), Balanced (1.9 GB), Balanced+ (1.9 GB, the usual choice), Quality (2.2 GB), or Vision (3.5 GB, also looks at the pictures)." },
-      { n: 4, x: 50, y: 78, text: "How exact and how fast this model is. If the model is too big for your computer, a warning shows here." },
+      { n: 4, x: 50, y: 79, text: "How exact and how fast this model is. If the model is too big for your computer, a warning shows here." },
     ],
     body: ["If your browser cannot run it, use Chrome or Edge on a computer, or install Ollama."],
   },
   {
     id: "set-ollama-missing", title: "Step 3d. Ollama says \"Not detected\"", img: "set-ollama-missing",
     marks: [
-      { n: 1, x: 75, y: 18, text: "Not detected: Ollama is not running, or it does not allow this website yet." },
-      { n: 2, x: 50, y: 60, text: "Do these 4 steps once: open PowerShell, paste setx OLLAMA_ORIGINS \"*\" and press Enter, close Ollama (right-click its icon at the bottom right of the screen, Quit) and open it again, then run ollama run gemma3." },
-      { n: 3, x: 50, y: 95, text: "Retry detection now checks again. The page also finds Ollama by itself after a few seconds." },
+      { n: 1, x: 63, y: 21, text: "Not detected: Ollama is not running, or it does not allow this website yet." },
+      { n: 2, x: 50, y: 50, text: "Do these 4 steps once: open PowerShell, paste setx OLLAMA_ORIGINS \"*\" and press Enter, close Ollama (right-click its icon at the bottom right of the screen, Quit) and open it again, then run ollama run gemma3." },
+      { n: 3, x: 50, y: 96, text: "Retry detection now checks again. The page also finds Ollama by itself after a few seconds." },
     ],
     body: ["You do not have Ollama? Get it free from ollama.com, install it, then do step 4. Or just use the browser AI."],
   },
@@ -124,22 +124,24 @@ export const HOWTO = [
     body: [],
   },
   {
-    id: "set-accuracy", title: "Step 3f. Accuracy options", img: "set-accuracy",
+    id: "set-accuracy", title: "Step 3f. Accuracy options", img: "set-bottom",
     marks: [
-      { n: 1, x: 50, y: 40, text: "Self-verify each step: the AI checks every step a second time against the video and removes what it cannot see. Fewer mistakes, but it takes about twice as long." },
-      { n: 2, x: 50, y: 78, text: "Consolidate procedure: a last tidy-up of the step names. Steps that say the same thing are joined." },
+      { n: 1, x: 11, y: 40, text: "Self-verify each step: the AI checks every step a second time against the video and removes what it cannot see. Fewer mistakes, but it takes about twice as long." },
+      { n: 2, x: 11, y: 56, text: "Consolidate procedure: a last tidy-up of the step names. Steps that say the same thing are joined." },
     ],
     body: ["Both are on. Turn Self-verify off if you need the guide faster."],
   },
   {
-    id: "set-generate", title: "Step 3g. Start", img: "set-generate",
-    marks: [{ n: 1, x: 50, y: 80, text: "Generate Procedure starts writing. It is grey when Ollama is picked but not found." }],
-    body: ["Above the button you see how long it may take on this computer."],
+    id: "set-generate", title: "Step 3g. Generate Procedure", img: "set-bottom",
+    marks: [{ n: 1, x: 7, y: 78, text: "How long it may take on this computer. The real time left shows once writing starts." }, { n: 2, x: 50, y: 93, text: "Generate Procedure starts writing. It is grey when Ollama is picked but not found." }],
+    body: [],
   },
   {
-    id: "writing", title: "Step 4. Watch the steps appear", img: "writing",
+    id: "writing", title: "Step 4. Watch it write", img: "writing",
     marks: [
-      { n: 1, x: 75, y: 45, text: "Each part of the video becomes one step with numbered actions (A1, A2 ...), what you get, and a tip." },
+      { n: 1, x: 20, y: 25, text: "The time left, measured on your computer once the first part is written." },
+      { n: 2, x: 30, y: 69, text: "Which part it is writing now. Your steps appear below while it works." },
+      { n: 3, x: 14, y: 98, text: "Cancel processing stops it. What is already written stays." },
     ],
     body: [
       "You can already read the first steps while the rest is written.",
@@ -147,10 +149,22 @@ export const HOWTO = [
     ],
   },
   {
-    id: "guide", title: "Step 5. Read and fix your guide", img: "guide",
+    id: "done", title: "Step 5. When it is done", img: "done",
     marks: [
-      { n: 1, x: 75, y: 30, text: "All actions of this step, in the right order. Codes and numbers are copied from the screen." },
-      { n: 2, x: 75, y: 70, text: "Pictures of the screen. The button or field you clicked has a number. Click a picture to make it big, click again to close it." },
+      { n: 1, x: 14, y: 18, text: "COMPLETE: every job has a green tick, with how long it took." },
+      { n: 2, x: 88, y: 5, text: "Re-annotate: write the guide again, for example with another model. The video is not read again." },
+      { n: 3, x: 95, y: 5, text: "New video: start again with another recording. Save your guide first." },
+    ],
+    body: ["Scroll down to read your guide, the summary, the questions and answers, and to save it."],
+  },
+  {
+    id: "guide", title: "Step 5a. Read and fix your guide", img: "guide",
+    marks: [
+      { n: 1, x: 70, y: 52, text: "All actions of this step, in the right order. Codes and numbers are copied from the screen." },
+      { n: 3, x: 57, y: 37, text: "Edit, Move up, Move down and Delete: on every step." },
+      { n: 4, x: 82, y: 22, text: "Self-check: how well the guide matches the video (100 is best), and how many parts it has." },
+      { n: 5, x: 25, y: 75, text: "Your video and small pictures from it. Click a picture to jump to that moment." },
+      { n: 2, x: 70, y: 88, text: "Pictures of the screen. The button or field you clicked has a number. Click a picture to make it big, click again to close it." },
     ],
     body: [
       "The AI can make mistakes. Read every step before you share the guide.",
@@ -161,13 +175,21 @@ export const HOWTO = [
     ],
   },
   {
-    id: "edit", title: "Step 5a. Change a step", img: "edit",
+    id: "edit", title: "Step 5b. Change a step", img: "edit",
     marks: [
       { n: 1, x: 50, y: 15, text: "Step title: the name of the step." },
       { n: 2, x: 50, y: 40, text: "What to do: one action per box. Remove deletes an action. + Add an action adds a new one." },
       { n: 3, x: 50, y: 75, text: "What you get and Tip: both optional." },
     ],
     body: ["Press Save changes (or Ctrl + Enter). Cancel (or Esc) keeps the old version. Your changes are in every saved file."],
+  },
+  {
+    id: "faq-flow", title: "Step 5c. Summary, questions and flow chart", img: "faq-flow",
+    marks: [
+      { n: 1, x: 50, y: 18, text: "Flow diagram: all parts of the process from start to end." },
+      { n: 2, x: 50, y: 62, text: "Questions and answers about your process. Click a question to open its answer." },
+    ],
+    body: ["Above them: the purpose of the guide and a short summary. All of this is also in the saved files."],
   },
   {
     id: "export", title: "Step 6. Save your guide (export)", img: "export",
@@ -181,12 +203,15 @@ export const HOWTO = [
   {
     id: "vidchat", title: "Step 7. Ask questions about the video (Vid Chat)", img: "chat",
     marks: [
-      { n: 1, x: 75, y: 50, text: "Type a question in your own words. The answer shows which step it comes from, with its picture and a play button." },
+      { n: 1, x: 25, y: 22, text: "The answer shows which step it comes from, with its picture and the time; click the time to play that moment." },
+      { n: 2, x: 17, y: 40, text: "Search the web for more: opens a web search with your question only." },
+      { n: 3, x: 30, y: 66, text: "Not in your video? It says so, and offers Answer from the AI's knowledge or Search the web." },
+      { n: 4, x: 45, y: 90, text: "Type a question in your own words. The answer shows which step it comes from, with its picture and a play button." },
     ],
     body: [
       "Vid Chat works when the guide is done, or already when the speech has been written down.",
       "It only answers from your video. If the answer is not in it, it tells you, and offers Want an answer anyway?",
-      "Search the web opens a normal Google-style search in a new tab with your question. Your video and guide are not sent.",
+      "Search the web opens the search site Perplexity in a new tab, with only the question you typed. Your video and guide are not sent.",
     ],
   },
   {
@@ -198,9 +223,9 @@ export const HOWTO = [
     id: "vidi", title: "Help from Vidi",
     img: "vidi-answers",
     marks: [
-      { n: 1, x: 88, y: 12, text: "Vidi's chat window. It opens with the Ask Vidi button at the bottom right of every page." },
-      { n: 2, x: 85, y: 55, text: "Your questions on the right, Vidi's answers on the left, often with the matching picture from this page and a link to it." },
-      { n: 3, x: 85, y: 90, text: "Type your question, or paste an error message or a screenshot here." },
+      { n: 1, x: 86, y: 10, text: "Vidi's chat window. It opens with the Ask Vidi button at the bottom right of every page." },
+      { n: 2, x: 84, y: 40, text: "Your questions on the right, Vidi's answers on the left, often with the matching picture from this page and a link to it." },
+      { n: 3, x: 84, y: 75, text: "Type your question, or paste an error message or a screenshot here." },
     ],
     body: [
       "Vidi (Latin for \"I saw\") is the helper of VideoDoc. Ask it anything about using VideoDoc, in your own words.",
@@ -245,6 +270,36 @@ export const HOWTO = [
     ],
   },
   {
+    id: "privacy", title: "Privacy and your data (short version)",
+    body: [
+      "Your video, its transcript and the guide never leave your computer. Nobody can see them, not even us.",
+      "No account, no sign-up, no analytics, no ads, no tracking cookies. We do not sell or share any data, because we do not collect any.",
+      "The website comes from Netlify, our host. Like every host, Netlify may keep normal server logs (for example your IP address and the time).",
+      "The AI models are downloaded once, mainly from Hugging Face, and kept in your browser. Those servers only see a normal download, never your video.",
+      "Ollama runs on your own computer; the page talks to it there. Chrome may ask to allow local network access: press Allow.",
+      "Search the web only runs when you click it. It opens Perplexity in a new tab with just your question.",
+      "Vidi reads error messages and pasted screenshots on your computer only.",
+      "Stored in your browser: downloaded models, checklist ticks of a saved HTML guide, and how Vidi answers. Clear the site data in your browser settings to remove it all.",
+      "Under data protection law (GDPR) you have rights over your data. VideoDoc holds no personal data about you. For hosting logs, contact Netlify.",
+      "The full text is on the Privacy, terms and credits page (Privacy in the top bar).",
+    ],
+  },
+  {
+    id: "terms", title: "Terms of use and rules (short version)",
+    body: [
+      "VideoDoc is free. It is a personal portfolio project, provided as it is, without any warranty. It may change, pause or stop at any time.",
+      "The AI can be wrong or incomplete. Check every guide before you share it or rely on it. You are responsible for the guides you make and share.",
+      "Only use recordings you are allowed to use. Remove personal or confidential information before you share a guide.",
+      "Do not use VideoDoc for anything illegal or to harm others.",
+      "Making a guide works your computer hard for a long time. Plug in the laptop, close programs you do not need, and save your other work first.",
+      LIMIT,
+      "As far as the law allows, there is no liability for any loss or damage from using VideoDoc.",
+      "The AI models have their own licenses (for example Gemma by Google, Qwen by Alibaba Cloud, Phi by Microsoft, Llama by Meta). Using a model means you accept its license.",
+      "VideoDoc is open source. Questions, ideas or problems: open an issue on GitHub.",
+      "The terms can change; the date on the Privacy, terms and credits page shows the latest version.",
+    ],
+  },
+  {
     id: "faq", title: "Questions people ask",
     body: [
       "Is it free? Yes. No account, no payment.",
@@ -258,7 +313,7 @@ export const HOWTO = [
 ]
 
 // Words that mean the question is about VideoDoc at all (anything else is off topic)
-const TOPIC = /video|record|guide|step|upload|file|mp4|mov|webm|ollama|model|ai\b|llm|webllm|speech|language|transcri|screen|export|save|pdf|docx|word|html|chat|limit|size|mb|gb|minute|long|slow|fast|time|error|fail|stuck|sleep|install|download|browser|chrome|edge|privacy|free|account|edit|title|company|start|use|how|help|work|gpu|graphics|memory|ram|computer|laptop|lid|phone|mobile|sound|audio|desktop|accurate|cancel|new|vidi|videodoc|setting|option/i
+const TOPIC = /video|record|guide|step|upload|file|mp4|mov|webm|ollama|model|ai\b|llm|webllm|speech|language|transcri|screen|export|save|pdf|docx|word|html|chat|limit|size|mb|gb|minute|long|slow|fast|time|error|fail|stuck|sleep|install|download|browser|chrome|edge|privacy|free|account|edit|title|company|start|use|how|help|work|gpu|graphics|memory|ram|computer|laptop|lid|phone|mobile|sound|audio|desktop|accurate|cancel|new|vidi|videodoc|setting|option|verify|consolidat|accura|ocr|annotat|procedure|frame|clip|gif|checklist|faq|summary|flow|tip|result|marker|picture|screenshot|button|click|tab|ctrl|error|message|wrong|missing/i
 
 const STOP = new Set("the and for you your can how what which does with this that are not from into when then there here will have use using about its just get got want need".split(" "))
 const words = (t) => ((t || "").toLowerCase().match(/[a-z0-9]{3,}/g) || []).filter((w) => !STOP.has(w)).map((w) => w.replace(/(ing|ed|es|s)$/, ""))
@@ -272,9 +327,10 @@ export function findHelp(question, top = 2) {
   const scored = HOWTO.map((s, i) => {
     const title = new Set(words(s.title))
     const score = q.reduce((sum, w) => sum + (docs[i].has(w) ? weight(w) * (title.has(w) ? 2 : 1) : 0), 0)
-    return { s, score: score * (s.rank ?? 1) }
+    return { s, score: score * (s.rank ?? 1), n: q.filter((w) => docs[i].has(w)).length }
   }).filter((x) => x.score > 0.2).sort((a, b) => b.score - a.score)
-  return { onTopic: TOPIC.test(question || ""), sections: scored.slice(0, top).map((x) => x.s) }
+  // on topic: it uses VideoDoc words, or it clearly matches a part of the help
+  return { onTopic: TOPIC.test(question || "") || ((scored[0]?.score || 0) > 1.2 && scored[0].n >= 2), sections: scored.slice(0, top).map((x) => x.s) }
 }
 
 export const sectionText = (s) => [s.title, ...(s.marks || []).map((m) => `(${m.n}) ${m.text}`), ...(s.body || [])].join("\n")

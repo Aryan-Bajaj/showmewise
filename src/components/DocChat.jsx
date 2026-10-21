@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react"
 import useRAG from "../hooks/useRAG"
+import ChatText from "./ChatText"
 import { renderShot } from "../lib/annotateImage"
 import { MessageSquare, Send, CornerDownRight, Sparkles, Globe } from "lucide-react"
 
@@ -69,7 +70,7 @@ function SourceCard({ source, part, onSeek, onZoom }) {
   )
 }
 
-export default function DocChat({ docs, aiMode, ollamaModel, onSeek, autoStart = false }) {
+export default function DocChat({ docs, aiMode, ollamaModel, onSeek, autoStart = false, name = "Vid Chat", about = "this recording" }) {
   const { buildIndex, ask, askGeneral, isReady } = useRAG()
   const [open, setOpen] = useState(autoStart)
   const [ready, setReady] = useState(false)
@@ -181,7 +182,7 @@ export default function DocChat({ docs, aiMode, ollamaModel, onSeek, autoStart =
       <button onClick={handleOpen}
         className="w-full border border-emerald-700/40 bg-emerald-500/5 hover:bg-emerald-500/10 rounded-xl px-4 py-3 flex items-center gap-3 transition-all">
         <MessageSquare className="w-4 h-4 text-emerald-400" />
-        <span className="text-sm font-medium text-emerald-300">Vid Chat</span>
+        <span className="text-sm font-medium text-emerald-300">{name}</span>
         <span className="text-xs text-zinc-500 ml-auto">Ask anything · answers cite the exact step{aiMode === "ollama" && chatModel && chatModel !== ollamaModel ? ` · answered by ${chatModel} (quicker for chat)` : ""}</span>
       </button>
     )
@@ -191,8 +192,8 @@ export default function DocChat({ docs, aiMode, ollamaModel, onSeek, autoStart =
     <div className="border border-violet-400/20 rounded-2xl overflow-hidden flex flex-col bg-[#120c2c]/90 backdrop-blur-md shadow-xl" style={{ maxHeight: 640 }}>
       <div className="px-5 py-3.5 border-b border-white/5 flex items-center gap-2">
         <MessageSquare className="w-4 h-4 text-emerald-300" />
-        <span className="text-sm font-semibold text-white">Vid Chat</span>
-        <span className="text-xs text-zinc-400">· ask anything about this recording</span>
+        <span className="text-sm font-semibold text-white">{name}</span>
+        <span className="text-xs text-zinc-400">· ask anything about {about}</span>
         {busy && <span className="text-xs text-violet-300 ml-auto animate-pulse">Working...</span>}
       </div>
 
@@ -217,11 +218,11 @@ export default function DocChat({ docs, aiMode, ollamaModel, onSeek, autoStart =
               {m.a != null ? (
                 <div className="space-y-1.5">
                   {m.general && (
-                    <div className="flex items-center gap-1.5 text-[11px] text-amber-300">
+                    <div className="flex items-center gap-1.5 text-[11px] text-violet-300">
                       <Sparkles className="w-3 h-3" /> From the AI model's general knowledge, not your document
                     </div>
                   )}
-                  <div className="text-[14.5px] text-zinc-100 whitespace-pre-wrap leading-relaxed bg-white/[0.04] border border-white/10 rounded-xl px-3.5 py-3">{m.a}</div>
+                  <div className="text-[14.5px] text-zinc-100 leading-relaxed bg-[#1c1540] border border-white/10 rounded-xl px-3.5 py-3"><ChatText text={m.a} /></div>
                   {!m.general && m.sources?.[0] && (
                     <SourceCard source={m.sources[0]} part={partOf(m.sources[0].timestamp)} onSeek={onSeek} onZoom={setZoom} />
                   )}
@@ -290,7 +291,7 @@ export default function DocChat({ docs, aiMode, ollamaModel, onSeek, autoStart =
       <div className="p-3 border-t border-white/5 flex gap-2">
         <input value={input} onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && submit()}
-          placeholder="Ask about this recording..."
+          placeholder={`Ask about ${about}...`}
           className="flex-1 bg-[#0f0b24] border border-white/15 rounded-xl px-3.5 py-2.5 text-[14.5px] text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-500/25" />
         <button onClick={submit} disabled={busy || !input.trim()} title="Send"
           className="px-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 disabled:from-zinc-700 disabled:to-zinc-700 disabled:text-zinc-500 rounded-xl transition">

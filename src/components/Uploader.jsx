@@ -1,6 +1,5 @@
 import { useRef, useState } from "react"
 import { Video, ShieldCheck, Sparkles, CloudUpload } from "lucide-react"
-import LimitBanner from "./LimitBanner"
 import { checkVideoSize, checkVideoDuration, MAX_VIDEO_MB, MAX_VIDEO_MIN } from "../lib/limits"
 
 export default function Uploader({ onVideoSelect }) {
@@ -53,8 +52,6 @@ export default function Uploader({ onVideoSelect }) {
           VideoDoc listens, reads and looks at every step, then writes a guide with the clicks marked on the screen.
         </p>
       </div>
-
-      <LimitBanner style={{ maxWidth: 672, width: '100%' }} />
 
       {/* Main drop zone */}
       <button
@@ -116,7 +113,7 @@ export default function Uploader({ onVideoSelect }) {
       </div>
 
       {limitError && (
-        <div role="alert" className="max-w-2xl text-sm text-amber-200 bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3 text-center">
+        <div role="alert" className="max-w-2xl text-sm text-violet-200 bg-violet-500/10 border border-violet-500/30 rounded-xl px-4 py-3 text-center">
           {limitError}
         </div>
       )}

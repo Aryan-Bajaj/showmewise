@@ -20,15 +20,15 @@ export default class ErrorBoundary extends Component {
   render() {
     if (!this.state.error) return this.props.children
     return (
-      <div role="alert" className="rounded-xl border border-amber-500/30 bg-amber-950/20 px-4 py-3 text-sm text-amber-200">
+      <div role="alert" className="rounded-xl border border-violet-500/30 bg-violet-950/20 px-4 py-3 text-sm text-violet-200">
         <b>{this.props.name || "This section"} could not be shown.</b> Your guide is safe and you can still export it.
         <button
           onClick={() => this.setState({ error: null })}
-          className="ml-3 text-xs underline text-amber-100 hover:text-white"
+          className="ml-3 text-xs underline text-violet-100 hover:text-white"
         >
           Try again
         </button>
-        <div className="mt-1 text-xs text-amber-200/70">{String(this.state.error?.message || this.state.error)}</div>
+        <div className="mt-1 text-xs text-violet-200/70">{String(this.state.error?.message || this.state.error)}</div>
       </div>
     )
   }

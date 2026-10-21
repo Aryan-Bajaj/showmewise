@@ -5,7 +5,7 @@ import { HOWTO } from '../lib/howto'
 
 // How to use VideoDoc, step by step, with real screenshots of the app and
 // numbered pins. The text comes from lib/howto.js, which Vidi answers from too.
-const C = { bg: '#0f0b24', card: 'rgba(28,18,55,0.7)', line: 'rgba(167,139,250,0.18)', ink: '#ece9ff', body: 'rgba(236,233,255,0.8)', dim: 'rgba(236,233,255,0.55)', acc: '#a78bfa' }
+const C = { bg: '#0f0b24', card: 'rgba(22,15,46,0.94)', line: 'rgba(167,139,250,0.22)', ink: '#f1eeff', body: 'rgba(241,238,255,0.88)', dim: 'rgba(236,233,255,0.55)', acc: '#a78bfa' }
 
 export default function HowToPage() {
   useEffect(() => {
@@ -45,7 +45,7 @@ export default function HowToPage() {
         {HOWTO.map((s) => (
           <section key={s.id} id={s.id} style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 18, padding: '24px 26px', marginBottom: 18, scrollMarginTop: 80 }}>
             <h2 style={{ fontSize: '1.3rem', margin: '0 0 10px' }}>{s.title}</h2>
-            <ul style={{ margin: 0, paddingLeft: 20, color: C.body, lineHeight: 1.7 }}>
+            <ul style={{ margin: 0, paddingLeft: 20, color: C.body, lineHeight: 1.7, listStyle: 'disc' }}>
               {s.body.map((t, i) => <li key={i} style={{ marginBottom: 4 }}>{t}</li>)}
             </ul>
             <div style={{ color: C.body, lineHeight: 1.6 }}><MarkedShot section={s} /></div>

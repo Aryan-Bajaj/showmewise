@@ -187,7 +187,7 @@ export default function AISettings({ onConfirm, onClose, suggestedSections, tool
                 <span className="block text-xs text-zinc-400 mt-0.5">Runs inside this app — best accuracy, sees the screen, fully offline. Nothing leaves your device.</span>
                 {hasLocalEngine
                   ? <span className="block text-xs text-emerald-400 mt-1">✓ Ready</span>
-                  : <span className="block text-xs text-amber-400 mt-1">Starting… if this doesn't turn green, launch VideoDoc.bat and keep its window open.</span>}
+                  : <span className="block text-xs text-violet-400 mt-1">Starting… if this doesn't turn green, launch VideoDoc.bat and keep its window open.</span>}
               </span>
             </button>
           )}
@@ -267,7 +267,7 @@ export default function AISettings({ onConfirm, onClose, suggestedSections, tool
                   </div>
                 )}
                 {heavyWarning && (
-                  <div className="flex items-start gap-2 mt-2 text-xs text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-lg px-2.5 py-1.5">
+                  <div className="flex items-start gap-2 mt-2 text-xs text-violet-300 bg-violet-500/10 border border-violet-500/30 rounded-lg px-2.5 py-1.5">
                     <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {heavyWarning}
                   </div>
                 )}
@@ -319,7 +319,7 @@ export default function AISettings({ onConfirm, onClose, suggestedSections, tool
                 </li>
                 <li>
                   <span className="text-zinc-300 font-medium">3. Fully restart Ollama.</span>
-                  <span className="block text-zinc-500 mt-0.5">Find the Ollama icon in your system tray (bottom-right of the taskbar), right-click it → <span className="text-zinc-300">Quit</span>. Then open Ollama again from the Start menu. <span className="text-amber-400">This step is required</span> — the setting only applies after a restart.</span>
+                  <span className="block text-zinc-500 mt-0.5">Find the Ollama icon in your system tray (bottom-right of the taskbar), right-click it → <span className="text-zinc-300">Quit</span>. Then open Ollama again from the Start menu. <span className="text-violet-400">This step is required</span> — the setting only applies after a restart.</span>
                 </li>
                 <li>
                   <span className="text-zinc-300 font-medium">4. Load a model (if you haven't).</span>

@@ -22,7 +22,7 @@ function Section({ id, n, title, children }) {
 }
 
 const H = ({ children }) => <h3 style={{ fontSize: '1rem', color: C.ink, margin: '18px 0 6px' }}>{children}</h3>
-const UL = ({ items }) => <ul style={{ margin: '6px 0', paddingLeft: 20 }}>{items.map((t, i) => <li key={i} style={{ marginBottom: 6 }}>{t}</li>)}</ul>
+const UL = ({ items }) => <ul style={{ margin: '6px 0', paddingLeft: 20, listStyle: 'disc' }}>{items.map((t, i) => <li key={i} style={{ marginBottom: 6 }}>{t}</li>)}</ul>
 const A = ({ href, children }) => <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: C.acc }}>{children}</a>
 
 export default function PolicyPage() {
@@ -83,9 +83,10 @@ export default function PolicyPage() {
           <UL items={[
             <><b>Ollama</b> runs on your own computer. When you choose it, the page talks to it at <code>localhost</code>, and Chrome may ask you to allow local network access. This traffic stays on your machine.</>,
             <><b>Search the web</b> in Vid Chat only runs when you click it. It opens a new tab on <b>Perplexity</b> with the question you typed, nothing else. Your video and your guide are not sent. Perplexity's own privacy policy applies there.</>,
+            <><b>Vidi</b>, the help chat, answers from the help text of this website. It reads error messages shown on the page, and screenshots you paste, on your computer only. For written answers it uses Ollama on your computer or a small AI in your browser (downloaded once), never a server.</>,
           ]} />
           <H>What stays on your device</H>
-          <p style={{ margin: 0 }}>Downloaded model files stay in your browser's storage so the next run starts faster. An exported HTML guide can remember your checklist ticks in that browser. While a video is processed, the page asks the browser to keep the screen on, so the computer does not go to sleep halfway; this ends when processing ends or when you leave the tab. You can remove all of this at any time by clearing the site data in your browser settings.</p>
+          <p style={{ margin: 0 }}>Downloaded model files stay in your browser's storage so the next run starts faster. An exported HTML guide can remember your checklist ticks in that browser. Vidi remembers how you want it to answer (Ollama, browser AI or no AI) in this browser. While a video is processed, the page asks the browser to keep the screen on, so the computer does not go to sleep halfway; this ends when processing ends or when you leave the tab. You can remove all of this at any time by clearing the site data in your browser settings.</p>
           <H>Your rights</H>
           <p style={{ margin: 0 }}>Under data protection law such as the GDPR you have rights over your personal data. VideoDoc itself holds no personal data about you. For hosting logs, contact Netlify. For any question about this page, see Contact below.</p>
         </Section>

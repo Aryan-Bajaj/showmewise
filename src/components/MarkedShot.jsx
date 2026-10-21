@@ -9,17 +9,17 @@ export default function MarkedShot({ section, compact = false }) {
         {(section.marks || []).map((m) => (
           <span key={m.n} aria-hidden="true" style={{
             position: 'absolute', left: `${m.x}%`, top: `${m.y}%`, transform: 'translate(-50%,-50%)',
-            width: compact ? 18 : 28, height: compact ? 18 : 28, borderRadius: '50%', background: '#f59e0b', color: '#1a1033',
+            width: compact ? 18 : 28, height: compact ? 18 : 28, borderRadius: '50%', background: '#6d4aff', color: '#ffffff',
             fontWeight: 800, fontSize: compact ? 11 : 14, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 0 0 3px rgba(245,158,11,0.35), 0 2px 8px rgba(0,0,0,0.5)',
+            boxShadow: '0 0 0 3px rgba(255,255,255,0.85), 0 2px 8px rgba(0,0,0,0.5)',
           }}>{m.n}</span>
         ))}
       </div>
       {!compact && section.marks?.length > 0 && (
         <ol style={{ listStyle: 'none', margin: '12px 0 0', padding: 0, display: 'grid', gap: 8 }}>
-          {section.marks.map((m) => (
+          {[...section.marks].sort((a, b) => a.n - b.n).map((m) => (
             <li key={m.n} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-              <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: '50%', background: '#f59e0b', color: '#1a1033', fontWeight: 800, fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2 }}>{m.n}</span>
+              <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: '50%', background: '#6d4aff', color: '#ffffff', fontWeight: 800, fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2 }}>{m.n}</span>
               <span>{m.text}</span>
             </li>
           ))}

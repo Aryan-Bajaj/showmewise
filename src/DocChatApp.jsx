@@ -103,7 +103,7 @@ export default function DocChatApp() {
                 className="border border-zinc-700 hover:border-emerald-500 rounded-2xl p-12 flex flex-col items-center gap-3 transition-all group cursor-pointer bg-zinc-900/70 w-full max-w-md">
                 <Upload className="w-9 h-9 text-zinc-500 group-hover:text-emerald-400 transition-colors" />
                 <span className="text-sm text-zinc-300">Upload a document</span>
-                <span className="text-xs text-zinc-600">.txt · .md · .html · .docx</span>
+                <span className="text-xs text-zinc-600">.txt · .md · .csv · .json · .html · .docx</span>
               </button>
               {error && <p role="alert" className="text-sm text-red-400 max-w-md text-center">{error}</p>}
               <p className="text-xs text-zinc-600 max-w-md text-center">Everything runs in your browser. Nothing is uploaded. Big docs are chunked automatically.</p>
@@ -191,7 +191,7 @@ export default function DocChatApp() {
 
               {/* Chat — usable as soon as chunks are ready */}
               {passages.length > 0 ? (
-                <DocChat docs={passages} aiMode={aiMode} ollamaModel={chosenModel} autoStart />
+                <DocChat docs={passages} aiMode={aiMode} ollamaModel={chosenModel} autoStart name="Doc Chat" about="this document" />
               ) : (
                 <div className="border border-zinc-800 rounded-xl px-4 py-6 bg-zinc-900 text-sm text-zinc-400 flex items-center gap-3">
                   <span className="w-3.5 h-3.5 rounded-full border-2 border-emerald-400 border-t-transparent animate-spin" />

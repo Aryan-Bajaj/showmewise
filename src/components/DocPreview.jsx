@@ -45,7 +45,7 @@ function Highlighted({ text, verified, onClickAcr }) {
       : <mark
           key={m.index}
           onClick={(e) => { e.stopPropagation(); onClickAcr?.(a) }}
-          className="bg-amber-400/20 text-amber-200 rounded px-0.5 cursor-pointer ring-1 ring-amber-400/40 hover:bg-amber-400/30 transition-colors"
+          className="bg-violet-400/20 text-violet-200 rounded px-0.5 cursor-pointer ring-1 ring-violet-400/40 hover:bg-violet-400/30 transition-colors"
           title="Click to verify or fix"
         >{a}</mark>)
     last = re.lastIndex
@@ -184,13 +184,13 @@ export default function DocPreview({ transcriptChunks, annotatedDocs, onSeek, on
               title={`Self-check (no manual answer key): ${evalResult.unclearRate}% steps unclear · ${evalResult.logisticsSteps} noise steps · apps named: ${evalResult.appsNamed.join(', ') || 'none'}`}
               className={`text-xs px-2 py-1 rounded-full ring-1 ${
                 evalResult.score >= 75 ? 'bg-emerald-500/15 text-emerald-300 ring-emerald-500/40' :
-                evalResult.score >= 50 ? 'bg-amber-500/15 text-amber-300 ring-amber-500/40' :
+                evalResult.score >= 50 ? 'bg-violet-500/15 text-violet-300 ring-violet-500/40' :
                 'bg-red-500/15 text-red-300 ring-red-500/40'}`}>
               Self-check {evalResult.score}/100
             </span>
             {toVerify.length > 0 && (
               <button onClick={() => setShowVerify(s => !s)}
-                className="text-xs px-2 py-1 rounded-full bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/40 hover:bg-amber-500/25 transition-colors">
+                className="text-xs px-2 py-1 rounded-full bg-violet-500/15 text-violet-300 ring-1 ring-violet-500/40 hover:bg-violet-500/25 transition-colors">
                 ⚠ {toVerify.length} to verify
               </button>
             )}
@@ -200,18 +200,18 @@ export default function DocPreview({ transcriptChunks, annotatedDocs, onSeek, on
 
         {/* Verify panel */}
         {showVerify && toVerify.length > 0 && (
-          <div className="px-4 py-3 border-b border-zinc-800 bg-amber-950/10 max-h-48 overflow-y-auto animate-[fadeIn_.15s_ease-out]">
-            <p className="text-[11px] text-amber-200/80 mb-2">Check these short codes / acronyms. Fix once → it changes everywhere.</p>
+          <div className="px-4 py-3 border-b border-zinc-800 bg-violet-950/10 max-h-48 overflow-y-auto animate-[fadeIn_.15s_ease-out]">
+            <p className="text-[11px] text-violet-200/80 mb-2">Check these short codes / acronyms. Fix once → it changes everywhere.</p>
             <div className="space-y-1.5">
               {toVerify.map(a => (
                 <div key={a} className="flex items-center gap-1.5">
-                  <span className="text-xs font-mono bg-amber-400/15 text-amber-200 rounded px-1.5 py-0.5 ring-1 ring-amber-400/30 shrink-0">{a}</span>
+                  <span className="text-xs font-mono bg-violet-400/15 text-violet-200 rounded px-1.5 py-0.5 ring-1 ring-violet-400/30 shrink-0">{a}</span>
                   <span className="text-[10px] text-zinc-500 shrink-0">×{acronyms.get(a)}</span>
                   <input
                     value={drafts[a] ?? ""}
                     onChange={e => setDrafts(d => ({ ...d, [a]: e.target.value }))}
                     placeholder="correct it (optional)"
-                    className="flex-1 min-w-0 bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-xs text-zinc-100 focus:outline-none focus:border-amber-500" />
+                    className="flex-1 min-w-0 bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-xs text-zinc-100 focus:outline-none focus:border-violet-500" />
                   {(drafts[a] ?? "").trim() && (drafts[a] ?? "").trim() !== a
                     ? <button onClick={() => applyReplace(a)} className="text-[11px] px-2 py-1 bg-emerald-600 hover:bg-emerald-500 rounded transition-colors shrink-0">Replace all</button>
                     : <button onClick={() => markGood(a)} className="text-[11px] px-2 py-1 border border-zinc-600 hover:border-emerald-500 text-zinc-300 rounded transition-colors shrink-0">Looks good</button>}
@@ -231,7 +231,7 @@ export default function DocPreview({ transcriptChunks, annotatedDocs, onSeek, on
                   {doc.step?.title ? <Highlighted text={doc.step.title} verified={verified} onClickAcr={openVerify} /> : `Step ${i + 1}`}
                   {doc.lowConfidence && (
                     <span title="Written from thin evidence (little narration and little readable screen text at this moment). Worth a quick look."
-                      className="ml-2 align-middle text-[11px] font-medium text-amber-200 bg-amber-500/15 border border-amber-400/30 rounded-full px-2 py-0.5">check this</span>
+                      className="ml-2 align-middle text-[11px] font-medium text-violet-200 bg-violet-500/15 border border-violet-400/30 rounded-full px-2 py-0.5">check this</span>
                   )}
                 </h4>
                 <button onClick={() => onSeek?.(doc.timestamp, i)} title="Play the video from this moment"

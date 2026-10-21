@@ -323,6 +323,7 @@ export default function LandingPage() {
               Video → Docs
             </button>
           </div>
+          <LimitBanner />
         </nav>
 
         {/* ── Hero ────────────────────────────────────────────── */}
@@ -331,7 +332,7 @@ export default function LandingPage() {
           display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center',
           textAlign: 'center',
-          padding: '110px 24px 70px',
+          padding: '170px 24px 70px', // room for the fixed bar and the limits strip under it
         }}>
 
           {/* Badge */}
@@ -443,7 +444,6 @@ export default function LandingPage() {
             </button>
           </div>
 
-          <LimitBanner style={{ marginTop: 26, maxWidth: 640 }} />
 
           {/* Stats row */}
           <div style={{
@@ -1184,7 +1184,7 @@ export default function LandingPage() {
         {/* ── Footer ──────────────────────────────────────────── */}
         <footer className="lp-footer" style={{
           borderTop: '1px solid rgba(255,255,255,0.06)',
-          padding: '28px 40px',
+          padding: '28px 40px 96px', // the bottom room keeps the links clear of the Vidi button
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           color: 'rgba(255,255,255,0.25)', fontSize: '0.82rem',
           flexWrap: 'wrap', gap: 8,

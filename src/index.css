@@ -15,7 +15,8 @@ html, body { overflow-x: hidden; max-width: 100%; }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* App background, painted once: faint video frames turning into guide pages
+/* App background, painted once: faint screen recordings (a screen, a mouse
+   pointer, a timeline) turning into guide pages
    (what the tool does) over soft glows. It replaced an animated WebGL
    background that kept the graphics card busy for hours during processing. */
 .app-bg {
@@ -33,7 +34,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
   content: "";
   position: absolute;
   inset: 0;
-  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='190' viewBox='-30 -20 300 190'><g fill='none' stroke='%23ffffff' stroke-opacity='0.075' stroke-width='1.2' stroke-linecap='round'><rect x='18' y='30' width='78' height='50' rx='7'/><path d='M51 46 L51 64 L65 55 Z' fill='%23ffffff' fill-opacity='0.06'/><path d='M18 88 H96' stroke-dasharray='3 5'/><path d='M108 55 H124 M119 50 L124 55 L119 60'/><rect x='136' y='22' width='84' height='66' rx='7'/><circle cx='150' cy='38' r='5'/><path d='M161 38 H206 M146 54 H206 M146 64 H192 M146 74 H200'/></g></svg>"), url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='150' viewBox='0 0 240 150'><g fill='none' stroke='%23ffffff' stroke-opacity='0.09' stroke-width='1.2' stroke-linecap='round'><rect x='18' y='30' width='78' height='50' rx='7'/><path d='M51 46 L51 64 L65 55 Z' fill='%23ffffff' fill-opacity='0.06'/><path d='M18 88 H96' stroke-dasharray='3 5'/><path d='M108 55 H124 M119 50 L124 55 L119 60'/><rect x='136' y='22' width='84' height='66' rx='7'/><circle cx='150' cy='38' r='5'/><path d='M161 38 H206 M146 54 H206 M146 64 H192 M146 74 H200'/></g></svg>");
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='190' viewBox='-30 -20 300 190'><g fill='none' stroke='%23ffffff' stroke-opacity='0.075' stroke-width='1.2' stroke-linecap='round'><rect x='18' y='30' width='78' height='50' rx='7'/><path d='M50 42 L50 61 L55 56.5 L58.5 64 L61.5 62.6 L58 55.2 L64.5 55.2 Z' fill='%23ffffff' fill-opacity='0.05'/><path d='M18 88 H96' stroke-dasharray='3 5'/><circle cx='46' cy='88' r='2.6' fill='%23ffffff' fill-opacity='0.08'/><path d='M108 55 H124 M119 50 L124 55 L119 60'/><rect x='136' y='22' width='84' height='66' rx='7'/><circle cx='150' cy='38' r='5'/><path d='M161 38 H206 M146 54 H206 M146 64 H192 M146 74 H200'/></g></svg>"), url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='150' viewBox='0 0 240 150'><g fill='none' stroke='%23ffffff' stroke-opacity='0.09' stroke-width='1.2' stroke-linecap='round'><rect x='18' y='30' width='78' height='50' rx='7'/><path d='M50 42 L50 61 L55 56.5 L58.5 64 L61.5 62.6 L58 55.2 L64.5 55.2 Z' fill='%23ffffff' fill-opacity='0.05'/><path d='M18 88 H96' stroke-dasharray='3 5'/><circle cx='46' cy='88' r='2.6' fill='%23ffffff' fill-opacity='0.08'/><path d='M108 55 H124 M119 50 L124 55 L119 60'/><rect x='136' y='22' width='84' height='66' rx='7'/><circle cx='150' cy='38' r='5'/><path d='M161 38 H206 M146 54 H206 M146 64 H192 M146 74 H200'/></g></svg>");
   background-size: 300px 190px;
   background-position: 0 0, 150px 95px;
   -webkit-mask-image: radial-gradient(ellipse 85% 75% at 50% 40%, #000 30%, transparent 100%);
