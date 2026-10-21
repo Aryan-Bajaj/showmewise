@@ -126,6 +126,9 @@ export function tidyActions(steps, screen = "", spoken = "") {
   const nums = (a) => a.match(/\d{3,}/g) || []
   const out = []
   for (const a of steps || []) {
+    // the same action twice in a row, only the quote marks differ ("Click the
+    // 'Create' button", "Click the "Create" button"): seen on a real run
+    if (out.length && !nums(a).length && skeleton(out[out.length - 1]) === skeleton(a)) continue
     const twin = out.findIndex((b) => skeleton(b) === skeleton(a) && nums(a).length && nums(a).every((n, i) => near(n, nums(b)[i] || "")))
     if (twin < 0) { out.push(a); continue }
     if (nums(a).every((n) => (screen || "").includes(n)) && !nums(out[twin]).every((n) => (screen || "").includes(n))) out[twin] = a
