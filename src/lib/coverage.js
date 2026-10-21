@@ -158,7 +158,53 @@ function dropScreenLists(steps, spoken = "") {
 
 // A note about what to ignore ("the speaker mentions a test system, which is
 // irrelevant to the procedure") tells the reader nothing they can use.
-export const tidyNote = (note = "") => /\b(irrelevant|not relevant|unrelated to)\b/i.test(note) ? "" : note
+// A note that only reports the talk ("The speaker mentions ...", "The presenter
+// is demonstrating ...") repeats the video instead of helping the reader.
+export const tidyNote = (note = "") =>
+  /\b(irrelevant|not relevant|unrelated to)\b/i.test(note) || /^\W*the (speaker|presenter|narrator|host|user in the video)\b/i.test(note) ? "" : note
+
+// ── The screen's spelling of names ──
+// A quoted name that is almost what the screen shows ('date analyzer' heard,
+// "Data Analyzer" on the button) takes the screen's spelling: every word may
+// be at most one letter off (short words must match), two letters in total.
+const lev = (a, b) => {
+  const d = Array.from({ length: b.length + 1 }, (_, j) => j)
+  for (let i = 1; i <= a.length; i++) {
+    let prev = d[0]; d[0] = i
+    for (let j = 1; j <= b.length; j++) { const t = d[j]; d[j] = Math.min(d[j] + 1, d[j - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1)); prev = t }
+  }
+  return d[b.length]
+}
+export function screenNames(steps, screen = "") {
+  const words = (screen.match(/[A-Za-z][A-Za-z0-9&/-]*/g) || [])
+  if (!words.length) return steps
+  const low = screen.toLowerCase()
+  const fix = (name) => {
+    const w = name.split(/\s+/)
+    if (w.length > 5 || name.length < 4) return name
+    // only names the screen does not show as they are; one word alone must be
+    // long (a 4-letter word one letter off is another word: Cost, Most)
+    if (low.includes(name.toLowerCase()) || (w.length === 1 && name.length < 7)) {
+      const at = low.indexOf(name.toLowerCase())
+      return at >= 0 ? screen.slice(at, at + name.length) : name // the screen's capitals
+    }
+    let best = null
+    for (let i = 0; i + w.length <= words.length; i++) {
+      let total = 0
+      for (let k = 0; k < w.length && total <= 2; k++) {
+        const a = w[k].toLowerCase(), b = words[i + k].toLowerCase()
+        const d = a === b ? 0 : a.length >= 4 && Math.abs(a.length - b.length) <= 1 ? lev(a, b) : 9
+        total += d > 1 ? 9 : d
+      }
+      // with several words, at least one must be exactly the same
+      const same = w.some((x, k) => x.toLowerCase() === words[i + k].toLowerCase())
+      if (total <= 2 && (w.length === 1 || same) && (!best || total < best.total)) best = { total, text: words.slice(i, i + w.length).join(" ") }
+      if (best?.total === 0) break
+    }
+    return best ? best.text : name
+  }
+  return (steps || []).map((a) => a.replace(QUOTED, (m, name) => m.replace(name, fix(name.trim()))))
+}
 
 // ── The screen's spelling of numbers ──
 // A number written in an action ("4" heard as a digit, "7731520" heard for the

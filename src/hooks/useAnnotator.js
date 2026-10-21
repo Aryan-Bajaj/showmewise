@@ -9,7 +9,7 @@ import {
 import { callOllama, callWebLLM, callLocalEngine, WEBLLM_NO_VISION } from "../lib/llm"
 import { smartCrop } from "../lib/smartCrop"
 import { ocrNear } from "./useOCR"
-import { keyTerms, missingTerms, worthRetry, COVERAGE_ADDENDUM, spokenActions, missingActions, tidyActions, tidyNote, screenCounts, screenSpelling } from "../lib/coverage"
+import { keyTerms, missingTerms, worthRetry, COVERAGE_ADDENDUM, spokenActions, missingActions, tidyActions, tidyNote, screenNames, screenCounts, screenSpelling } from "../lib/coverage"
 
 // ── Screen-share start detection ──
 // A meeting recording often opens with minutes of webcams only — transcript but
@@ -519,7 +519,7 @@ export default function useAnnotator() {
           }
         } catch { /* keep the first step */ }
       }
-      step = { ...step, steps: screenSpelling(tidyActions(step.steps, win.ocr, win.text), numberVotes), note: tidyNote(step.note) }
+      step = { ...step, steps: screenNames(screenSpelling(tidyActions(step.steps, win.ocr, win.text), numberVotes), win.ocr), note: tidyNote(step.note) }
       if (miss.length || missA.length) console.info(`[VideoDoc] part ${label} does not mention: ${[...miss, ...missA.map((a) => `"${a}"`)].join(", ")}`)
 
       // Confidence flag for the reviewer: a step the model first skipped, one
