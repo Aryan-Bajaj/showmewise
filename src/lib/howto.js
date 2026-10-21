@@ -233,7 +233,7 @@ export const HOWTO = [
       "It knows which page you are on, so its answers fit what you see.",
       "It watches for error messages. When one appears, a small bubble asks: \"I can see an error on your screen. Do you need help with it?\" Press Yes and Vidi explains the error and what to do. Press No to close the bubble. You can then keep asking.",
       "Do not understand a message? Copy it into the chat, or take a screenshot (Windows key + Shift + S) and paste it with Ctrl + V. Vidi reads the text in the picture on your computer.",
-      "How Vidi answers: without any AI it shows the right part of this page at once. For written answers it uses Ollama if you have it, or a small browser AI (about 0.8 GB, downloaded once). Change how Vidi answers is at the bottom of the chat.",
+      "How Vidi answers: without any AI it shows the right part of this page at once. For written answers it uses Ollama if you have it, or a small browser AI (about 1 GB, downloaded once). Change how Vidi answers is at the bottom of the chat.",
       "Vidi only talks about VideoDoc. For questions about what is in your own video, use Vid Chat. For a document, use Doc Chat.",
     ],
   },

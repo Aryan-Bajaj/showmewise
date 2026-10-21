@@ -4,13 +4,17 @@ import { MessageCircle, X, Send } from 'lucide-react'
 import MarkedShot from './MarkedShot'
 import ChatText from './ChatText'
 import { HOWTO, LIMIT_TEXT, findHelp, sectionText } from '../lib/howto'
-import { callOllama, callWebLLM, WEBLLM_MODELS } from '../lib/llm'
+import { callOllama, callWebLLM } from '../lib/llm'
 
 // Vidi (Latin for "I saw"): the help chat at the bottom right of every page. It only talks about
 // VideoDoc and answers from the same text as the How to use page. Without an
 // AI it still shows the matching part of that page; with Ollama or the small
 // browser model it also writes a short answer.
-const WEB_MODEL = WEBLLM_MODELS[0] // the lightest browser model
+// The browser model for Vidi. Tested 22 Oct 2026 with Vidi's own prompt and 9
+// questions (same models run by Ollama): Llama 3.2 1B 33 % right (it said the
+// video is uploaded), Qwen2.5 1.5B 83 %, Qwen2.5 3B 89 % at twice the size.
+// Qwen2.5 1.5B is still a light download (about 1 GB, 1.6 GB graphics memory).
+const WEB_MODEL = { id: 'Qwen2.5-1.5B-Instruct-q4f16_1-MLC', name: 'Qwen2.5 1.5B', size: '~1 GB' }
 export const SYSTEM = `You are Vidi, the help assistant of VideoDoc, a free tool that turns a screen recording into a written step-by-step guide, entirely on the user's computer.
 Rules:
 - Answer ONLY from the HELP text below. Never invent features, sizes, limits or steps.
