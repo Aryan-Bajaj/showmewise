@@ -25,7 +25,9 @@ const overlaps = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h
 
 // callouts: [{ n, label, box: {x0,y0,x1,y1} }] in SOURCE pixels; sx/sy scale them
 // onto the canvas. W/H = canvas size. alpha fades markers in clips.
-export function drawCallouts(ctx, callouts, { sx = 1, sy = 1, W, H, alpha = 1 } = {}) {
+// inkAt(rect) → 0..1: how much text or detail lies under a rect of the picture
+// (optional; without it the first free spot is taken, as for clip overlays).
+export function drawCallouts(ctx, callouts, { sx = 1, sy = 1, W, H, alpha = 1, inkAt = null } = {}) {
   if (!callouts?.length) return
   const u = Math.max(0.7, Math.min(2.2, W / 1050)) // marker size follows the image size
   const placed = []
@@ -55,8 +57,19 @@ export function drawCallouts(ctx, callouts, { sx = 1, sy = 1, W, H, alpha = 1 } 
       { x: bx - gap - pw, y: by + bh / 2 - ph / 2 },
       { x: bx, y: by + bh + gap * 0.6 },
       { x: bx, y: by - gap * 0.6 - ph },
+      { x: bx + bw + gap, y: by + bh + gap * 0.6 },
+      { x: bx + bw + gap, y: by - gap * 0.6 - ph },
+      { x: bx - gap - pw, y: by + bh + gap * 0.6 },
+      { x: bx - gap - pw, y: by - gap * 0.6 - ph },
     ].map((p) => ({ ...p, w: pw, h: ph }))
-    let pill = opts.find((p) => p.x >= 4 && p.x + p.w <= W - 4 && p.y >= 4 && p.y + p.h <= H - 4 && !placed.some((q) => overlaps(p, q)))
+    const fits = opts.filter((p) => p.x >= 4 && p.x + p.w <= W - 4 && p.y >= 4 && p.y + p.h <= H - 4 && !placed.some((q) => overlaps(p, q)))
+    // A label never covers what the reader needs: with the picture at hand,
+    // take the spot with the least text or detail under it (in this order of
+    // preference when spots are equally empty); else the first spot that fits.
+    const best = inkAt && fits.length > 1
+      ? fits.map((p, i) => ({ p, s: inkAt(p) + i * 0.01 })).sort((a, b) => a.s - b.s)[0].p
+      : fits[0]
+    let pill = best
       || { ...opts[0], x: Math.max(4, Math.min(W - pw - 4, opts[0].x)), y: Math.max(4, Math.min(H - ph - 4, opts[0].y)) }
     for (let k = 0; k < 6 && placed.some((q) => overlaps(pill, q)); k++) pill = { ...pill, y: Math.min(H - ph - 4, pill.y + ph + 6 * u) }
     placed.push(pill)
@@ -89,6 +102,22 @@ export function drawCallouts(ctx, callouts, { sx = 1, sy = 1, W, H, alpha = 1 } 
   ctx.restore()
 }
 
+// Share of sampled pixels under a rect that differ clearly from that rect's
+// usual background: text, icons and borders count, a plain panel does not.
+// Read once from the clean picture, before any marker is drawn on it.
+export function inkMeter({ data, width, height }) {
+  const lum = (i) => data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114
+  return (r) => {
+    const x0 = Math.max(0, Math.floor(r.x)), y0 = Math.max(0, Math.floor(r.y))
+    const x1 = Math.min(width, Math.ceil(r.x + r.w)), y1 = Math.min(height, Math.ceil(r.y + r.h))
+    const vals = []
+    for (let y = y0; y < y1; y += 3) for (let x = x0; x < x1; x += 3) vals.push(lum((y * width + x) * 4))
+    if (!vals.length) return 1
+    const bg = [...vals].sort((a, b) => a - b)[vals.length >> 1] // the median is the background
+    return vals.filter((v) => Math.abs(v - bg) > 28).length / vals.length
+  }
+}
+
 function loadImage(src) {
   return new Promise((resolve, reject) => {
     const img = new Image()
@@ -108,7 +137,7 @@ export async function renderShot(imageData, callouts, { maxW = 1600 } = {}) {
   const ctx = canvas.getContext("2d")
   ctx.imageSmoothingQuality = "high"
   ctx.drawImage(img, 0, 0, W, H)
-  drawCallouts(ctx, callouts, { sx: scale, sy: scale, W, H })
+  drawCallouts(ctx, callouts, { sx: scale, sy: scale, W, H, inkAt: inkMeter(ctx.getImageData(0, 0, W, H)) })
   return { dataUrl: canvas.toDataURL("image/jpeg", 0.9), width: W, height: H }
 }
 

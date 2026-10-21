@@ -47,10 +47,10 @@ export const HOWTO = [
   {
     id: "upload", title: "Step 1. Start: choose your video", img: "upload",
     marks: [
-      { n: 1, x: 50, y: 71, text: "The size limit of the website. Check it before you choose a long recording." },
-      { n: 2, x: 50, y: 52, text: "Drop your video here, or click here to pick it from your computer. MP4, MOV and WEBM files work." },
-      { n: 3, x: 54, y: 86, text: "The language people speak in the video. If it is not in the list, pick Another language. The guide is always written in English." },
-      { n: 4, x: 53, y: 92, text: "How the speech is heard. Fast is good for clear English. Accurate hears names, codes and mixed languages better, but takes 3 to 4 times longer on most laptops." },
+      { n: 1, x: 58.5, y: 70.7, dir: "right", text: "The size limit of the website. Check it before you choose a long recording." },
+      { n: 2, x: 28.0, y: 58.7, dir: "left", text: "Drop your video here, or click here to pick it from your computer. MP4, MOV and WEBM files work." },
+      { n: 3, x: 36.5, y: 85.9, dir: "left", text: "The language people speak in the video. If it is not in the list, pick Another language. The guide is always written in English." },
+      { n: 4, x: 39.7, y: 91.7, dir: "left", text: "How the speech is heard. Fast is good for clear English. Accurate hears names, codes and mixed languages better, but takes 3 to 4 times longer on most laptops." },
     ],
     body: [
       "First pick the language and the speech option. Then choose the video. VideoDoc starts at once.",
@@ -60,8 +60,8 @@ export const HOWTO = [
   {
     id: "progress", title: "Step 2. Wait while VideoDoc reads the video", img: "progress",
     marks: [
-      { n: 1, x: 50, y: 18, text: "How far it is. The time left shows up once the AI has written the first part." },
-      { n: 2, x: 9, y: 48, text: "Each job, one after the other: taking pictures from the video, getting the sound, writing down the speech, reading the screen, starting the AI, writing the steps, checking the steps, tidying up, and writing the summary and questions." },
+      { n: 1, x: 86.8, y: 18.4, dir: "left", text: "How far it is. The time left shows up once the AI has written the first part." },
+      { n: 2, x: 10.9, y: 34.6, dir: "left", text: "Each job, one after the other: taking pictures from the video, getting the sound, writing down the speech, reading the screen, starting the AI, writing the steps, checking the steps, tidying up, and writing the summary and questions." },
     ],
     body: [
       "The first time, you see the speech part downloading (for example 300 of 968 MB). Next time it is already there.",
@@ -73,7 +73,7 @@ export const HOWTO = [
   {
     id: "settings", title: "Step 3. Choose your settings", img: "set-dialog",
     marks: [
-      { n: 1, x: 91, y: 6, text: "This window opens by itself when the speech and the screen have been read. The X closes it. Annotate in the top bar opens it again." },
+      { n: 1, x: 88.5, y: 6.2, dir: "left", text: "This window opens by itself when the speech and the screen have been read. The X closes it. Annotate in the top bar opens it again." },
     ],
     body: [
       "From top to bottom: the name of your guide, your company name, which AI writes the guide, what the guide will contain, two options for accuracy, and the start button.",
@@ -83,16 +83,16 @@ export const HOWTO = [
   {
     id: "set-title", title: "Step 3a. Name of the guide and company", img: "set-title",
     marks: [
-      { n: 1, x: 50, y: 24, text: "Document title: the heading of your guide, for example \"Create and share a dashboard\". Leave it empty and VideoDoc writes a title for you." },
-      { n: 2, x: 50, y: 78, text: "Company name (you can skip it): shown at the top right of the saved files." },
+      { n: 1, x: 97, y: 24, dir: "left", text: "Document title: the heading of your guide, for example \"Create and share a dashboard\". Leave it empty and VideoDoc writes a title for you." },
+      { n: 2, x: 97, y: 78, dir: "left", text: "Company name (you can skip it): shown at the top right of the saved files." },
     ],
     body: ["Detected tools: the programs VideoDoc saw in your video. Only shown when it found some."],
   },
   {
     id: "set-ollama", title: "Step 3b. Which AI writes the guide: Ollama", img: "set-backend-ollama",
     marks: [
-      { n: 1, x: 75, y: 33, text: "Ollama. If it is running on your computer, VideoDoc finds it and picks it for you. \"Running · 6 models\" means it found 6 models." },
-      { n: 2, x: 50, y: 81, text: "Select model: the best one is already picked. You can choose a smaller one to go faster." },
+      { n: 1, x: 86.4, y: 51.4, dir: "right", text: "Ollama. If it is running on your computer, VideoDoc finds it and picks it for you. \"Running · 6 models\" means it found 6 models." },
+      { n: 2, x: 15.4, y: 68.5, dir: "right", text: "Select model: the best one is already picked. You can choose a smaller one to go faster." },
     ],
     body: [
       "Models with \"cloud\" in the name are never shown, because they would send your data to another computer.",
@@ -102,46 +102,46 @@ export const HOWTO = [
   {
     id: "set-webllm", title: "Step 3c. Which AI writes the guide: in the browser (WebLLM)", img: "set-backend-webllm",
     marks: [
-      { n: 1, x: 25, y: 22, text: "WebLLM: the AI runs inside your browser. Nothing to install. It downloads once and is kept for next time." },
-      { n: 2, x: 14, y: 48, text: "Test my system: checks your computer and picks the model that fits it." },
-      { n: 3, x: 50, y: 64, text: "Browser model: Fast (0.8 GB), Balanced (1.9 GB), Balanced+ (1.9 GB, the usual choice), Quality (2.2 GB), or Vision (3.5 GB, also looks at the pictures)." },
-      { n: 4, x: 50, y: 79, text: "How exact and how fast this model is. If the model is too big for your computer, a warning shows here." },
+      { n: 1, x: 16.6, y: 21.2, dir: "right", text: "WebLLM: the AI runs inside your browser. Nothing to install. It downloads once and is kept for next time." },
+      { n: 2, x: 86, y: 47.8, dir: "right", text: "Test my system: checks your computer and picks the model that fits it." },
+      { n: 3, x: 53, y: 55.2, dir: "right", text: "Browser model: Fast (0.8 GB), Balanced (1.9 GB), Balanced+ (1.9 GB, the usual choice), Quality (2.2 GB), or Vision (3.5 GB, also looks at the pictures)." },
+      { n: 4, x: 99, y: 79, dir: "left", text: "How exact and how fast this model is. If the model is too big for your computer, a warning shows here." },
     ],
     body: ["If your browser cannot run it, use Chrome or Edge on a computer, or install Ollama."],
   },
   {
     id: "set-ollama-missing", title: "Step 3d. Ollama says \"Not detected\"", img: "set-ollama-missing",
     marks: [
-      { n: 1, x: 63, y: 21, text: "Not detected: Ollama is not running, or it does not allow this website yet." },
-      { n: 2, x: 50, y: 50, text: "Do these 4 steps once: open PowerShell, paste setx OLLAMA_ORIGINS \"*\" and press Enter, close Ollama (right-click its icon at the bottom right of the screen, Quit) and open it again, then run ollama run gemma3." },
-      { n: 3, x: 50, y: 96, text: "Retry detection now checks again. The page also finds Ollama by itself after a few seconds." },
+      { n: 1, x: 71, y: 21.4, dir: "right", text: "Not detected: Ollama is not running, or it does not allow this website yet." },
+      { n: 2, x: 66, y: 31.1, dir: "right", text: "Do these 4 steps once: open PowerShell, paste setx OLLAMA_ORIGINS \"*\" and press Enter, close Ollama (right-click its icon at the bottom right of the screen, Quit) and open it again, then run ollama run gemma3." },
+      { n: 3, x: 50, y: 96, dir: "up", text: "Retry detection now checks again. The page also finds Ollama by itself after a few seconds." },
     ],
     body: ["You do not have Ollama? Get it free from ollama.com, install it, then do step 4. Or just use the browser AI."],
   },
   {
     id: "set-output", title: "Step 3e. What the guide will contain", img: "set-output",
-    marks: [{ n: 1, x: 50, y: 50, text: "Every guide has the same parts: contents, purpose, what you need before you start, numbered steps with results and pictures, things to notice, a summary, questions and answers, and a flow chart. Parts of the video where nothing happens are left out." }],
+    marks: [{ n: 1, x: 60, y: 17, dir: "right", text: "Every guide has the same parts: contents, purpose, what you need before you start, numbered steps with results and pictures, things to notice, a summary, questions and answers, and a flow chart. Parts of the video where nothing happens are left out." }],
     body: [],
   },
   {
     id: "set-accuracy", title: "Step 3f. Accuracy options", img: "set-bottom",
     marks: [
-      { n: 1, x: 11, y: 40, text: "Self-verify each step: the AI checks every step a second time against the video and removes what it cannot see. Fewer mistakes, but it takes about twice as long." },
-      { n: 2, x: 11, y: 56, text: "Consolidate procedure: a last tidy-up of the step names. Steps that say the same thing are joined." },
+      { n: 1, x: 42.8, y: 40.2, dir: "right", text: "Self-verify each step: the AI checks every step a second time against the video and removes what it cannot see. Fewer mistakes, but it takes about twice as long." },
+      { n: 2, x: 46.1, y: 55.9, dir: "right", text: "Consolidate procedure: a last tidy-up of the step names. Steps that say the same thing are joined." },
     ],
     body: ["Both are on. Turn Self-verify off if you need the guide faster."],
   },
   {
     id: "set-generate", title: "Step 3g. Generate Procedure", img: "set-bottom",
-    marks: [{ n: 1, x: 7, y: 78, text: "How long it may take on this computer. The real time left shows once writing starts." }, { n: 2, x: 50, y: 93, text: "Generate Procedure starts writing. It is grey when Ollama is picked but not found." }],
+    marks: [{ n: 1, x: 95.2, y: 69.3, dir: "up", text: "How long it may take on this computer. The real time left shows once writing starts." }, { n: 2, x: 62.8, y: 92.7, dir: "right", text: "Generate Procedure starts writing. It is grey when Ollama is picked but not found." }],
     body: [],
   },
   {
     id: "writing", title: "Step 4. Watch it write", img: "writing",
     marks: [
-      { n: 1, x: 20, y: 25, text: "The time left, measured on your computer once the first part is written." },
-      { n: 2, x: 30, y: 69, text: "Which part it is writing now. Your steps appear below while it works." },
-      { n: 3, x: 14, y: 98, text: "Cancel processing stops it. What is already written stays." },
+      { n: 1, x: 10.9, y: 25.3, dir: "left", text: "The time left, measured on your computer once the first part is written." },
+      { n: 2, x: 13.0, y: 69.4, dir: "left", text: "Which part it is writing now. Your steps appear below while it works." },
+      { n: 3, x: 18.5, y: 98, dir: "right", text: "Cancel processing stops it. What is already written stays." },
     ],
     body: [
       "You can already read the first steps while the rest is written.",
@@ -151,20 +151,20 @@ export const HOWTO = [
   {
     id: "done", title: "Step 5. When it is done", img: "done",
     marks: [
-      { n: 1, x: 14, y: 18, text: "COMPLETE: every job has a green tick, with how long it took." },
-      { n: 2, x: 88, y: 5, text: "Re-annotate: write the guide again, for example with another model. The video is not read again." },
-      { n: 3, x: 95, y: 5, text: "New video: start again with another recording. Save your guide first." },
+      { n: 1, x: 10.8, y: 18.6, dir: "left", text: "COMPLETE: every job has a green tick, with how long it took." },
+      { n: 2, x: 86.4, y: 4.6, dir: "left", text: "Re-annotate: write the guide again, for example with another model. The video is not read again." },
+      { n: 3, x: 93.7, y: 6.8, dir: "down", text: "New video: start again with another recording. Save your guide first." },
     ],
     body: ["Scroll down to read your guide, the summary, the questions and answers, and to save it."],
   },
   {
     id: "guide", title: "Step 5a. Read and fix your guide", img: "guide",
     marks: [
-      { n: 1, x: 70, y: 52, text: "All actions of this step, in the right order. Codes and numbers are copied from the screen." },
-      { n: 3, x: 57, y: 37, text: "Edit, Move up, Move down and Delete: on every step." },
-      { n: 4, x: 82, y: 22, text: "Self-check: how well the guide matches the video (100 is best), and how many parts it has." },
-      { n: 5, x: 25, y: 75, text: "Your video and small pictures from it. Click a picture to jump to that moment." },
-      { n: 2, x: 70, y: 88, text: "Pictures of the screen. The button or field you clicked has a number. Click a picture to make it big, click again to close it." },
+      { n: 1, x: 76.0, y: 49.9, dir: "right", text: "All actions of this step, in the right order. Codes and numbers are copied from the screen." },
+      { n: 3, x: 74.1, y: 42.8, dir: "right", text: "Edit, Move up, Move down and Delete: on every step." },
+      { n: 4, x: 78.5, y: 28.1, dir: "left", text: "Self-check: how well the guide matches the video (100 is best), and how many parts it has." },
+      { n: 5, x: 18.3, y: 80.2, dir: "right", text: "Your video and small pictures from it. Click a picture to jump to that moment." },
+      { n: 2, x: 84.2, y: 87.8, dir: "up", text: "Pictures of the screen. The button or field you clicked has a number. Click a picture to make it big, click again to close it." },
     ],
     body: [
       "The AI can make mistakes. Read every step before you share the guide.",
@@ -177,36 +177,36 @@ export const HOWTO = [
   {
     id: "edit", title: "Step 5b. Change a step", img: "edit",
     marks: [
-      { n: 1, x: 50, y: 15, text: "Step title: the name of the step." },
-      { n: 2, x: 50, y: 40, text: "What to do: one action per box. Remove deletes an action. + Add an action adds a new one." },
-      { n: 3, x: 50, y: 75, text: "What you get and Tip: both optional." },
+      { n: 1, x: 57.4, y: 14.8, dir: "right", text: "Step title: the name of the step." },
+      { n: 2, x: 65.7, y: 28, dir: "right", text: "What to do: one action per box. Remove deletes an action. + Add an action adds a new one." },
+      { n: 3, x: 62.7, y: 75.4, dir: "right", text: "What you get and Tip: both optional." },
     ],
     body: ["Press Save changes (or Ctrl + Enter). Cancel (or Esc) keeps the old version. Your changes are in every saved file."],
   },
   {
     id: "faq-flow", title: "Step 5c. Summary, questions and flow chart", img: "faq-flow",
     marks: [
-      { n: 1, x: 50, y: 18, text: "Flow diagram: all parts of the process from start to end." },
-      { n: 2, x: 50, y: 62, text: "Questions and answers about your process. Click a question to open its answer." },
+      { n: 1, x: 17.2, y: 7.2, dir: "right", text: "Flow diagram: all parts of the process from start to end." },
+      { n: 2, x: 13.9, y: 39.1, dir: "right", text: "Questions and answers about your process. Click a question to open its answer." },
     ],
     body: ["Above them: the purpose of the guide and a short summary. All of this is also in the saved files."],
   },
   {
     id: "export", title: "Step 6. Save your guide (export)", img: "export",
     marks: [
-      { n: 1, x: 22, y: 60, text: "HTML: a web page in one file. Pictures with marks, short clips of each step, a checklist that remembers your ticks, and questions and answers." },
-      { n: 2, x: 50, y: 60, text: "PDF: ready to print, with a cover page, contents and page numbers." },
-      { n: 3, x: 78, y: 60, text: "DOCX: the same guide as a Word file you can change." },
+      { n: 1, x: 23.6, y: 70.7, dir: "up", text: "HTML: a web page in one file. Pictures with marks, short clips of each step, a checklist that remembers your ticks, and questions and answers." },
+      { n: 2, x: 49.8, y: 70.7, dir: "up", text: "PDF: ready to print, with a cover page, contents and page numbers." },
+      { n: 3, x: 76.1, y: 70.7, dir: "up", text: "DOCX: the same guide as a Word file you can change." },
     ],
     body: ["The files are made on your computer and go to your Downloads folder. Nothing is uploaded."],
   },
   {
     id: "vidchat", title: "Step 7. Ask questions about the video (Vid Chat)", img: "chat",
     marks: [
-      { n: 1, x: 25, y: 22, text: "The answer shows which step it comes from, with its picture and the time; click the time to play that moment." },
-      { n: 2, x: 17, y: 40, text: "Search the web for more: opens a web search with your question only." },
-      { n: 3, x: 30, y: 66, text: "Not in your video? It says so, and offers Answer from the AI's knowledge or Search the web." },
-      { n: 4, x: 45, y: 90, text: "Type a question in your own words. The answer shows which step it comes from, with its picture and a play button." },
+      { n: 1, x: 39.8, y: 48.9, dir: "right", text: "The answer shows which step it comes from, with its picture and the time; click the time to play that moment." },
+      { n: 2, x: 23.2, y: 54.6, dir: "right", text: "Search the web for more: opens a web search with your question only." },
+      { n: 3, x: 21.2, y: 76.6, dir: "right", text: "Not in your video? It says so, and offers Answer from the AI's knowledge or Search the web." },
+      { n: 4, x: 23.2, y: 98, dir: "up", text: "Type a question in your own words. The answer shows which step it comes from, with its picture and a play button." },
     ],
     body: [
       "Vid Chat works when the guide is done, or already when the speech has been written down.",
@@ -216,16 +216,16 @@ export const HOWTO = [
   },
   {
     id: "docchat", title: "Step 8. Ask questions about a document (Doc Chat)", img: "docchat",
-    marks: [{ n: 1, x: 50, y: 45, text: "Choose a document (web page, Word, text, Markdown, CSV or JSON) and ask questions about it." }],
+    marks: [{ n: 1, x: 65.2, y: 46.9, dir: "right", text: "Choose a document (web page, Word, text, Markdown, CSV or JSON) and ask questions about it." }],
     body: ["Doc Chat needs no video. Open it with Doc Chat in the top bar.", "If Ollama runs on your computer, it is picked for you with a quick model for chatting. You can switch to the browser AI.", "Ask anything about the document: what it is about, how to do a step, a name or a number in it."],
   },
   {
     id: "vidi", title: "Help from Vidi",
     img: "vidi-answers",
     marks: [
-      { n: 1, x: 86, y: 10, text: "Vidi's chat window. It opens with the Ask Vidi button at the bottom right of every page." },
-      { n: 2, x: 84, y: 40, text: "Your questions on the right, Vidi's answers on the left, often with the matching picture from this page and a link to it." },
-      { n: 3, x: 84, y: 75, text: "Type your question, or paste an error message or a screenshot here." },
+      { n: 1, x: 74.0, y: 20.4, dir: "left", text: "Vidi's chat window. It opens with the Ask Vidi button at the bottom right of every page." },
+      { n: 2, x: 74.0, y: 62, dir: "left", text: "Your questions on the right, Vidi's answers on the left, often with the matching picture from this page and a link to it." },
+      { n: 3, x: 74.7, y: 74.5, dir: "left", text: "Type your question, or paste an error message or a screenshot here." },
     ],
     body: [
       "Vidi (Latin for \"I saw\") is the helper of VideoDoc. Ask it anything about using VideoDoc, in your own words.",

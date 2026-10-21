@@ -133,7 +133,11 @@ export default function useRAG() {
       // "what do I do first / last": only that part, so a small model can not pick another one
       if (order !== null && indexRef.current.length) picked = [indexRef.current.at(order).doc]
       // a "how do I" answer from many parts mixed steps of other parts in: the best 2 only
-      else if (steps) picked = picked.slice(0, 2)
+      else if (steps) {
+        // a second part only when it fits almost as well (it mixed Create steps into "how do I share")
+        const [a, b] = scored
+        picked = b && b.score >= a.score - 0.03 ? [a.doc, b.doc] : [a.doc]
+      }
     }
 
     // First or last action of a written guide: the guide knows its own order,
