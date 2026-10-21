@@ -19,6 +19,7 @@ export const HOWTO = [
       "VideoDoc watches that recording. It listens to what you say, reads what is on the screen, and writes a step-by-step guide.",
       "The guide has numbered steps, pictures with the clicked buttons marked, a short summary and questions and answers.",
       "You can save the guide as a web page (HTML), a PDF or a Word file.",
+      "Everything happens on your own computer: your video is never uploaded anywhere.",
     ],
   },
   {

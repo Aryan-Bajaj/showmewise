@@ -101,6 +101,8 @@ export function cleanLLMOutput(text) {
     .replace(/<think>[\s\S]*?<\/think>/gi, '')
     .replace(/<think>[\s\S]*$/i, '')
     .replace(/<\/?think>/gi, '')
+    // a small model sometimes repeats the question first ("Question: ... Answer: ...")
+    .replace(/^\s*question:[^\n]*\n+\s*answer:\s*/i, '')
     // Drop chatty meta-preambles like "Okay, here's an outline based on…" that
     // small models prepend instead of answering directly.
     .replace(/^\s*(okay|ok|sure|certainly|alright|of course|got it)[,!.]?\s+(here'?s?|here is|i'?ll|i will|let me|below)[^\n]*\n+/i, '')

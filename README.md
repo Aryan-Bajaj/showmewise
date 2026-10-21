@@ -55,7 +55,7 @@ Two hours later you have a half-finished document you never want to look at agai
 
 **VideoDoc eliminates that entirely.**
 
-Upload the video. Click annotate. Get a polished, structured, beautifully formatted document, with screenshots, numbered steps, and AI-written annotations, in minutes.
+Upload the video. Click annotate. Get a polished, structured, beautifully formatted document, with screenshots, numbered steps, and AI-written annotations. A short how-to takes a few minutes; a 10 minute recording about 1 to 2 hours on a normal laptop (faster with a strong graphics card). Read it through before you share it.
 
 It works for:
 

@@ -119,7 +119,7 @@ const PERSONAS = [
     icon: '👨‍💻',
     role: 'Developers',
     hook: 'Stop re-explaining your codebase.',
-    desc: 'Record a walkthrough once. VideoDoc turns it into onboarding docs your whole team can follow. No writing required.',
+    desc: 'Record a walkthrough once. VideoDoc turns it into onboarding docs your whole team can follow. You only check and fix it.',
     color: '#3f62ff',
   },
   {
@@ -140,7 +140,7 @@ const PERSONAS = [
     icon: '🎨',
     role: 'Designers & Creators',
     hook: 'Show your process, not just your output.',
-    desc: 'Turn design walkthroughs and process recordings into polished case studies or client handoffs. Done in minutes.',
+    desc: 'Turn design walkthroughs and process recordings into polished case studies or client handoffs. No writing from scratch.',
     color: '#fbbf24',
   },
 ]
@@ -149,7 +149,7 @@ const FEATURES = [
   {
     icon: '🎙',
     title: 'Accurate Transcription',
-    desc: 'Whisper Small runs via WebAssembly right in your tab, sharp enough to get names, jargon and technical terms right. No API key, no rate limits, no cost per minute.',
+    desc: 'Whisper Small runs via WebAssembly right in your tab, good for clear speech. For names, codes and mixed languages, choose Accurate (Whisper large v3 turbo). No API key, no rate limits, no cost per minute.',
     color: '#3f62ff',
   },
   {
@@ -829,9 +829,9 @@ export default function LandingPage() {
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {[
-                    { label: 'Output quality', val: 92, color: '#3f62ff' },
+                    { label: 'Output quality', val: 92, color: '#3f62ff', note: 'best here' },
                     { label: 'Privacy',         val: 100, color: '#22c55e' },
-                    { label: 'Speed',           val: 70, color: '#fbbf24', note: 'depends on your GPU' },
+                    { label: 'Speed',           val: 70, color: '#fbbf24', note: 'depends on your computer' },
                   ].map((bar, i) => (
                     <div key={i}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
@@ -881,14 +881,14 @@ export default function LandingPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginBottom: 14 }}>
                   {[
                     { label: 'Fast · 1B',     size: '~0.8 GB', acc: 'Good',   eta: '10 to 30s' },
-                    { label: 'Balanced · 3B', size: '~1.9 GB', acc: 'Strong', eta: '30s to 1m', tag: 'Default' },
+                    { label: 'Balanced+ · 3B', size: '~1.9 GB', acc: 'Strong', eta: '30s to 1m', tag: 'Usual choice' },
                     { label: 'Quality · 3.8B', size: '~2.2 GB', acc: 'Best text', eta: '1 to 3m' },
                     { label: 'Vision · 4.2B', size: '~3.5 GB', acc: 'Sees screen', eta: '1 to 3m', tag: 'New' },
                   ].map((m, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(167,139,250,0.18)' }}>
                       <span style={{ fontSize: 11, fontWeight: 700, color: '#fff' }}>{m.label}</span>
                       {m.tag && <span style={{ fontSize: 9, padding: '1px 6px', borderRadius: 100, background: 'rgba(34,197,94,0.18)', color: '#86efac' }}>{m.tag}</span>}
-                      <span style={{ marginLeft: 'auto', fontSize: 10, color: 'rgba(255,255,255,0.64)' }}>{m.size} · {m.acc} · {m.eta}/segment</span>
+                      <span style={{ marginLeft: 'auto', fontSize: 10, color: 'rgba(255,255,255,0.64)' }}>{m.size} · {m.acc}</span>
                     </div>
                   ))}
                 </div>
@@ -896,7 +896,7 @@ export default function LandingPage() {
                   {[
                     { label: 'Output quality', val: 82, color: '#a78bfa', note: 'you pick' },
                     { label: 'Privacy',         val: 100, color: '#22c55e' },
-                    { label: 'Speed',           val: 55, color: '#fbbf24', note: 'depends on your GPU' },
+                    { label: 'Speed',           val: 55, color: '#fbbf24', note: 'needs a good graphics card' },
                   ].map((bar, i) => (
                     <div key={i}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
@@ -985,9 +985,9 @@ export default function LandingPage() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
             {[
-              { icon: '🎙', name: 'Whisper Small (speech to text)', size: '~970 MB', when: 'On your first video. The more accurate model that nails names and jargon.', color: '#06b6d4' },
+              { icon: '🎙', name: 'Whisper Small (speech to text)', size: '~970 MB', when: 'On your first video. The standard speech model, good for clear speech.', color: '#06b6d4' },
               { icon: '🎧', name: 'Accurate speech (optional)', size: '~1.6 GB', when: 'Only when you choose Accurate. Whisper large v3 turbo: hears names, codes and mixed languages better, slower without a fast graphics card.', color: '#0ea5e9' },
-              { icon: '🧠', name: 'WebLLM (writes the steps)', size: '~0.8 to 2.2 GB', when: 'First annotation in browser mode. Pick Fast (Llama 3.2 1B), Balanced (Qwen2.5 3B, default) or Quality (Phi-3.5 mini)', color: '#a78bfa' },
+              { icon: '🧠', name: 'WebLLM (writes the steps)', size: '~0.8 to 2.2 GB', when: 'First annotation in browser mode. Pick Fast (Llama 3.2 1B), Balanced+ (Qwen2.5 3B, the usual choice) or Quality (Phi-3.5 mini)', color: '#a78bfa' },
               { icon: '👁', name: 'Vision model (optional)', size: '~3.5 GB', when: 'Browser Vision mode, where the AI sees the screen (Phi-3.5-Vision). With Ollama, gemma3 does this, no download.', color: '#7b96ff' },
               { icon: '💬', name: 'Embeddings (doc chat)', size: '~90 MB', when: 'First time you ask your documentation a question', color: '#34d399' },
               { icon: '🔤', name: 'OCR (reads the screen)', size: '~12 MB', when: 'Reads on-screen text from frames (used when not in Vision mode)', color: '#22d3ee' },
@@ -1067,7 +1067,7 @@ export default function LandingPage() {
               {[
                 ['🔍', 'Looks at the screen first, then writes'],
                 ['🎯', 'A new step exactly where the screen changed'],
-                ['🛡', 'Nothing made up: no invented steps, names or conclusions'],
+                ['🛡', 'Every step checked against the screen and the speech'],
                 ['✍️', 'Fix, reorder or delete steps before you share'],
                 ['⏱', 'Tells you how long it will take, shows steps as it works'],
               ].map(([ic, t], i) => (
@@ -1119,11 +1119,11 @@ export default function LandingPage() {
               ['Multi-window awareness', 'Open a second app mid-recording? The steps follow along without mixing the two screens up.'],
               ['Sharper vision', 'Reads tiny text, dense tables and crowded toolbars more reliably.'],
               ['Better with accents', 'Understands accented and technical speech better by learning the words it can see on screen.'],
-              ['More languages', 'Recordings in languages other than English.'],
+              ['Guides in your language', 'Recordings in many languages work today; next, the guide itself written in your language, not only in English.'],
               ['Custom branding', 'Your logo and colours, applied as a clean document theme.'],
               ['Resume anytime', 'A long video interrupted halfway? Pick up where it stopped instead of starting over.'],
               ['Batch mode', 'Drop in several recordings and collect the finished documents one by one.'],
-              ['Measured accuracy', 'Every update is tested against real recordings before release, so quality only moves up.'],
+              ['Published accuracy', 'Test results against hand-written manuals, shown with every release.'],
             ].map(([title, desc], i) => (
               <div key={i} style={{ borderRadius: 16, padding: '22px 20px', background: 'rgba(255,255,255,0.025)', border: '1px dashed rgba(123,150,255,0.35)' }}>
                 <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'rgba(255,255,255,0.9)', marginBottom: 8 }}>{title}</div>
@@ -1152,7 +1152,7 @@ export default function LandingPage() {
             color: 'rgba(255,255,255,0.64)', fontSize: '1.05rem',
             maxWidth: 480, margin: '0 auto 50px', lineHeight: 1.75,
           }}>
-            VideoDoc is free, open, and runs entirely in your browser.
+            VideoDoc is free, open, and runs entirely on your computer.
             No account. No cloud. No more putting it off.
           </p>
 
