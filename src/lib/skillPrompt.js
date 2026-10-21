@@ -135,9 +135,25 @@ If there is truly no followable action (small talk only, webcam-only, pause), re
 // Tidy a step line: drop leading discourse markers, first-person speech and filler
 // so verbatim narration ("Let me move this table just a little bit…") reads like a
 // clean imperative instruction. Conservative — it never changes the actual action.
+// "Mention the option to save as", "Explain the process of logging in using
+// Okta": the model wrote what the trainer TALKS about instead of what the user
+// DOES (seen on a real run). The action inside is kept: "Save as", "Log in using Okta".
+const GERUND = { exporting: "export", adding: "add", saving: "save", opening: "open", logging: "log", selecting: "select", clicking: "click", creating: "create", using: "use", changing: "change", sharing: "share", filtering: "filter", downloading: "download", copying: "copy", editing: "edit", removing: "remove", entering: "enter", typing: "type", setting: "set", running: "run", closing: "close", choosing: "choose", moving: "move", uploading: "upload", accessing: "access", checking: "check", posting: "post", searching: "search" }
+function talkToAction(s) {
+  const m = s.match(/^(?:mention|discuss|explain|describe|show|note)\s+(?:that\s+)?(?:(?:the|an?)\s+)?(?:(?:option|possibility|ability|way|process)\s+(?:to|of|for)\s+|how\s+to\s+)(.+)$/i)
+  if (!m) return s
+  let rest = m[1].trim()
+  const first = rest.split(/\s+/)[0].toLowerCase()
+  if (/ing$/.test(first)) {
+    if (!GERUND[first]) return s // unsure how to turn it into an order: keep the line as it was
+    rest = GERUND[first] + rest.slice(first.length)
+  }
+  return rest
+}
+
 function tidyLine(s) {
   if (typeof s !== "string") return s
-  let out = s
+  let out = talkToAction(s.trim())
     .replace(/^\s*(okay|ok|so|now|then|alright|well|um+|uh+|yeah)[,!.\s]+/i, "")
     .replace(/\b(let me|i'?ll|i will|i'?m going to|i am going to|we'?ll|we will|we'?re going to|let'?s)\s+/gi, "")
     .replace(/\b(just|a little bit|a bit|kind of|sort of|you know|basically|actually|maybe)\b/gi, "")
@@ -221,7 +237,17 @@ function tryParseStepJSON(t) {
   let note = cleanField(o.note)
   if (note.length < 3 || /^(none|n\/a|na|-)$/i.test(note) || isFillerNote(note)) note = ""
   if (!steps.length && !title) return { skip: true }
-  return { skip: false, title, steps, result, note }
+  return { skip: false, title, ...liftRemarks(steps, note), result }
+}
+
+// "Acknowledge that the data is a test database" is a remark, not an action
+// (seen on a real run): it becomes the tip when there is none yet, and leaves the steps
+const REMARK = /^(acknowledge|be aware|keep in mind|note|remember)\s+that\s+/i
+function liftRemarks(steps, note) {
+  const remarks = steps.filter((a) => REMARK.test(a))
+  if (!remarks.length || remarks.length === steps.length) return { steps, note }
+  const r = remarks[0].replace(REMARK, "")
+  return { steps: steps.filter((a) => !REMARK.test(a)), note: note || r[0].toUpperCase() + r.slice(1) }
 }
 
 // Parse a procedure-step reply → { skip } or { title, steps[], result, note }.
@@ -245,7 +271,8 @@ export function parseProcedureStep(text) {
   if (note.length < 3 || /^(none|n\/a|na)$/i.test(note) || /^[-–—.\s]*$/.test(note)) note = '' // drop empty / dash-only
   if (isFillerNote(note)) note = '' // drop content-free narration of the step itself
   if (!steps.length && !title) return { skip: true }
-  return { skip: false, title: stripGarbledIds(title), steps: steps.map((s) => tidyLine(cleanField(s))).filter(isRealAction), result, note }
+  const lifted = liftRemarks(steps.map((s) => tidyLine(cleanField(s))).filter(isRealAction), note)
+  return { skip: false, title: stripGarbledIds(title), ...lifted, result }
 }
 
 // ── Noise gate ──

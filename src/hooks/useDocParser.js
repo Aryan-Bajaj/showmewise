@@ -26,6 +26,12 @@ export async function extractText(file) {
     const doc = new DOMParser().parseFromString(html, 'text/html')
     // Drop non-content nodes — otherwise their CSS / JS text pollutes the index
     // and the chat ends up "reading" stylesheets instead of the real document.
+    // A guide saved by VideoDoc repeats its steps in summaries (at a glance,
+    // checklist, quick reference). Doc Chat copied a summary that lists one
+    // action of every part as the answer to "how do I add a widget", so they
+    // are left out; every step is still in the parts themselves.
+    const vdGuide = doc.querySelector('meta[name=generator][content^=VideoDoc]') || (doc.querySelector('section#glance.sec') && doc.querySelector('section#steps.sec'))
+    if (vdGuide) doc.querySelectorAll('section#glance, section#checklist, section#quick').forEach((el) => el.remove())
     doc.querySelectorAll('script,style,noscript,svg,template,link,meta').forEach((el) => el.remove())
     const body = doc.body
     if (!body) return ''
