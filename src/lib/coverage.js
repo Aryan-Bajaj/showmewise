@@ -122,7 +122,8 @@ export function missingActions(step, actions) {
 // ("enter 7731520" / "enter 7731320") keep the one the screen shows. A remark
 // like "the error message is displayed" STAYS: it can be the check a user needs.
 export function tidyActions(steps, screen = "", spoken = "") {
-  const skeleton = (a) => a.toLowerCase().replace(/\d+/g, "#").replace(/[^a-z# ]/g, "").replace(/\s+/g, " ").trim()
+  // "again" / "(repeated)": the model's way of writing the line above twice
+  const skeleton = (a) => a.toLowerCase().replace(/\(?\b(again|repeated)\b\)?/g, "").replace(/\d+/g, "#").replace(/[^a-z# ]/g, "").replace(/\s+/g, " ").trim()
   const nums = (a) => a.match(/\d{3,}/g) || []
   const out = []
   for (const a of steps || []) {
@@ -133,7 +134,35 @@ export function tidyActions(steps, screen = "", spoken = "") {
     if (twin < 0) { out.push(a); continue }
     if (nums(a).every((n) => (screen || "").includes(n)) && !nums(out[twin]).every((n) => (screen || "").includes(n))) out[twin] = a
   }
-  return dropScreenLists(out, spoken)
+  return dropScreenLists(dropFieldTour(dropSpokenValues(out, screen)), spoken)
+}
+
+// "Observe the Account Number field", "Observe the Company Code field", ...:
+// 3+ in a row is the model reading the screen out, not something the user does
+// (seen on a real run). One such line alone can be a real check, so it stays.
+const LOOK = /^(observe|note|see|look at|review)\s+the\s+.{1,60}\b(field|button|checkbox|check box|tab|menu|column|option|icon|link|dropdown)s?\b\W*$/i
+function dropFieldTour(steps) {
+  const out = []
+  for (let i = 0; i < steps.length;) {
+    let j = i
+    while (j < steps.length && LOOK.test(steps[j])) j++
+    if (j - i >= 3) { i = j; continue }
+    out.push(steps[i]); i++
+  }
+  return out
+}
+
+// "Enter 'For example put this enter press put this' into the field": a spoken
+// sentence taken as the value (seen on a real run). A long value none of whose
+// words is on the screen is dropped; short values and values seen on screen stay.
+function dropSpokenValues(steps, screen = "") {
+  if (!screen) return steps
+  const seen = screen.toLowerCase()
+  return steps.filter((a) => {
+    const v = a.match(/^(?:enter|type|put|input|write)\s+['"‘“]([^'"’”]+)['"’”]/i)?.[1]
+    if (!v || v.trim().split(/\s+/).length < 5) return true
+    return (v.toLowerCase().match(/[a-z]{4,}/g) || []).some((w) => seen.includes(w))
+  })
 }
 
 // A run of 4+ actions that differ only in a quoted name ("Expand the 'X' node"
