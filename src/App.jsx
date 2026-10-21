@@ -519,7 +519,7 @@ export default function App() {
         />
       )}
 
-      <header className="border-b border-white/10 px-6 py-4 flex items-center gap-3 backdrop-blur-md bg-black/20 sticky top-0 z-40">
+      <header className="border-b border-white/10 px-6 py-4 flex items-center gap-3 bg-[#0b0820]/95 sticky top-0 z-40">
         <button
           onClick={() => { window.location.href = '/#/' }}
           className="flex items-center gap-2.5 text-lg font-bold tracking-tight group"

@@ -81,7 +81,7 @@ export default function DocChatApp() {
       <div style={{ position: "fixed", inset: 0, zIndex: 0, background: "rgba(8,5,20,0.72)", pointerEvents: "none" }} />
 
       <div style={{ position: "relative", zIndex: 1 }}>
-        <header className="border-b border-white/10 px-6 py-4 flex items-center gap-3 backdrop-blur-md bg-black/20 sticky top-0 z-40">
+        <header className="border-b border-white/10 px-6 py-4 flex items-center gap-3  bg-[#0b0820]/95 sticky top-0 z-40">
           <div className="w-2 h-2 rounded-full bg-emerald-400" />
           <button onClick={() => { window.location.href = "/#/" }}
             className="text-lg font-semibold tracking-tight hover:text-emerald-400 transition-colors">

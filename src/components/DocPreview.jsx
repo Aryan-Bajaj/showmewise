@@ -176,7 +176,7 @@ export default function DocPreview({ transcriptChunks, annotatedDocs, onSeek, on
     const openVerify = (a) => { setShowVerify(true); setDrafts(d => ({ ...d, [a]: d[a] ?? "" })) }
 
     return (
-      <div className="rounded-2xl bg-[#120c2c]/85 backdrop-blur-md border border-violet-400/15 overflow-hidden flex flex-col" style={{ maxHeight: "82vh" }}>
+      <div className="rounded-2xl bg-[#120c2c]/95 border border-violet-400/15 overflow-hidden flex flex-col" style={{ maxHeight: "82vh" }}>
         <div className="px-5 py-3.5 border-b border-white/5 flex items-center justify-between shrink-0 gap-2 flex-wrap">
           <p className="text-sm font-semibold text-zinc-100">Your guide <span className="text-zinc-400 font-normal">· click any step to edit it</span></p>
           <div className="flex items-center gap-2 shrink-0">

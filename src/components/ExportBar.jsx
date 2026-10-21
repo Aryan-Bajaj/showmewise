@@ -85,7 +85,7 @@ export default function ExportBar({ annotatedDocs, transcriptChunks, videoName, 
   ]
 
   return (
-    <div className="rounded-2xl border border-violet-400/15 bg-[#120c2c]/80 backdrop-blur-md p-5">
+    <div className="rounded-2xl border border-violet-400/15 bg-[#120c2c]/95 p-5">
       <div className="flex items-center gap-2.5 mb-4">
         <Download className="w-4 h-4 text-violet-300 shrink-0" />
         <span className="text-sm font-semibold text-zinc-100">Export your guide</span>

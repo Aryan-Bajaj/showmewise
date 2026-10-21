@@ -189,7 +189,7 @@ export default function DocChat({ docs, aiMode, ollamaModel, onSeek, autoStart =
   }
 
   return (
-    <div className="border border-violet-400/20 rounded-2xl overflow-hidden flex flex-col bg-[#120c2c]/90 backdrop-blur-md shadow-xl" style={{ maxHeight: 640 }}>
+    <div className="border border-violet-400/20 rounded-2xl overflow-hidden flex flex-col bg-[#120c2c]/95 shadow-xl" style={{ maxHeight: 640 }}>
       <div className="px-5 py-3.5 border-b border-white/5 flex items-center gap-2">
         <MessageSquare className="w-4 h-4 text-emerald-300" />
         <span className="text-sm font-semibold text-white">{name}</span>

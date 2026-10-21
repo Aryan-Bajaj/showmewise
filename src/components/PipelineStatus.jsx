@@ -85,7 +85,7 @@ export default function PipelineStatus({ steps, etaHint = null }) {
   const leftText = leftMs == null ? null : leftMs < 90000 ? 'About a minute left' : `About ${Math.round(leftMs / 60000)} minutes left`
 
   return (
-    <div className="bg-[#120c2c]/85 backdrop-blur-md border border-violet-400/15 rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(10,5,40,0.45)]">
+    <div className="bg-[#120c2c]/95 border border-violet-400/15 rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(10,5,40,0.45)]">
       {/* Overall progress header */}
       <div className="px-5 py-4 border-b border-white/5 bg-gradient-to-r from-violet-500/10 to-transparent">
         <div className="flex items-center justify-between mb-2">
