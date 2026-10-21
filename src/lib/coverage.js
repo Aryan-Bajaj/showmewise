@@ -153,7 +153,20 @@ function dropScreenLists(steps, spoken = "") {
     if (!listed) out.push(...run)
     i = j
   }
-  return out.length ? out : steps
+  // The same tree, written without quote marks and in mixed words ("Open the
+  // Favorites panel. | Expand the SAP Menu node. | Expand the ... node"):
+  // 3+ such lines in a row whose names were never said are dropped too.
+  const TREE_LINE = /^(?:open|expand|collapse) the (.+?) (?:node|folder|panel)\b/i
+  const kept = []
+  for (let i = 0; i < out.length;) {
+    let j = i
+    while (j < out.length && TREE_LINE.test(out[j])) j++
+    const run = out.slice(i, Math.max(j, i + 1))
+    const tree = j - i >= 3 && run.every((a) => !said.includes(a.match(TREE_LINE)[1].replace(/['"‘’“”]/g, "").toLowerCase()))
+    if (!tree) kept.push(...run)
+    i += run.length
+  }
+  return kept.length ? kept : out.length ? out : steps
 }
 
 // A note about what to ignore ("the speaker mentions a test system, which is
