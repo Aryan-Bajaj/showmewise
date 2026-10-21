@@ -53,3 +53,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
   padding-left: 18px !important;
   padding-right: 18px !important;
 }
+
+/* How to use pictures: on a phone the pins show only in the enlarged view */
+.ms-hint { display: none; margin-top: 6px; font-size: 13px; color: rgba(233,229,255,0.7); }
+@media (max-width: 640px) { .ms-hint { display: block; } }

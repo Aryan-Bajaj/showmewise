@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 // A real screenshot of the app with numbered pins and the matching legend.
@@ -9,25 +9,41 @@ import { createPortal } from 'react-dom'
 // field). The numbered pin sits beside it, in the direction `dir` (into empty
 // space), with a short arrow pointing at the spot, so nothing is covered.
 const DIRS = { left: [-1, 0], right: [1, 0], up: [0, -1], down: [0, 1] }
-const Pins = ({ marks, size }) => (marks || []).map((m) => {
+// Pins grow with the picture: `max` on a wide screen, smaller on a phone so
+// they do not run into each other on a small picture.
+// On a phone-sized picture (hideBelow) the pins would run into each other, so
+// they show only in the enlarged view.
+function Pins({ marks, max, min = 14, hideBelow = 0 }) {
+  const ref = useRef(null)
+  const [w, setW] = useState(0)
+  useEffect(() => {
+    const el = ref.current; if (!el) return
+    const ro = new ResizeObserver(() => setW(el.clientWidth)); ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+  const size = w ? Math.max(min, Math.min(max, Math.round(w / 30))) : max
+  const hide = w && w < hideBelow
+  return <span ref={ref} style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>{!hide && (marks || []).map((m) => <Pin key={m.n} m={m} size={size} />)}</span>
+}
+const Pin = ({ m, size }) => {
   const [dx, dy] = DIRS[m.dir || 'left']
   const d = size * 1.45 // pin centre to the spot
   const tip = size * 0.18 // arrow stops just short of the spot
   return (
-    <span key={m.n} aria-hidden="true" style={{ position: 'absolute', left: `${m.x}%`, top: `${m.y}%`, width: 0, height: 0 }}>
+    <span aria-hidden="true" style={{ position: 'absolute', left: `${m.x}%`, top: `${m.y}%`, width: 0, height: 0 }}>
       <svg style={{ position: 'absolute', left: 0, top: 0, overflow: 'visible' }} width="1" height="1">
-        <line x1={dx * (d - size / 2)} y1={dy * (d - size / 2)} x2={dx * tip} y2={dy * tip} stroke="#ffffff" strokeWidth={Math.max(2.5, size / 9)} strokeLinecap="round" />
+        <line x1={dx * (d - size / 2)} y1={dy * (d - size / 2)} x2={dx * tip} y2={dy * tip} stroke="#ffffff" strokeWidth={Math.max(1.5, size / 9)} strokeLinecap="round" />
         <polygon points={`${dx * tip},${dy * tip} ${dx * (tip + size * 0.32) - dy * size * 0.2},${dy * (tip + size * 0.32) - dx * size * 0.2} ${dx * (tip + size * 0.32) + dy * size * 0.2},${dy * (tip + size * 0.32) + dx * size * 0.2}`} fill="#ffffff" />
       </svg>
       <span style={{
         position: 'absolute', left: dx * d, top: dy * d, transform: 'translate(-50%,-50%)',
         width: size, height: size, borderRadius: '50%', background: '#6d4aff', color: '#ffffff',
         fontWeight: 800, fontSize: Math.round(size / 2), display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: '0 0 0 2.5px #ffffff, 0 2px 8px rgba(0,0,0,0.55)',
+        boxShadow: `0 0 0 ${Math.max(1.5, size / 11)}px #ffffff, 0 2px 8px rgba(0,0,0,0.55)`,
       }}>{m.n}</span>
     </span>
   )
-})
+}
 
 export default function MarkedShot({ section, compact = false }) {
   const [big, setBig] = useState(false)
@@ -45,18 +61,20 @@ export default function MarkedShot({ section, compact = false }) {
       <button type="button" onClick={() => setBig(true)} title="Click to enlarge" aria-label={`Enlarge picture: ${section.title}`}
         style={{ position: 'relative', display: 'block', width: '100%', padding: 0, border: '1px solid rgba(167,139,250,0.25)', borderRadius: 12, overflow: 'hidden', cursor: 'zoom-in', background: 'none' }}>
         <img src={src} alt={section.title} loading="lazy" onLoad={(e) => setRatio(e.target.naturalWidth / e.target.naturalHeight || 16 / 9)} style={{ display: 'block', width: '100%', height: 'auto' }} />
-        <Pins marks={section.marks} size={compact ? 18 : 28} />
+        <Pins marks={section.marks} max={compact ? 18 : 28} min={compact ? 18 : 14} hideBelow={compact ? 0 : 420} />
       </button>
+      {!compact && section.marks?.length > 0 && <figcaption className="ms-hint">Tap the picture to see the numbers.</figcaption>}
       {big && createPortal(
         // on <body>, so no layer of the page (or the Vidi button) can sit on top of it
         <div role="dialog" aria-label={section.title} onClick={() => setBig(false)}
-          style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(6,4,16,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, cursor: 'zoom-out' }}>
+          style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(6,4,16,0.92)', display: 'flex', alignItems: 'safe center', justifyContent: 'safe center', overflow: 'auto', padding: 24, cursor: 'zoom-out' }}>
           {/* as big as the screen allows, same shape, so the pins stay on their spot */}
-          <div style={{ position: 'relative', width: `min(94vw, ${(86 * ratio).toFixed(1)}vh)` }}>
+          {/* on a phone it stays readable (760 px wide) and scrolls sideways */}
+          <div style={{ position: 'relative', flexShrink: 0, width: `max(760px, min(94vw, ${(86 * ratio).toFixed(1)}vh))` }}>
             <img src={src} alt={section.title} style={{ display: 'block', width: '100%', height: 'auto', borderRadius: 10 }} />
-            <Pins marks={section.marks} size={32} />
+            <Pins marks={section.marks} max={32} />
           </div>
-          <span style={{ position: 'fixed', top: 14, right: 18, color: '#fff', fontSize: 13, opacity: 0.85 }}>Click anywhere or press Esc to close</span>
+          <span style={{ position: 'fixed', top: 14, right: 18, color: '#fff', fontSize: 13, opacity: 0.85 }}>Click or tap anywhere to close (Esc)</span>
         </div>,
         document.body,
       )}

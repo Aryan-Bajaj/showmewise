@@ -27,7 +27,7 @@ The manual release: the clicks marked on the screen, in documents that read like
 * **Ollama found, Ollama used.** When Ollama runs, the settings and Doc Chat choose it with its best (or quickest) model. Cloud models are never offered.
 * **Harder to break.** A file that is not a video gets a clear message, a video without sound is documented from the screen, New video starts over after an error, closing the tab mid-run asks first, two buttons that did nothing were removed, edit boxes grow with their text.
 * **Better chat answers.** Vid Chat now searches the written steps (it used to search only the transcript), finds exact words as well as meaning, answers order questions (first, after, last) from the right part, and shows lists and bold text cleanly. Text in a video or document can not give the AI orders.
-* **Site.** New logo, privacy and terms page, share previews, sitemap, security headers, updated dependencies. On a phone, a notice says up front that VideoDoc is made for a computer and how much it would download. The in-browser model sizes on the site now match the app.
+* **Site.** New logo, privacy and terms page, share previews, sitemap, security headers, updated dependencies. On a phone, a notice says up front that VideoDoc is made for a computer and how much it would download. The in-browser model sizes on the site now match the app. On a phone the top bar and the size strip fit in one line, the phone notice is no longer covered by the help button, and the How to use pictures show their numbers when tapped (large, swipe sideways).
 
 ## v4
 

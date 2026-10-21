@@ -9,7 +9,7 @@ const STEPS = [
   ['Read the screen (OCR)', 'buttons and popups read'],
   ['Load AI model', 'gemma3 on this computer'],
   ['Write procedure steps', '4 parts, 13 actions'],
-  ['Self-verify steps', 'every step checked'],
+  ['Self-verify steps', 'off by default (optional)'],
   ['Consolidate procedure', 'titles tidied'],
   ['Purpose · summary · FAQ · flow', '6 questions answered'],
 ]

@@ -15,7 +15,7 @@ export default function MobileNotice() {
   const close = () => { try { sessionStorage.setItem("vd-mobile-notice", "1") } catch { /* private mode */ } setOpen(false) }
   return (
     <div role="dialog" aria-modal="true" aria-labelledby="vd-mn-title"
-      className="fixed inset-0 z-[1000] flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+      className="fixed inset-0 z-[9500] flex items-end sm:items-center justify-center bg-black/80 p-4">
       <div className="w-full max-w-md rounded-2xl border border-violet-400/30 bg-[#160f33] p-5 text-sm text-zinc-200 shadow-2xl">
         <h2 id="vd-mn-title" className="text-lg font-bold text-white mb-2">💻 VideoDoc is made for a computer</h2>
         <p className="mb-3 leading-relaxed">

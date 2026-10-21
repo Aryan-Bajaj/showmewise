@@ -99,7 +99,10 @@ const CSS = `
     .lp-satellite  { display: none !important; }
     .lp-steps-line { display: none !important; }
     .lp-section    { padding: 64px 20px !important; }
-    .lp-footer     { padding: 22px 20px !important; }
+    .lp-footer     { padding: 22px 20px 96px !important; }
+    .lp-nav-howto  { display: none !important; }
+    .lb-long       { display: none !important; }
+    .lb-short      { display: inline !important; }
     .lp-mockup     { margin-top: 40px !important; }
     .lp-cta        { padding: 14px 28px !important; font-size: 0.95rem !important; }
     .lp-ghost      { padding: 14px 28px !important; font-size: 0.95rem !important; }
@@ -307,7 +310,7 @@ export default function LandingPage() {
           </div>
 
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <a href="/#/howto" style={{ color: 'rgba(236,233,255,0.75)', fontSize: 13, textDecoration: 'none', padding: '9px 8px' }}>How to use</a>
+            <a href="/#/howto" className="lp-nav-howto" style={{ color: 'rgba(236,233,255,0.75)', fontSize: 13, textDecoration: 'none', padding: '9px 8px' }}>How to use</a>
             <button onClick={handleDocChat} className="lp-nav-btn" style={{
               padding: '9px 18px', borderRadius: 100,
               background: 'transparent', border: '1px solid rgba(52,211,153,0.4)',
