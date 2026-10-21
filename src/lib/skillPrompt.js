@@ -154,7 +154,11 @@ function talkToAction(s) {
 function tidyLine(s) {
   if (typeof s !== "string") return s
   let out = talkToAction(s.trim())
-    .replace(/^\s*(okay|ok|so|now|then|alright|well|um+|uh+|yeah)[,!.\s]+/i, "")
+    .replace(/^\s*(okay|ok|so|now|then|alright|well|um+|uh+|yeah|and)[,!.\s]+/i, "")
+    // speech copied as a step ("You can save this version", "You type your
+    // Okta information", seen on a real run): the order without "you can"
+    .replace(/^(you|we)\s+(can|could|should|need to|have to|will|must)\s+(even\s+|also\s+|then\s+|just\s+)?/i, "")
+    .replace(/^(you|we)\s+(?=(type|click|select|open|go|enter|choose|press|add|save|export|copy|paste|navigate|log|search|drag|drop|scroll)\b)/i, "")
     .replace(/\b(let me|i'?ll|i will|i'?m going to|i am going to|we'?ll|we will|we'?re going to|let'?s)\s+/gi, "")
     .replace(/\b(just|a little bit|a bit|kind of|sort of|you know|basically|actually|maybe)\b/gi, "")
     .replace(/\s{2,}/g, " ")

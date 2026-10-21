@@ -471,8 +471,14 @@ export default function useOCR() {
 // window that opens late (a silent click) never reached the AI before.
 // Returns { log: "01:52 new on screen: ...", lines: [labels] }.
 const LABEL_KEY = (l) => l.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim()
+// a misread label ("Fev Ev Tosv Rv us [em]", "CoCemer Segment") became a step
+// on a real run: a word with no vowel or a capital inside it is not a label
+const misread = (l) => /[[\]{}|]/.test(l) || l.split(/\s+/).some((w) => {
+  const t = w.replace(/[^A-Za-z]/g, "")
+  return t.length >= 2 && (!/[aeiouyAEIOUY]/.test(t) && t !== t.toUpperCase() || /[a-z][A-Z]/.test(t))
+})
 const isLabel = (l, k) => k.length >= 3 && k.length <= 40 && k.split(" ").length <= 6
-  && (k.match(/[a-z]/g) || []).length >= 3 && (l.match(/[A-Za-z ]/g) || []).length / l.length >= 0.7
+  && (k.match(/[a-z]/g) || []).length >= 3 && (l.match(/[A-Za-z ]/g) || []).length / l.length >= 0.7 && !misread(l)
 export function screenChanges(frameTexts, a, b, maxChars = 700) {
   const frames = (frameTexts || []).filter((f) => f.timestamp >= a - 2 && f.timestamp <= b + 2).sort((x, y) => x.timestamp - y.timestamp)
   if (frames.length < 2) return { log: "", lines: [] }

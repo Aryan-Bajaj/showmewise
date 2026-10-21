@@ -371,7 +371,7 @@ export default function useAnnotator() {
       // picture to ~900 px, where small dense UI text is unreadable, while OCR
       // read it at full size (it used to be left out whenever vision was on).
       const changed = win.changes
-        ? `\n[What newly appeared on the screen in this part, in time order. A window, menu, tab, field or button that appears is usually the result of a click just before it, also when nobody says it: write that click as an action, with the exact name shown. Ignore data values]:\n${win.changes}`
+        ? `\n[What newly appeared on the screen in this part, in time order. A window, menu, tab, field or button that appears is usually the result of a click just before it, also when nobody says it: write that click as an action, with the exact name shown. Never write "note" or "observe" lines for these labels, and ignore data values and misread text]:\n${win.changes}`
         : ""
       const userMsg = buildContextPrompt(win.text, label, prev, next, win.ocr) + said + changed
       // up to 3 pictures of the part in time order, so the model sees the sequence
