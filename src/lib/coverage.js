@@ -121,6 +121,7 @@ export function missingActions(step, actions) {
 // One step, cleaned: two actions that differ only by a number heard vs read
 // ("enter 7731520" / "enter 7731320") keep the one the screen shows. A remark
 // like "the error message is displayed" STAYS: it can be the check a user needs.
+const bag = (a) => [...new Set(a.toLowerCase().match(/[a-z]{3,}/g) || [])].filter((w) => !["the", "and", "then", "into"].includes(w)).sort().join(" ")
 export function tidyActions(steps, screen = "", spoken = "") {
   // "again" / "(repeated)": the model's way of writing the line above twice
   const skeleton = (a) => a.toLowerCase().replace(/\(?\b(again|repeated)\b\)?/g, "").replace(/\d+/g, "#").replace(/[^a-z# ]/g, "").replace(/\s+/g, " ").trim()
@@ -130,6 +131,11 @@ export function tidyActions(steps, screen = "", spoken = "") {
     // the same action twice in a row, only the quote marks differ ("Click the
     // 'Create' button", "Click the "Create" button"): seen on a real run
     if (out.length && !nums(a).length && skeleton(out[out.length - 1]) === skeleton(a)) continue
+    // the same words in another order, back to back ("Select and edit the
+    // investment." / "Select the investment and edit it."), or a plain line
+    // with no value written again later in the part ("Enter the asset number.")
+    if (out.length && !nums(a).length && bag(out[out.length - 1]) === bag(a)) continue
+    if (!/\d|'|"/.test(a) && out.some((b) => skeleton(b) === skeleton(a))) continue
     const twin = out.findIndex((b) => skeleton(b) === skeleton(a) && nums(a).length && nums(a).every((n, i) => near(n, nums(b)[i] || "")))
     if (twin < 0) { out.push(a); continue }
     if (nums(a).every((n) => (screen || "").includes(n)) && !nums(out[twin]).every((n) => (screen || "").includes(n))) out[twin] = a
