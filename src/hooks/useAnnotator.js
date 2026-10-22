@@ -303,7 +303,7 @@ export default function useAnnotator() {
     // before shows what was clicked (lib/pointer.js). No pointer found → nothing.
     try {
       const atFrame = (t) => (frames || []).find((f) => Math.abs(f.timestamp - t) < 0.6 && f.imageData)
-      const wanted = windows.flatMap((w) => (w.opened || []).map((o) => ({ w, o })))
+      const wanted = windows.flatMap((w) => (w.opened || []).filter((o) => o.t >= w.a && o.t < w.b).map((o) => ({ w, o }))) // parts overlap by 2 s: each window once
       if (wanted.length) {
         onStatus?.("Looking for the mouse pointer where a window opens…")
         const sample = (frames || []).filter((f) => f.imageData).filter((_, i, a) => a.length <= 10 || i % Math.ceil(a.length / 10) === 0)
@@ -314,7 +314,14 @@ export default function useAnnotator() {
           const f = atFrame(o.before)
           if (!f) continue
           const g = await grayFromDataUrl(f.imageData)
-          const pt = notStatic(findPointers(g.gray, g.w, g.h), spots)[0]
+          // the pointer moves: a spot that is also there 4 s before AND after is not it
+          const around = []
+          for (const dt of [-4, 4]) {
+            const fa = (frames || []).filter((x) => x.imageData).reduce((best, x) => (!best || Math.abs(x.timestamp - (o.before + dt)) < Math.abs(best.timestamp - (o.before + dt)) ? x : best), null)
+            if (fa && Math.abs(fa.timestamp - o.before) >= 3) { const ga = await grayFromDataUrl(fa.imageData); around.push(findPointers(ga.gray, ga.w, ga.h)) }
+          }
+          const still = around.length === 2 ? around[0].filter((p) => around[1].some((q) => Math.abs(q.x - p.x) <= 3 && Math.abs(q.y - p.y) <= 3)) : []
+          const pt = notStatic(notStatic(findPointers(g.gray, g.w, g.h), spots), still)[0]
           if (!pt) continue
           const words = (ocrFrameTexts || []).find((x) => Math.abs(x.timestamp - o.before) < 0.6)?.words || []
           const line = clickLine(pt, words, o.title, g.h)

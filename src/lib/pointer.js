@@ -3,8 +3,8 @@
 // AI: the screen shows where the pointer was and which window opened.
 //
 // ponytail: only the white arrow on a darker area is found (dark apps, toolbars,
-// dark themes). On a plain white page the arrow is white on white and is not
-// found; then nothing is added (never a guess).
+// dark themes). The black-edged arrow on a white page touches button text and
+// is not found yet; then nothing is added (never a guess).
 
 // gray: luminance 0..255 per pixel (Uint8Array, row by row), w × h.
 // Returns { x, y } of the arrow tip, or null.
@@ -46,6 +46,15 @@ export function findPointers(gray, w, h, { bright = 190 } = {}) {
     if (lmax - lmin > 2) continue
     const width = (r) => (right[r] >= left[r] ? right[r] - left[r] + 1 : 0)
     if (width(0) > 3 || width(Math.floor(bh * 0.55)) < bw * 0.5) continue
+    // a solid triangle, not the stroke of a letter ("S" on a blue button):
+    // the rows of the head are filled from edge to edge and grow downwards
+    const rowCount = new Array(bh).fill(0)
+    for (const p of px) rowCount[Math.floor(p / w) - y0]++
+    let solid = true
+    for (let r = 0; r < top; r++) {
+      if (rowCount[r] < width(r) * 0.85 || (r >= 2 && width(r) < width(r - 2) - 1)) { solid = false; break }
+    }
+    if (!solid) continue
     // it stands out: the ring around it is clearly darker
     let ring = 0, n = 0
     for (let y = Math.max(0, y0 - 2); y <= Math.min(h - 1, y1 + 2); y++) {
