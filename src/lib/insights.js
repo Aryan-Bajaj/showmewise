@@ -5,6 +5,7 @@
 //   - tight, delimited output formats that parse leniently
 //   - deterministic fallbacks so a section never comes back empty/broken.
 
+import { docHeading, flowFromDocs, flowToMermaid } from "./flow.js"
 import { callOllama, callWebLLM, callLocalEngine, cleanLLMOutput } from "./llm"
 import { isFillerNote, cleanTranscriptText } from "./skillPrompt"
 
@@ -15,14 +16,6 @@ function callLLM(userMsg, systemPrompt, aiMode, model, onStatus, opts = {}) {
 }
 
 // One-line heading for a doc (procedure step title / first action / transcript).
-function docHeading(d) {
-  if (d.step) {
-    if (d.step.title) return d.step.title.trim().slice(0, 90)
-    if (d.step.steps?.[0]) return d.step.steps[0].trim().slice(0, 90)
-  }
-  if (d.annotation) return d.annotation.split(/\n/)[0].trim().slice(0, 90)
-  return (d.text || "").split(/[.!?\n]/)[0].trim().slice(0, 90)
-}
 
 // Compact outline of the whole recording for the summary/FAQ context.
 function buildOutline(docs, maxChars = 3500) {
@@ -289,33 +282,8 @@ function sanitizeMermaid(text, docs) {
   return lines.join("\n")
 }
 
-// Structured flow that keeps EVERY step (no info loss) but looks clean: steps
-// are grouped into phases, flowing left-to-right inside each phase, phases
-// stacked top-down. Far nicer than one long vertical chain. Deterministic, so
-// it always renders (no LLM formatting errors).
 function buildPhasedMermaid(docs) {
-  const titles = (docs || []).map(docHeading).filter(Boolean).filter((h, i, a) => h !== a[i - 1])
-  if (!titles.length) return ""
-  const phases = Math.min(6, Math.max(1, Math.round(titles.length / 5)))
-  const per = Math.ceil(titles.length / phases)
-  let out = "flowchart TD\n"
-  let id = 0
-  const phaseIds = []
-  for (let p = 0; p * per < titles.length; p++) {
-    const group = titles.slice(p * per, (p + 1) * per)
-    const pid = `P${p}`
-    phaseIds.push(pid)
-    out += `  subgraph ${pid}["Phase ${p + 1}"]\n    direction LR\n`
-    const ids = group.map(() => `S${id++}`)
-    group.forEach((label, j) => {
-      const safe = label.replace(/["\n]/g, " ").replace(/[\[\](){}|]/g, "").slice(0, 46)
-      out += `    ${ids[j]}["${safe}"]\n`
-    })
-    for (let j = 1; j < ids.length; j++) out += `    ${ids[j - 1]} --> ${ids[j]}\n`
-    out += `  end\n`
-  }
-  for (let p = 1; p < phaseIds.length; p++) out += `  ${phaseIds[p - 1]} --> ${phaseIds[p]}\n`
-  return out
+  return flowToMermaid(flowFromDocs(docs))
 }
 
 async function genMermaid(outline, docs, aiMode, model, onStatus) {

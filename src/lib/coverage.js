@@ -5,7 +5,7 @@
 //   (the screen gives the right spelling of what was said)
 //   • "period 3", "step 2" style values
 //   • two-word names that are BOTH said and on screen ("Processing Type",
-//     "Partial Capitalization", "Test Run"): strong evidence of a real field
+//     "Posting Type", "Test Run"): strong evidence of a real field
 // missingTerms() lists those a written step leaves out, so the step can be asked
 // for again with exactly what it missed.
 
@@ -110,7 +110,7 @@ export function spokenActions(text) {
 }
 
 // the words that make an action specific ("KPI", "column"), verbs and filler left out
-const actionKey = (a) => a.toLowerCase().replace(/[^a-z0-9 ]/g, " ").split(/\s+/)
+export const actionKey = (a) => a.toLowerCase().replace(/[^a-z0-9 ]/g, " ").split(/\s+/)
   .filter((w) => w.length >= 3 && !FILLER.has(w) && !ACT.test(w))
 
 export function missingActions(step, actions) {
@@ -141,7 +141,7 @@ export function tidyActions(steps, screen = "", spoken = "") {
 // 3+ in a row is the model reading the screen out, not something the user does
 // (seen on a real run). One such line alone can be a real check, so it stays.
 const LOOK = /^(observe|note|see|look at|review|identify|view|check)\s+the\s+.{1,60}\b(field|button|checkbox|check box|tab|menu|column|option|icon|link|dropdown)s?\b\W*$/i
-// "View the available options: Office, Logistics, Accounting, ...": the screen
+// "View the available options: Home, Reports, Settings, ...": the screen
 // read out as a list, not something to do (seen on a real run).
 const LOOK_LIST = /^(observe|note|see|look at|review|identify|view|check)\s+(the\s+)?[^:]{1,50}:\s*[^,]+(,[^,]+){2,}$/i
 // "The dashboard displays a table with columns ...": a description of the
@@ -206,7 +206,7 @@ function dropScreenLists(steps, spoken = "") {
     i = j
   }
   // The same tree, written without quote marks and in mixed words ("Open the
-  // Favorites panel. | Expand the SAP Menu node. | Expand the ... node"):
+  // Favorites panel. | Expand the Main Menu node. | Expand the ... node"):
   // 3+ such lines in a row whose names were never said are dropped too.
   const TREE_LINE = /^(?:open|expand|collapse) the (.+?) (?:node|folder|panel)\b/i
   const kept = []
@@ -214,7 +214,7 @@ function dropScreenLists(steps, spoken = "") {
     let j = i
     while (j < out.length && TREE_LINE.test(out[j])) j++
     const run = out.slice(i, Math.max(j, i + 1))
-    // 8 folders in a row on a real run, one of them ("SAP Menu") said aloud:
+    // 8 folders in a row on a real run, one of them ("Main Menu") said aloud:
     // a long run is a read-out even when one name was said
     const saidN = j - i ? run.filter((a) => said.includes(a.match(TREE_LINE)[1].replace(/['"‘’“”]/g, "").toLowerCase())).length : 0
     const tree = j - i >= 5 ? saidN <= 1 : j - i >= 3 && !silent && saidN === 0
@@ -233,8 +233,8 @@ export const tidyNote = (note = "") =>
   /\b(irrelevant|not relevant|unrelated to)\b/i.test(note) || /^\W*the (speaker|presenter|narrator|host|user in the video)\b/i.test(note) ? "" : note
 
 // ── The screen's spelling of names ──
-// A quoted name that is almost what the screen shows ('date analyzer' heard,
-// "Data Analyzer" on the button) takes the screen's spelling: every word may
+// A quoted name that is almost what the screen shows ('date viewer' heard,
+// "Data Viewer" on the button) takes the screen's spelling: every word may
 // be at most one letter off (short words must match), two letters in total.
 const lev = (a, b) => {
   const d = Array.from({ length: b.length + 1 }, (_, j) => j)

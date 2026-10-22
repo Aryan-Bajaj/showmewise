@@ -17,6 +17,7 @@ import useAnnotator from "./hooks/useAnnotator"
 import useOCR from "./hooks/useOCR"
 import { webLLMLabel, isWebLLMVision, ollamaModelHasVision } from "./lib/llm"
 import { generateInsights } from "./lib/insights"
+import { flowFromDocs, flowToMermaid } from "./lib/flow"
 import { consolidateProcedure, verifyProcedure, sanitizeDocs } from "./lib/refine"
 import { scrubSensitive } from "./lib/skillPrompt"
 import { fixTranscriptChunks } from "./lib/transcriptFixups"
@@ -456,6 +457,15 @@ export default function App() {
     step.note ? `Note: ${step.note}` : "",
   ].filter(Boolean).join("\n")
 
+  // The flow diagram follows the steps (renamed, moved, deleted), unless the
+  // user has drawn their own boxes (insights.flow); then theirs is kept.
+  const liveInsights = useMemo(() => {
+    if (!insights) return insights
+    const flowAuto = flowFromDocs(annotatedDocs)
+    const mermaid = insights.flow ? flowToMermaid(insights.flow) : (flowAuto.length ? flowToMermaid(flowAuto) : insights.mermaid)
+    return { ...insights, flowAuto, mermaid }
+  }, [insights, annotatedDocs])
+
   // Save an edited step in place.
   const handleEditStep = useCallback((index, newStep) => {
     setAnnotatedDocs(prev => prev.map((d, i) =>
@@ -608,7 +618,7 @@ export default function App() {
               </div>
             </div>
 
-            {insights && <ErrorBoundary name="Summary and FAQ"><InsightsPanel insights={insights} onChange={setInsights} /></ErrorBoundary>}
+            {insights && <ErrorBoundary name="Summary and FAQ"><InsightsPanel insights={liveInsights} onChange={setInsights} /></ErrorBoundary>}
 
             <ErrorBoundary name="Export">
             <ExportBar
@@ -618,7 +628,7 @@ export default function App() {
               videoFile={videoFile}
               docTitle={docTitle}
               companyName={companyName}
-              insights={insights}
+              insights={liveInsights}
               toolsUsed={toolsUsed}
               frames={frames}
               videoDuration={videoDuration}

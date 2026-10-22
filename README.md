@@ -93,6 +93,10 @@ Version 5 is about making a guide easy to follow. Everything still runs on your 
 * **Short videos, clean steps.** Step length now scales with the recording, so a one-minute how-to becomes several clear parts instead of one.
 * **Whole audio, always.** Fixed a bug where each five-minute window only transcribed its first 30 seconds.
 * **App names must be on screen.** The detected app name is only used when it really appears on screen or in the audio.
+* **Clicks nobody says.** When a window opens, the mouse pointer in the frame just before shows what was clicked (the word under it, or the toolbar icon that opened the window), and that click is always in the guide. No pointer found, nothing added.
+* **The whole transcript first.** The AI lists every action of the full recording with its time; the tools check each one against what was said then and give it to its part as a must-cover item.
+* **Noisy sound cleaned, clean sound left alone.** The speech level is measured against the background; only a noisy recording gets the background taken out before the transcript.
+* **Editable flow diagram.** It follows your step edits, and in Edit document you can rename, add or remove its boxes and phases.
 
 ---
 
@@ -129,7 +133,7 @@ Version 3 is the biggest leap yet. The AI now **watches the screen and hears eve
 * **Smarter, deduplicated steps.** Each segment becomes one clean step (title, ordered actions, result, note). Off-topic or silent stretches are skipped instead of padded with filler, and repeated or overlapping steps are merged, so a one-hour recording reads as roughly 30 to 35 clear steps, not 48 fragments.
 * **Steps say WHERE, not just what.** Every action names where to find the element (the application, ribbon, tab or menu), using the screen plus the model's knowledge of the app.
 * **RAG-grounded FAQ.** Questions are generated from the actual discussion (diverse angles, no near-duplicates), then each answer is retrieved from the relevant transcript passages and enriched with the model's general knowledge, without inventing specifics.
-* **Clean phased flow diagram.** Every step is kept, but grouped into phases (steps flow left to right inside a phase, phases stack top to bottom), so the chart stays readable instead of one long vertical chain.
+* **Clean phased flow diagram.** Every step is kept, but grouped into phases (steps flow left to right inside a phase, phases stack top to bottom), so the chart stays readable instead of one long vertical chain. It follows the steps when you rename, move or delete one, and in Edit document you can rename, add or remove boxes and phases yourself.
 * **Hidden transcript for AI.** The full transcript is embedded in the exported HTML but hidden from readers, so the document can be pasted into any AI assistant for deeper Q&A.
 * **Stronger model picker.** WebLLM now offers Fast (1B), Balanced (Qwen2.5-3B, default), Max (Qwen2.5-7B, removed later because it needs 6 to 8 GB of graphics memory) and a Vision model, each with accuracy and speed shown up front. The app falls back to a lighter model if a GPU cannot load the chosen one.
 * **Faster, safer pipeline.** Frame extraction no longer stalls on long videos, transcription runs in 5-minute windows with real progress and a Cancel button, and an overall progress bar shows the whole run at a glance. Known domain mishearings are auto-corrected.
@@ -492,6 +496,10 @@ video-docs/
         ├── limits.js             ← Netlify build size/length limits
         ├── systemCheck.js        ← Detects available engine (Ollama/llama.cpp/WebLLM)
         ├── transcriptFixups.js   ← Noise scrub + known-mishearing corrections
+        ├── denoise.js            ← Background noise removal (only for noisy sound)
+        ├── plan.js               ← Whole-transcript action list, checked against the speech
+        ├── pointer.js            ← Finds the mouse pointer when a window opens
+        ├── flow.js               ← Flow diagram as editable phases and boxes
         ├── exportHTML.js         ← HTML guide (title, tools, step GIFs/clips)
         ├── exportPDF.js          ← jsPDF export (title + tools)
         └── exportDOCX.js         ← docx export (title + tools + GIFs)

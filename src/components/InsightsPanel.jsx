@@ -27,6 +27,44 @@ function BulletEditor({ items, onChange, addLabel = "+ Add point" }) {
   )
 }
 
+// Flow diagram editor: phases with their boxes, one box per field. Rename,
+// add or remove boxes and phases; the diagram below redraws as you type.
+function FlowEditor({ phases, onChange, onReset, custom }) {
+  const setPhase = (i, ph) => onChange(phases.map((p, idx) => (idx === i ? ph : p)))
+  const box = (i, j, v) => setPhase(i, { ...phases[i], boxes: phases[i].boxes.map((b, k) => (k === j ? v : b)) })
+  const addBox = (i, j) => { const b = [...phases[i].boxes]; b.splice(j + 1, 0, ""); setPhase(i, { ...phases[i], boxes: b }) }
+  const delBox = (i, j) => setPhase(i, { ...phases[i], boxes: phases[i].boxes.filter((_, k) => k !== j) })
+  const addPhase = () => onChange([...phases, { name: `Phase ${phases.length + 1}`, boxes: [""] }])
+  const delPhase = (i) => onChange(phases.filter((_, idx) => idx !== i))
+  const btn = "text-zinc-500 hover:text-emerald-300 text-lg leading-none px-2 py-1.5 rounded hover:bg-zinc-700/60 transition-colors"
+  return (
+    <div className="space-y-3">
+      {phases.map((ph, i) => (
+        <div key={i} className="bg-zinc-800/50 border border-zinc-700/60 rounded-lg p-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <input className={fieldCls + " font-semibold"} value={ph.name} onChange={(e) => setPhase(i, { ...ph, name: e.target.value })} placeholder="Phase name" aria-label="Phase name" />
+            <button onClick={() => delPhase(i)} className={btn + " hover:text-red-400"} title="Remove this phase and its boxes">×</button>
+          </div>
+          {ph.boxes.map((b, j) => (
+            <div key={j} className="flex items-center gap-2 pl-3">
+              <span className="text-zinc-500 text-xs w-5 shrink-0 text-right">{j + 1}</span>
+              <input className={fieldCls} value={b} onChange={(e) => box(i, j, e.target.value)} placeholder="Box text" aria-label={`Box ${j + 1}`} />
+              <button onClick={() => addBox(i, j)} className={btn} title="Add a box after this one">+</button>
+              <button onClick={() => delBox(i, j)} className={btn + " hover:text-red-400"} title="Remove this box">×</button>
+            </div>
+          ))}
+          {!ph.boxes.length && <button onClick={() => addBox(i, -1)} className="text-sm text-emerald-400 hover:text-emerald-300 font-medium px-1 py-1 pl-3">+ Add box</button>}
+        </div>
+      ))}
+      <div className="flex flex-wrap items-center gap-3">
+        <button onClick={addPhase} className="text-sm text-emerald-400 hover:text-emerald-300 font-medium px-1 py-1">+ Add phase</button>
+        {custom && <button onClick={onReset} className="text-sm text-zinc-400 hover:text-zinc-200 font-medium px-1 py-1" title="Throw away your boxes and draw the diagram from the steps again">↺ Rebuild from steps</button>}
+      </div>
+      <p className="text-[12px] text-zinc-500">{custom ? "Your own boxes are used. Step edits no longer change the diagram." : "The diagram follows your steps. Change a box here to draw your own."}</p>
+    </div>
+  )
+}
+
 // Section heading (the small green label) — turns into an input in edit mode so
 // the user can rename "Key Observations" → "Notes" etc. if they want.
 function SectionLabel({ text }) {
@@ -58,6 +96,7 @@ export default function InsightsPanel({ insights, onChange }) {
   const faqList = Array.isArray(faqs) ? faqs : []
   const hasFaqs = faqList.length > 0
   const canEdit = typeof onChange === "function"
+  const flowPhases = insights.flow || insights.flowAuto || []
 
   // Patch a single field on the insights object → flows straight into exports.
   const patch = (k, v) => onChange?.({ ...insights, [k]: v })
@@ -135,14 +174,19 @@ export default function InsightsPanel({ insights, onChange }) {
         </div>
       )}
 
-      {/* Flow diagram (view only — generated from the steps) */}
-      {flowSvg && !editing && (
+      {/* Flow diagram: follows the steps; in edit mode the boxes can be changed */}
+      {(flowSvg || editing) && (
         <div>
           <SectionLabel text="Flow Diagram" />
-          <div
+          {editing && (
+            <div className="mb-3">
+              <FlowEditor phases={flowPhases} custom={!!insights.flow} onChange={(v) => patch("flow", v)} onReset={() => patch("flow", null)} />
+            </div>
+          )}
+          {flowSvg && <div
             className="bg-white rounded-lg p-4 overflow-x-auto [&_svg]:max-w-full [&_svg]:h-auto [&_svg]:mx-auto"
             dangerouslySetInnerHTML={{ __html: flowSvg }}
-          />
+          />}
         </div>
       )}
 

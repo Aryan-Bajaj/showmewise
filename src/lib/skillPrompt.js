@@ -136,8 +136,8 @@ If there is truly no followable action (small talk only, webcam-only, pause), re
 // so verbatim narration ("Let me move this table just a little bit…") reads like a
 // clean imperative instruction. Conservative — it never changes the actual action.
 // "Mention the option to save as", "Explain the process of logging in using
-// Okta": the model wrote what the trainer TALKS about instead of what the user
-// DOES (seen on a real run). The action inside is kept: "Save as", "Log in using Okta".
+// Single Sign-On": the model wrote what the trainer TALKS about instead of what the user
+// DOES (seen on a real run). The action inside is kept: "Save as", "Log in using Single Sign-On".
 const GERUND = { exporting: "export", adding: "add", saving: "save", opening: "open", logging: "log", selecting: "select", clicking: "click", creating: "create", using: "use", changing: "change", sharing: "share", filtering: "filter", downloading: "download", copying: "copy", editing: "edit", removing: "remove", entering: "enter", typing: "type", setting: "set", running: "run", closing: "close", choosing: "choose", moving: "move", uploading: "upload", accessing: "access", checking: "check", posting: "post", searching: "search" }
 function talkToAction(s) {
   const m = s.match(/^(?:mention|discuss|explain|describe|show|note)\s+(?:that\s+)?(?:(?:the|an?)\s+)?(?:(?:option|possibility|ability|way|process)\s+(?:to|of|for)\s+|how\s+to\s+)(.+)$/i)
@@ -156,8 +156,8 @@ function tidyLine(s) {
   let out = talkToAction(s.trim())
     .replace(/^\s*(okay|ok|so|now|then|alright|well|um+|uh+|yeah|and)[,!.\s]+/i, "")
     // speech copied as a step ("You can save this version", "You type your
-    // Okta information", seen on a real run): the order without "you can"
-    // "If you want to bring your WBS Elements, you can bring." → the wish is the order
+    // login details", seen on a real run): the order without "you can"
+    // "If you want to add your filters, you can add." → the wish is the order
     .replace(/^if\s+(you|we)\s+(want|wish|need)\s+to\s+([^,]+),\s*(you|we)\s+can\b.*$/i, "$3.")
     .replace(/^come here and\s+/i, "")
     .replace(/^(you|we)\s+(can|could|should|need to|have to|will|must)\s+(even\s+|also\s+|then\s+|just\s+)?/i, "")

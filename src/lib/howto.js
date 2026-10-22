@@ -187,7 +187,7 @@ export const HOWTO = [
   {
     id: "faq-flow", title: "Step 5c. Summary, questions and flow chart", img: "faq-flow",
     marks: [
-      { n: 1, x: 17.2, y: 7.2, dir: "right", text: "Flow diagram: all parts of the process from start to end." },
+      { n: 1, x: 17.2, y: 7.2, dir: "right", text: "Flow diagram: all parts of the process from start to end. It follows your step edits by itself. In Edit document you can rename, add or remove boxes and phases." },
       { n: 2, x: 13.9, y: 39.1, dir: "right", text: "Questions and answers about your process. Click a question to open its answer." },
     ],
     body: ["Above them: the purpose of the guide and a short summary. All of this is also in the saved files."],

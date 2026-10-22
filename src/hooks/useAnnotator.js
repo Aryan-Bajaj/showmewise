@@ -7,6 +7,8 @@ import {
   SEGMENT_PROMPT, SEGMENT_SCHEMA, isScreenlessFrame, groundStepInEvidence,
 } from "../lib/skillPrompt"
 import { callOllama, callWebLLM, callLocalEngine, WEBLLM_NO_VISION } from "../lib/llm"
+import { findPointers, notStatic, staticSpots, clickLine, grayFromDataUrl } from "../lib/pointer"
+import { PLAN_PROMPT, PLAN_SCHEMA, planBatches, parsePlan, groundPlan, addPlanToWindows } from "../lib/plan"
 import { smartCrop } from "../lib/smartCrop"
 import { ocrNear, screenChanges } from "./useOCR"
 import { keyTerms, missingTerms, worthRetry, COVERAGE_ADDENDUM, spokenActions, missingActions, tidyActions, tidyNote, screenNames, screenCounts, screenSpelling } from "../lib/coverage"
@@ -294,8 +296,57 @@ export default function useAnnotator() {
       // screen text of the part for the checks below
       const changes = screenChanges(ocrFrameTexts, a, b)
       const seen = [ocr, ...changes.lines].filter(Boolean).join("\n")
-      windows.push({ a, b, center, text, ocr, seen, changes: changes.log, actions: spokenActions(text) })
+      windows.push({ a, b, center, text, ocr, seen, changes: changes.log, opened: changes.opened, actions: spokenActions(text) })
     }
+
+    // Clicks nobody says: when a window opens, the pointer in the frame just
+    // before shows what was clicked (lib/pointer.js). No pointer found → nothing.
+    try {
+      const atFrame = (t) => (frames || []).find((f) => Math.abs(f.timestamp - t) < 0.6 && f.imageData)
+      const wanted = windows.flatMap((w) => (w.opened || []).map((o) => ({ w, o })))
+      if (wanted.length) {
+        onStatus?.("Looking for the mouse pointer where a window opens…")
+        const sample = (frames || []).filter((f) => f.imageData).filter((_, i, a) => a.length <= 10 || i % Math.ceil(a.length / 10) === 0)
+        const lists = []
+        for (const f of sample) { const g = await grayFromDataUrl(f.imageData); lists.push(findPointers(g.gray, g.w, g.h)) }
+        const spots = staticSpots(lists)
+        for (const { w, o } of wanted) {
+          const f = atFrame(o.before)
+          if (!f) continue
+          const g = await grayFromDataUrl(f.imageData)
+          const pt = notStatic(findPointers(g.gray, g.w, g.h), spots)[0]
+          if (!pt) continue
+          const words = (ocrFrameTexts || []).find((x) => Math.abs(x.timestamp - o.before) < 0.6)?.words || []
+          const line = clickLine(pt, words, o.title, g.h)
+          ;(w.clicks || (w.clicks = [])).push({ t: o.t, title: o.title, line })
+          const list = w.actions || (w.actions = [])
+          const at = Math.round(((o.t - w.a) / Math.max(1, w.b - w.a)) * list.length)
+          list.splice(Math.max(0, Math.min(list.length, at)), 0, line)
+          console.info(`[VideoDoc] click at ${Math.round(o.t)}s (pointer ${pt.x},${pt.y}): ${line}`)
+        }
+      }
+    } catch (e) { console.info("[VideoDoc] pointer pass skipped:", e?.message || e) }
+
+    // Whole recording first: every action said, with its time, checked against
+    // the speech and added to the checklist of its part (lib/plan.js).
+    // Best-effort: a failed call only means the parts keep their own lists.
+    try {
+      const batches = planBatches(chunks)
+      const items = []
+      for (let k = 0; k < batches.length && !shouldCancel(); k++) {
+        onStatus?.(`Reading the whole transcript for every action${batches.length > 1 ? ` (${k + 1} of ${batches.length})` : ""}…`)
+        const opts = { schema: PLAN_SCHEMA, maxTokens: 900, temperature: 0.1 }
+        const raw = aiMode === "ollama"
+          ? await callOllama(batches[k], PLAN_PROMPT, ollamaModel, opts)
+          : aiMode === "local"
+          ? await callLocalEngine(batches[k], PLAN_PROMPT, null, opts)
+          : await callWebLLM(batches[k], PLAN_PROMPT, null, { ...opts, model: ollamaModel })
+        items.push(...parsePlan(raw))
+      }
+      const plan = groundPlan(items, chunks)
+      addPlanToWindows(windows, plan)
+      console.info(`[VideoDoc] whole transcript: ${plan.length} actions (${items.length - plan.length} not found in the speech): ${plan.map((p) => `${p.t}s ${p.do}`).join(" | ")}`)
+    } catch (e) { console.info("[VideoDoc] whole transcript pass skipped:", e?.message || e) }
 
     // Every part that is dropped says why, in the browser console: missing
     // content must always be traceable to a rule, never a mystery.
@@ -527,6 +578,15 @@ export default function useAnnotator() {
         } catch { /* keep the first step */ }
       }
       step = { ...step, steps: screenNames(screenSpelling(tidyActions(step.steps, win.seen, win.text), numberVotes), win.seen), note: tidyNote(step.note) }
+      // a click the pointer showed must be in the step, also when the AI left it out
+      for (const c of win.clicks || []) {
+        const have = [step.title, ...(step.steps || [])].join(" ").toLowerCase()
+        if (have.includes(c.title.toLowerCase())) continue
+        const list = [...(step.steps || [])]
+        const at = Math.round(((c.t - win.a) / Math.max(1, win.b - win.a)) * list.length)
+        list.splice(Math.max(0, Math.min(list.length, at)), 0, c.line)
+        step = { ...step, steps: list }
+      }
       if (miss.length || missA.length) console.info(`[VideoDoc] part ${label} does not mention: ${[...miss, ...missA.map((a) => `"${a}"`)].join(", ")}`)
 
       // Confidence flag for the reviewer: a step the model first skipped, one

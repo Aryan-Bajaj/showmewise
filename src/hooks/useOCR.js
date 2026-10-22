@@ -491,18 +491,18 @@ function editDistance(a, b) {
 }
 export function screenChanges(frameTexts, a, b, maxChars = 900) {
   const frames = (frameTexts || []).filter((f) => f.timestamp >= a - 2 && f.timestamp <= b + 2).sort((x, y) => x.timestamp - y.timestamp)
-  if (frames.length < 2) return { log: "", lines: [] }
+  if (frames.length < 2) return { log: "", lines: [], opened: [] }
   const labels = frames.map((f) => {
     const m = new Map()
     for (const raw of (f.text || "").split("\n")) { const l = raw.trim(), k = LABEL_KEY(l); if (isLabel(l, k) && !m.has(k)) m.set(k, l) }
     return m
   })
   const seen = new Set(labels[0].keys())
-  const events = [], lines = []
+  const events = [], lines = [], opened = []
   for (let i = 1; i < frames.length; i++) {
     const next = labels[i + 1]
     // Normally a label must still be there on the next frame (so a misread does
-    // not count). But a window that is open for only ~3 s (SAP "Change Layout"
+    // not count). But a window that is open for only ~3 s (a "Change Layout"
     // on a real run) shows up on one frame: a label of 2+ words counts then too,
     // unless it is a near-copy of a label on the frame before or after (a misread).
     const near = (k) => [labels[i - 1], next].some((m) => m && [...m.keys()].some((o) => o !== k && editDistance(o, k) <= Math.max(2, Math.floor(k.length / 4))))
@@ -512,13 +512,18 @@ export function screenChanges(frameTexts, a, b, maxChars = 900) {
     const t = Math.round(frames[i].timestamp), at = `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`
     const names = fresh.map(([, l]) => l)
     lines.push(...names)
+    // a new window: its title is the first new name of 2 to 4 plain words
+    // (read top to bottom). Kept with the frame before, where the click was.
+    const realWords = (n) => n.trim().split(" ").every((w) => /[aeiouy]/i.test(w) && w.length >= 2) && n.split(" ").some((w) => w.length >= 4)
+    const title = names.length >= 4 && names.find((n) => /^[A-Za-z][A-Za-z&/-]*( [A-Za-z][A-Za-z&/-]*){1,3}$/.test(n.trim()) && realWords(n) && !misread(n.trim()))
+    if (title) opened.push({ t: frames[i].timestamp, before: frames[i - 1].timestamp, title: title.trim() })
     events.push(names.length > 10
       ? `${at} the screen changed (a new page or window), showing: ${names.slice(0, 5).map((n) => `"${n}"`).join(", ")}`
       : `${at} new on screen: ${names.slice(0, 5).map((n) => `"${n}"`).join(", ")}`)
   }
   let log = ""
   for (const e of events) { if ((log + e).length > maxChars) break; log += (log ? "\n" : "") + e }
-  return { log, lines }
+  return { log, lines, opened }
 }
 
 export function ocrNear(frameTexts, ts, windowSecs = 8, maxChars = 400) {

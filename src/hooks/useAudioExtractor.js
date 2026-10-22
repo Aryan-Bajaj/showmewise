@@ -1,7 +1,12 @@
 import { useCallback } from "react"
+import { denoise, speechToNoise } from "../lib/denoise"
+
+// Below this speech-to-noise level (dB) the background noise is taken out.
+// Clean recordings (most screen and meeting recordings) are left alone.
+export const NOISY_BELOW = 15
 
 export default function useAudioExtractor() {
-  const extractAudio = useCallback(async (videoFile) => {
+  const extractAudio = useCallback(async (videoFile, { noise = "auto" } = {}) => {
     const targetRate = 16000 // Whisper wants 16 kHz mono
 
     // Decode the audio. The usual cause of "Could not decode audio" on long
@@ -61,8 +66,15 @@ export default function useAudioExtractor() {
     source.start()
     const rendered = await offlineCtx.startRendering()
 
+    // Background noise (fan, hum, room): measured, and taken out only when the
+    // recording is noisy. noise: "auto" (default), "on" or "off" (for tests).
+    let data = rendered.getChannelData(0)
+    const snr = speechToNoise(data)
+    const cleaned = noise === "on" || (noise === "auto" && snr < NOISY_BELOW)
+    if (cleaned) data = denoise(data)
+    console.log(`[VideoDoc] speech ${snr.toFixed(1)} dB above the background${cleaned ? ", background noise removed" : ""}`)
+
     // Peak-normalise so the whole clip sits at a consistent, healthy level for Whisper.
-    const data = rendered.getChannelData(0)
     let peak = 0
     for (let i = 0; i < data.length; i++) { const a = Math.abs(data[i]); if (a > peak) peak = a }
     if (peak > 0 && peak < 0.95) {
@@ -70,7 +82,7 @@ export default function useAudioExtractor() {
       for (let i = 0; i < data.length; i++) data[i] *= g
     }
 
-    return { audio: data, sampleRate: targetRate }
+    return { audio: data, sampleRate: targetRate, snr, cleaned }
   }, [])
 
   return { extractAudio }

@@ -1,0 +1,86 @@
+// Whole-recording action list. The AI reads the full transcript once and lists
+// every action the viewer must do, with the time it is said. The tools then
+// check each one against the speech at that time (an action nobody said is
+// dropped) and hand it to the part it falls in, where it joins the checklist
+// the part must cover. So an action said in passing is not lost because its
+// part was busy with something else.
+import { actionKey } from "./coverage.js"
+
+export const PLAN_SCHEMA = {
+  type: "object",
+  properties: { actions: { type: "array", items: { type: "object", properties: { t: { type: "string" }, do: { type: "string" } }, required: ["t", "do"] } } },
+  required: ["actions"],
+}
+
+export const PLAN_PROMPT = `You are given the timestamped transcript of a screen recording in which someone shows how to do a task.
+List EVERY action the viewer has to do, in the order they happen, as short orders ("Enter the account number", "Click Save", "Open transaction XY12").
+Use the exact names that are said: buttons, fields, menus, codes and values.
+Include actions that are only said in passing ("then we save it", "double click on the row").
+Leave out greetings, explanations and talk that is not an action. Never invent an action that is not in the transcript.
+"t" is the time of the line where the action is said, copied from the transcript (mm:ss).
+Answer only as JSON: {"actions":[{"t":"mm:ss","do":"..."}]}`
+
+const ts = (s) => { const m = Math.floor(s / 60), x = Math.floor(s % 60); return `${String(m).padStart(2, "0")}:${String(x).padStart(2, "0")}` }
+const secs = (t) => { const m = String(t || "").match(/(\d{1,2}):(\d{2})/); return m ? +m[1] * 60 + +m[2] : null }
+
+// The transcript as "[mm:ss] text" lines, cut into pieces the model can read whole.
+export function planBatches(chunks, maxChars = 6000) {
+  const lines = (chunks || []).filter((c) => c.text?.trim()).map((c) => `[${ts(c.timestamp?.[0] ?? 0)}] ${c.text.trim()}`)
+  const out = []
+  let cur = ""
+  for (const l of lines) {
+    if (cur && cur.length + l.length + 1 > maxChars) { out.push(cur); cur = "" }
+    cur += (cur ? "\n" : "") + l
+  }
+  if (cur) out.push(cur)
+  return out
+}
+
+// The model's answer → [{ t, do }], only well-formed items.
+export function parsePlan(raw) {
+  const m = String(raw || "").match(/\{[\s\S]*\}/)
+  if (!m) return []
+  try {
+    const o = JSON.parse(m[0])
+    return (Array.isArray(o.actions) ? o.actions : [])
+      .map((a) => ({ t: secs(a?.t), do: String(a?.do || "").replace(/\s+/g, " ").trim().slice(0, 120) }))
+      .filter((a) => a.t != null && a.do.length >= 4)
+  } catch { return [] }
+}
+
+// Keep an action only when its words were said near its time (±20 s): the
+// tools check the model. An action without specific words ("Save") needs its
+// verb nearby.
+export function groundPlan(items, chunks, near = 20) {
+  const around = (t) => (chunks || [])
+    .filter((c) => Math.abs((c.timestamp?.[0] ?? 0) - t) <= near)
+    .map((c) => c.text).join(" ").toLowerCase()
+  const out = []
+  for (const it of items) {
+    const said = around(it.t)
+    if (!said) continue
+    const key = actionKey(it.do)
+    const ok = key.length
+      ? key.some((w) => said.includes(w.slice(0, 5)))
+      : said.includes(it.do.toLowerCase().split(/\s+/)[0])
+    if (ok && !out.some((o) => o.do.toLowerCase() === it.do.toLowerCase())) out.push(it)
+  }
+  return out
+}
+
+// Add each planned action to the checklist of the part it falls in, when the
+// part's own list does not have it yet.
+export function addPlanToWindows(windows, plan, max = 12) {
+  for (const it of plan) {
+    const w = windows.find((x) => it.t >= x.a && it.t < x.b) || windows.find((x) => it.t < x.b) || windows[windows.length - 1]
+    if (!w) continue
+    const list = w.actions || (w.actions = [])
+    const k = actionKey(it.do)
+    const have = list.some((a) => { const ka = actionKey(a); return k.length ? k.every((x) => ka.some((y) => y.slice(0, 5) === x.slice(0, 5))) : a.toLowerCase() === it.do.toLowerCase() })
+    if (have || list.length >= max) continue
+    // put it where it falls in time inside the part (the list is in order)
+    const at = Math.round(((it.t - w.a) / Math.max(1, w.b - w.a)) * list.length)
+    list.splice(Math.max(0, Math.min(list.length, at)), 0, it.do)
+  }
+  return windows
+}
