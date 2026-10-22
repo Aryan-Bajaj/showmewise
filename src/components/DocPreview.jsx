@@ -170,6 +170,7 @@ export default function DocPreview({ transcriptChunks, annotatedDocs, onSeek, on
   const [showVerify, setShowVerify] = useState(false)
   const [drafts, setDrafts] = useState({})            // acronym -> replacement text
   const [lightbox, setLightbox] = useState(null)      // enlarged screenshot {src, label}
+  const [reviewOnly, setReviewOnly] = useState(false) // review mode: only the steps that need a look
 
   const acronyms = useMemo(() => collectAcronyms(annotatedDocs), [annotatedDocs])
   const evalResult = useMemo(() => evaluateDoc(annotatedDocs), [annotatedDocs])
@@ -192,6 +193,7 @@ export default function DocPreview({ transcriptChunks, annotatedDocs, onSeek, on
       setDrafts(d => { const n = { ...d }; delete n[a]; return n })
     }
     const openVerify = (a) => { setShowVerify(true); setDrafts(d => ({ ...d, [a]: d[a] ?? "" })) }
+    const needsLook = (d, i) => !!d.step && (d.lowConfidence || (d.suggest || []).some((s) => !hiddenTips.has(`${i}|${s}`)))
 
     return (
       <div className="rounded-2xl bg-[#120c2c]/95 border border-violet-400/15 overflow-hidden flex flex-col" style={{ maxHeight: "82vh" }}>
@@ -239,8 +241,20 @@ export default function DocPreview({ transcriptChunks, annotatedDocs, onSeek, on
           </div>
         )}
 
+        {/* Review mode: the steps worth a quick look (thin evidence, or something said but not written) */}
+        {(() => {
+          const n = annotatedDocs.filter((d, i) => needsLook(d, i)).length
+          if (!n && !reviewOnly) return null
+          return (
+            <div className="px-5 py-2.5 border-b border-white/5 flex items-center gap-3 flex-wrap bg-amber-300/[0.04]">
+              <span className="text-[13px] text-amber-100/90">{n ? `${n} ${n === 1 ? "step needs" : "steps need"} a quick look` : "All steps checked"}</span>
+              <button onClick={() => setReviewOnly((r) => !r)} className="h-7 px-3 rounded-md text-[12.5px] font-semibold text-white bg-violet-600 hover:bg-violet-500 transition">{reviewOnly ? "Show all steps" : "Show only these"}</button>
+            </div>
+          )
+        })()}
+
         <div className="overflow-y-auto divide-y divide-white/5">
-          {annotatedDocs.map((doc, i) => (
+          {annotatedDocs.map((doc, i) => (reviewOnly && !needsLook(doc, i)) ? null : (
             <div key={i} className="p-4 sm:p-5">
               {/* Header: part badge, title, time; labelled buttons are always visible */}
               <div className="flex flex-wrap items-center gap-2.5">
