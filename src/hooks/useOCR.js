@@ -515,7 +515,7 @@ export function screenChanges(frameTexts, a, b, maxChars = 900) {
     // a new window: its title is the first new name of 2 to 4 plain words
     // (read top to bottom). Kept with the frame before, where the click was.
     const realWords = (n) => n.trim().split(" ").every((w) => /[aeiouy]/i.test(w) && w.length >= 2) && n.split(" ").some((w) => w.length >= 4)
-    const title = names.length >= 4 && names.find((n) => /^[A-Za-z][A-Za-z&/-]*( [A-Za-z][A-Za-z&/-]*){1,2}$/.test(n.trim()) && realWords(n) && !misread(n.trim()))
+    const title = names.length > 10 && names.find((n) => /^[A-Za-z][A-Za-z&/-]*( [A-Za-z][A-Za-z&/-]*){1,2}$/.test(n.trim()) && realWords(n) && !misread(n.trim()))
     if (title) opened.push({ t: frames[i].timestamp, before: frames[i - 1].timestamp, title: title.trim() })
     events.push(names.length > 10
       ? `${at} the screen changed (a new page or window), showing: ${names.slice(0, 5).map((n) => `"${n}"`).join(", ")}`

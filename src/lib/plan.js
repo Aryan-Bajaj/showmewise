@@ -44,7 +44,8 @@ export function parsePlan(raw) {
     const o = JSON.parse(m[0])
     return (Array.isArray(o.actions) ? o.actions : [])
       .map((a) => ({ t: secs(a?.t), do: String(a?.do || "").replace(/\s+/g, " ").trim().slice(0, 120) }))
-      .filter((a) => a.t != null && a.do.length >= 4)
+      // a thin item ("Click", "login") says nothing a reader can do
+      .filter((a) => a.t != null && a.do.length >= 4 && !/^(click|copy|paste|select|open|go|type|enter|press|choose|tap)\W*$/i.test(a.do))
   } catch { return [] }
 }
 
