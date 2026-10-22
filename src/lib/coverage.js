@@ -155,12 +155,17 @@ function dropFieldTour(steps) {
 // "Enter 'For example put this enter press put this' into the field": a spoken
 // sentence taken as the value (seen on a real run). A long value none of whose
 // words is on the screen is dropped; short values and values seen on screen stay.
+const SPOKEN_FILLER = new Set("put this that here there it we you have to for the a an and so now just like ok okay example press enter click".split(" "))
 function dropSpokenValues(steps, screen = "") {
   if (!screen) return steps
   const seen = screen.toLowerCase()
   return steps.filter((a) => {
     const v = a.match(/^(?:enter|type|put|input|write)\s+['"‘“]([^'"’”]+)['"’”]/i)?.[1]
-    if (!v || v.trim().split(/\s+/).length < 5) return true
+    if (!v) return true
+    // "put this", "We have to Fill for period": speech, not something to type
+    const words = v.toLowerCase().match(/[a-z]+/g) || []
+    if (words.length >= 2 && (/^(we|you|i|it)$/.test(words[0]) || words.every((w) => SPOKEN_FILLER.has(w)))) return false
+    if (words.length < 5) return true
     return (v.toLowerCase().match(/[a-z]{4,}/g) || []).some((w) => seen.includes(w))
   })
 }
@@ -172,8 +177,9 @@ function dropSpokenValues(steps, screen = "") {
 // "Collapse") 3 are enough: a later run read just 3 folders off the menu tree.
 const TREE = /^(expand|collapse)\b/
 function dropScreenLists(steps, spoken = "") {
-  if (!spoken) return steps
-  const said = spoken.toLowerCase()
+  // a part with no speech is checked too, but only long runs (5+) count there
+  const said = (spoken || "").toLowerCase()
+  const silent = !said.trim()
   const shape = (a) => a.replace(QUOTED, "'_'").toLowerCase().replace(/\s+/g, " ").trim()
   const name = (a) => ([...a.matchAll(QUOTED)][0]?.[1] || "").toLowerCase()
   const out = []
@@ -181,7 +187,7 @@ function dropScreenLists(steps, spoken = "") {
     let j = i + 1
     while (j < steps.length && name(steps[i]) && shape(steps[j]) === shape(steps[i])) j++
     const run = steps.slice(i, j)
-    const listed = run.length >= (TREE.test(shape(steps[i])) ? 3 : 4) && run.every((a) => name(a) && !said.includes(name(a)))
+    const listed = run.length >= (silent ? 5 : TREE.test(shape(steps[i])) ? 3 : 4) && run.every((a) => name(a) && !said.includes(name(a)))
     if (!listed) out.push(...run)
     i = j
   }
@@ -194,11 +200,15 @@ function dropScreenLists(steps, spoken = "") {
     let j = i
     while (j < out.length && TREE_LINE.test(out[j])) j++
     const run = out.slice(i, Math.max(j, i + 1))
-    const tree = j - i >= 3 && run.every((a) => !said.includes(a.match(TREE_LINE)[1].replace(/['"‘’“”]/g, "").toLowerCase()))
+    // 8 folders in a row on a real run, one of them ("SAP Menu") said aloud:
+    // a long run is a read-out even when one name was said
+    const saidN = j - i ? run.filter((a) => said.includes(a.match(TREE_LINE)[1].replace(/['"‘’“”]/g, "").toLowerCase())).length : 0
+    const tree = j - i >= 5 ? saidN <= 1 : j - i >= 3 && !silent && saidN === 0
     if (!tree) kept.push(...run)
     i += run.length
   }
-  return kept.length ? kept : out.length ? out : steps
+  // a part that was only a read-out keeps its first line, so it is not empty
+  return kept.length ? kept : out.length ? out.slice(0, 1) : steps.slice(0, 1)
 }
 
 // A note about what to ignore ("the speaker mentions a test system, which is
