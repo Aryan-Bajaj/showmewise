@@ -157,15 +157,16 @@ function dropFieldTour(steps) {
 // words is on the screen is dropped; short values and values seen on screen stay.
 const SPOKEN_FILLER = new Set("put this that here there it we you have to for the a an and so now just like ok okay example press enter click".split(" "))
 function dropSpokenValues(steps, screen = "") {
-  if (!screen) return steps
-  const seen = screen.toLowerCase()
+  const seen = (screen || "").toLowerCase()
   return steps.filter((a) => {
+    // "I already have one report open": the speaker, never an instruction
+    if (/^I\s+(?!\.)/.test(a)) return false
     const v = a.match(/^(?:enter|type|put|input|write)\s+['"‘“]([^'"’”]+)['"’”]/i)?.[1]
     if (!v) return true
     // "put this", "We have to Fill for period": speech, not something to type
     const words = v.toLowerCase().match(/[a-z]+/g) || []
     if (words.length >= 2 && (/^(we|you|i|it)$/.test(words[0]) || words.every((w) => SPOKEN_FILLER.has(w)))) return false
-    if (words.length < 5) return true
+    if (words.length < 5 || !seen) return true
     return (v.toLowerCase().match(/[a-z]{4,}/g) || []).some((w) => seen.includes(w))
   })
 }
