@@ -2,9 +2,9 @@
 // was clicked when a new window opens right after. The tools do this, not the
 // AI: the screen shows where the pointer was and which window opened.
 //
-// ponytail: only the white arrow on a darker area is found (dark apps, toolbars,
-// dark themes). The black-edged arrow on a white page touches button text and
-// is not found yet; then nothing is added (never a guess).
+// Two looks: the white arrow on a dark area (dark apps, toolbars), and the
+// black edge of the arrow on a light page (most apps). No pointer found means
+// nothing is added (never a guess).
 
 // gray: luminance 0..255 per pixel (Uint8Array, row by row), w × h.
 // Returns { x, y } of the arrow tip, or null.
@@ -13,7 +13,58 @@ export function findPointer(gray, w, h, opts = {}) {
 }
 
 // Every arrow-shaped spot, best first ({ x, y, score }).
-export function findPointers(gray, w, h, { bright = 190 } = {}) {
+export function findPointers(gray, w, h, opts = {}) {
+  const all = [...findWhiteArrows(gray, w, h, opts), ...findArrowEdges(gray, w, h)]
+  return all.filter((p, i) => all.findIndex((q) => Math.abs(q.x - p.x) <= 3 && Math.abs(q.y - p.y) <= 3) === i).sort((a, b) => b.score - a.score)
+}
+
+// The arrow on a light page: its black edge is one thin dark patch. Straight
+// left side, a slanted right side that widens evenly from the tip, light inside.
+// Letters fail one of these ("k" widens in a jump, "A" has no straight side).
+function findArrowEdges(gray, w, h, dark = 95) {
+  const seen = new Uint8Array(w * h)
+  const stack = []
+  const found = []
+  for (let start = 0; start < w * h; start++) {
+    if (seen[start] || gray[start] > dark) continue
+    const px = []
+    stack.push(start); seen[start] = 1
+    while (stack.length) {
+      const p = stack.pop()
+      if (px.length <= 500) px.push(p)
+      const x = p % w, y = (p - x) / w
+      for (const q of [x > 0 ? p - 1 : -1, x < w - 1 ? p + 1 : -1, y > 0 ? p - w : -1, y < h - 1 ? p + w : -1]) {
+        if (q >= 0 && !seen[q] && gray[q] <= dark) { seen[q] = 1; stack.push(q) }
+      }
+    }
+    if (px.length < 30 || px.length > 400) continue
+    let x0 = w, y0 = h, x1 = 0, y1 = 0
+    for (const p of px) { const x = p % w, y = (p - x) / w; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y }
+    const bw = x1 - x0 + 1, bh = y1 - y0 + 1
+    if (bh < 12 || bh > 44 || bw < 8 || bw > 30 || bh / bw < 1.2 || bh / bw > 2.6) continue
+    if (px.length / (bw * bh) > 0.5) continue // an edge, not a filled shape
+    const left = new Array(bh).fill(w), right = new Array(bh).fill(-1)
+    for (const p of px) { const x = p % w, r = (p - x) / w - y0; if (x < left[r]) left[r] = x; if (x > right[r]) right[r] = x }
+    const top = Math.floor(bh * 0.6)
+    let lmin = w, lmax = 0
+    for (let r = 0; r < top; r++) { if (left[r] < lmin) lmin = left[r]; if (left[r] > lmax) lmax = left[r] }
+    if (lmax - lmin > 2 || right[0] - left[0] > 3) continue
+    // the right side: about the same step every row (a straight slant)
+    const slope = (right[top - 1] - right[0]) / Math.max(1, top - 1)
+    if (slope < 0.45 || slope > 1.2) continue
+    let off = 0
+    for (let r = 0; r < top; r++) off = Math.max(off, Math.abs(right[r] - (right[0] + slope * r)))
+    if (off > 2.5) continue
+    // light inside, between the two sides
+    let inside = 0, n = 0
+    for (let r = 3; r < top; r++) for (let x = left[r] + 2; x < right[r] - 1; x++) { inside += gray[(y0 + r) * w + x]; n++ }
+    if (n < 8 || inside / n < 170) continue
+    found.push({ x: left[0], y: y0, score: Math.round((inside / n) * 0.7 - off * 10) })
+  }
+  return found
+}
+
+function findWhiteArrows(gray, w, h, { bright = 190 } = {}) {
   const seen = new Uint8Array(w * h)
   const stack = []
   const found = []
@@ -67,7 +118,7 @@ export function findPointers(gray, w, h, { bright = 190 } = {}) {
     const score = (1 - Math.abs(fill - 0.45)) * (255 - ring / n)
     found.push({ x: left[0], y: y0, score: Math.round(score) })
   }
-  return found.sort((a, b) => b.score - a.score)
+  return found
 }
 
 // Luminance from canvas RGBA pixels.
