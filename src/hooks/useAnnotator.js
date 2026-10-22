@@ -243,7 +243,7 @@ export default function useAnnotator() {
   // names harvested from webcam tiles — blocked from becoming artifact names.
   const annotate = useCallback(async (
     chunks, frames, aiMode, onProgress, onStatus, sections, ollamaModel, ocrFrameTexts = [],
-    shouldCancel = () => false, useVision = false, sceneCuts = [], onDraft = null, participants = [], userTerms = [],
+    shouldCancel = () => false, useVision = false, sceneCuts = [], onDraft = null, participants = [], userTerms = [], resume = null,
   ) => {
     // Build windows across the WHOLE video timeline (not just where someone spoke),
     // so silent stretches are still documented from the on-screen (OCR) text.
@@ -267,8 +267,11 @@ export default function useAnnotator() {
     }
     // 2) Segment on SCREEN CHANGES + SPEECH ACTIVITY CHANGES — eyes and ears
     // together, like a person taking notes (fixed slicing only as last resort).
+    // a resumed run keeps its parts exactly as they were cut (lib/resume.js)
+    let segments = resume?.segments || null
+    if (!segments) {
     const speechCuts = await speechBoundaries(chunks, maxT, aiMode, ollamaModel, onStatus)
-    let segments = buildSegments(ocrFrameTexts, maxT, shareStart, sceneCuts, speechCuts)
+    segments = buildSegments(ocrFrameTexts, maxT, shareStart, sceneCuts, speechCuts)
     // 3) …bounded by what this machine can chew through in reasonable time.
     // The cap SCALES with video length (one window per ~45s of recording) so a
     // 60-minute video gets proportionally more steps than a 30-minute one —
@@ -279,6 +282,8 @@ export default function useAnnotator() {
     const span = maxT - (shareStart ?? 0)
     const wanted = Math.max(12, Math.ceil(span / 45))
     segments = capSegments(segments, Math.min(wanted, mem <= 4 ? 48 : 96))
+    resume?.save({ segments })
+    }
 
     const windows = []
     for (const [a, b] of segments) {
@@ -341,6 +346,8 @@ ${seen}`, userTerms) })
     // the speech and added to the checklist of its part (lib/plan.js).
     // Best-effort: a failed call only means the parts keep their own lists.
     try {
+      let plan = resume?.plan || null
+      if (!plan) {
       const batches = planBatches(chunks)
       const items = []
       for (let k = 0; k < batches.length && !shouldCancel(); k++) {
@@ -353,9 +360,12 @@ ${seen}`, userTerms) })
           : await callWebLLM(batches[k], PLAN_PROMPT, null, { ...opts, model: ollamaModel })
         items.push(...parsePlan(raw))
       }
-      const plan = groundPlan(items, chunks)
+      plan = groundPlan(items, chunks)
+      console.info(`[VideoDoc] whole transcript: ${items.length - plan.length} actions not found in the speech`)
+      resume?.save({ plan })
+      }
       addPlanToWindows(windows, plan)
-      console.info(`[VideoDoc] whole transcript: ${plan.length} actions (${items.length - plan.length} not found in the speech): ${plan.map((p) => `${p.t}s ${p.do}`).join(" | ")}`)
+      console.info(`[VideoDoc] whole transcript: ${plan.length} actions kept: ${plan.map((p) => `${p.t}s ${p.do}`).join(" | ")}`)
     } catch (e) { console.info("[VideoDoc] whole transcript pass skipped:", e?.message || e) }
 
     // "Said but not written": what was said (and shown) in this part but is not
@@ -474,6 +484,15 @@ ${seen}`, userTerms) })
       const nextText = windows[i + 1]?.text ?? null
 
       onProgress?.(i, windows.length)
+
+      // already written before the run stopped: keep it as it was
+      const done = resume?.done?.[`${win.a}-${win.b}`]
+      if (done) {
+        results.push({ ...done, frame: frame?.imageData ?? null, zoomFrame: null })
+        okCount++
+        onDraft?.([...results])
+        continue
+      }
 
       // Noise gate: skip pure meeting / AV-logistics chatter (mic checks, screen
       // sharing, greetings) that has no real on-screen content, so it never turns
@@ -648,6 +667,7 @@ ${seen}`, userTerms) })
         lowConfidence,
         suggest: suggestions(step, win),
       })
+      { const { frame: _f, zoomFrame: _z, ...lite } = results[results.length - 1]; resume?.save({ done: { [`${win.a}-${win.b}`]: lite } }) }
       // Live draft: let the UI render steps as they are written.
       onDraft?.([...results])
     }

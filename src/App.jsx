@@ -23,6 +23,7 @@ import { scrubSensitive } from "./lib/skillPrompt"
 import { fixTranscriptChunks } from "./lib/transcriptFixups"
 import { fixChunksWithScreen } from "./lib/screenVocab"
 import { userSpelling } from "./lib/terms"
+import { runKey, loadRun, saveRun } from "./lib/resume"
 import { screenCounts, screenSpelling, screenNames, tidyActions, tidyNote } from "./lib/coverage"
 import { buildStepShots } from "./lib/stepShots"
 
@@ -81,6 +82,7 @@ export default function App() {
   const [companyName, setCompanyName] = useState("")
   const [insights, setInsights] = useState(null)
   const termsRef = useRef([]) // the key words the user typed for this video
+  const runRef = useRef({ key: null, saved: null }) // pick up where it stopped (lib/resume.js)
   const [aiMode, setAiMode] = useState(null)
   const [aiModel, setAiModel] = useState(null)
 
@@ -210,6 +212,28 @@ export default function App() {
       setFrames(extracted)
       updateStep('frames', { status: 'done', detail: `${extracted.length} frames`, pct: 100, endedAt: Date.now() })
 
+      // the same video and settings as an unfinished run: reuse its transcript
+      // and screen text instead of doing them again
+      const key = runKey(file, opts)
+      const saved = await loadRun(key)
+      runRef.current = { key, saved }
+      const s1 = saved?.stage1
+      if (s1 && s1.frameCount === extracted.length) {
+        const again = 'kept from the last try'
+        updateStep('audio', { status: 'done', detail: again, startedAt: Date.now(), endedAt: Date.now() })
+        updateStep('transcribe', { status: 'done', detail: `${s1.chunks.length} segments, ${again}`, startedAt: Date.now(), endedAt: Date.now() })
+        updateStep('ocr', { status: 'done', detail: `${s1.frameTexts.length} frames read, ${again}`, startedAt: Date.now(), endedAt: Date.now() })
+        setTranscriptChunks(s1.chunks)
+        setOcrFrameTexts(s1.frameTexts)
+        termsRef.current = opts.terms || []
+        setTranscriptChunks(fixChunksWithScreen(s1.chunks, s1.frameTexts, termsRef.current))
+        setSceneCuts(s1.cuts || [])
+        setParticipants(s1.people || [])
+        setToolsUsed(s1.tools || [])
+        setShowAISettings(true)
+        return
+      }
+
       updateStep('audio', { status: 'active', detail: 'Reading audio track...', startedAt: Date.now() })
       // Many screen recorders save no sound at all. The pictures are fine, so
       // the guide is then written from the screen alone instead of stopping.
@@ -241,6 +265,7 @@ export default function App() {
       setParticipants(people || [])
       setToolsUsed(tools)
       updateStep('ocr', { status: 'done', detail: tools.length ? `Tools: ${tools.join(', ')}` : `${frameTexts.length} frames read`, endedAt: Date.now() })
+      saveRun(key, { stage1: { frameCount: extracted.length, chunks, frameTexts, tools, cuts: cuts || [], people: people || [] }, annot: null })
 
       setShowAISettings(true)
     } catch (e) {
@@ -304,6 +329,19 @@ export default function App() {
       updateStep('annotate', { status: 'active', startedAt: Date.now() })
     }
 
+    // pick up where it stopped: the same video, model and settings as an
+    // unfinished run keep its parts (lib/resume.js)
+    const rk = runRef.current
+    const sig = [aiMode, model, JSON.stringify(sections || []), useVision, (termsRef.current || []).join(",")].join("|")
+    const prev = rk.saved?.annot?.sig === sig ? rk.saved.annot : null
+    let annot = prev || { sig, done: {} }
+    const resume = rk.key ? {
+      segments: prev?.segments, plan: prev?.plan, done: prev?.done || {},
+      save: (patch) => { annot = { ...annot, ...patch, done: { ...annot.done, ...(patch.done || {}) } }; saveRun(rk.key, { annot }) },
+    } : null
+    const kept = Object.keys(resume?.done || {}).length
+    if (kept) updateStep('annotate', { detail: `Picking up where it stopped: ${kept} parts already written` })
+
     try {
       const docs = await annotate(
         transcriptChunks,
@@ -337,6 +375,7 @@ export default function App() {
         (draft) => setAnnotatedDocs(draft),
         participants,
         termsRef.current,
+        resume,
       )
       if (cancelRef.current) {
         setAnnotatedDocs(docs)
@@ -344,6 +383,7 @@ export default function App() {
         return
       }
       updateStep('annotate', { status: 'done', detail: `${docs.length} entries annotated`, endedAt: Date.now() })
+      if (rk.key) saveRun(rk.key, { annot: null }) // finished: a new run writes the parts again
 
       // The annotator's LLM app-id READ the actual screen to name the app —
       // more reliable than the OCR regex sweep, which sees a vendor name in a garbled
