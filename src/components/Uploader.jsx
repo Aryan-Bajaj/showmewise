@@ -1,6 +1,7 @@
 import { useRef, useState } from "react"
 import { Video, ShieldCheck, Sparkles, CloudUpload } from "lucide-react"
 import { checkVideoSize, checkVideoDuration, MAX_VIDEO_MB, MAX_VIDEO_MIN } from "../lib/limits"
+import { parseTerms } from "../lib/terms"
 
 export default function Uploader({ onVideoSelect }) {
   const videoRef = useRef()
@@ -12,6 +13,7 @@ export default function Uploader({ onVideoSelect }) {
   // (measured). The desktop copy only bundles the small model.
   const desktop = import.meta.env.VITE_BUILD_TARGET === "desktop"
   const [accurate, setAccurate] = useState(false)
+  const [keywords, setKeywords] = useState("")
   const useAccurate = !desktop && accurate
 
   // Enforce build-level limits BEFORE the pipeline touches the file, so a
@@ -26,7 +28,7 @@ export default function Uploader({ onVideoSelect }) {
     if (sizeErr) { setLimitError(sizeErr); return }
     const durErr = await checkVideoDuration(file)
     if (durErr) { setLimitError(durErr); return }
-    onVideoSelect(file, { language, accurate: useAccurate })
+    onVideoSelect(file, { language, accurate: useAccurate, terms: parseTerms(keywords) })
   }
 
   const limitHint = [
@@ -102,6 +104,14 @@ export default function Uploader({ onVideoSelect }) {
             : language !== "en" ? "Fast suits clear speech. Choose Accurate when names and codes matter." : "Best for clear English speech."}
           {language !== "en" ? " The guide is written in English." : ""}
         </span>
+      </div>
+
+      {/* Key words (optional): spelled exactly like this in the guide */}
+      <div className="w-full max-w-2xl flex flex-col gap-1.5 text-sm">
+        <label htmlFor="vd-terms" className="text-zinc-300">Key words in the video <span className="text-zinc-500">(optional)</span></label>
+        <input id="vd-terms" value={keywords} onChange={(e) => setKeywords(e.target.value)} placeholder="For example: FS10N, Weekly Overview, Share"
+          className="bg-[#0f0b24] border border-white/15 rounded-lg px-3 py-2 text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-violet-400" />
+        <span className="text-xs text-zinc-500">Names or codes, separated by commas. The guide spells them exactly like this.</span>
       </div>
 
       {/* Trust row */}

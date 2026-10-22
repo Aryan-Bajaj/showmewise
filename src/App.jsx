@@ -22,6 +22,7 @@ import { consolidateProcedure, verifyProcedure, sanitizeDocs } from "./lib/refin
 import { scrubSensitive } from "./lib/skillPrompt"
 import { fixTranscriptChunks } from "./lib/transcriptFixups"
 import { fixChunksWithScreen } from "./lib/screenVocab"
+import { userSpelling } from "./lib/terms"
 import { screenCounts, screenSpelling, screenNames, tidyActions, tidyNote } from "./lib/coverage"
 import { buildStepShots } from "./lib/stepShots"
 
@@ -79,6 +80,7 @@ export default function App() {
   const [docTitle, setDocTitle] = useState("")
   const [companyName, setCompanyName] = useState("")
   const [insights, setInsights] = useState(null)
+  const termsRef = useRef([]) // the key words the user typed for this video
   const [aiMode, setAiMode] = useState(null)
   const [aiModel, setAiModel] = useState(null)
 
@@ -233,7 +235,8 @@ export default function App() {
       setOcrFrameTexts(frameTexts)
       // the screen spells the app's abbreviations right: "KBI report" heard,
       // "KPI Report" shown → the transcript takes the screen's spelling
-      setTranscriptChunks(fixChunksWithScreen(chunks, frameTexts))
+      termsRef.current = opts.terms || []
+      setTranscriptChunks(fixChunksWithScreen(chunks, frameTexts, termsRef.current))
       setSceneCuts(cuts || [])
       setParticipants(people || [])
       setToolsUsed(tools)
@@ -333,6 +336,7 @@ export default function App() {
         // user watches the document grow instead of staring at a progress bar.
         (draft) => setAnnotatedDocs(draft),
         participants,
+        termsRef.current,
       )
       if (cancelRef.current) {
         setAnnotatedDocs(docs)
@@ -403,7 +407,7 @@ export default function App() {
       // last word on numbers: the screen's most-read spelling (no later stage may
       // bring back a heard "7731520" for the "7731320" on screen)
       const votes = screenCounts(ocrFrameTexts)
-      finalDocs = finalDocs.map((d) => d.step ? { ...d, step: { ...d.step, steps: screenNames(screenSpelling(tidyActions(d.step.steps, d.ocrText || "", d.text || ""), votes), d.ocrText || ""), note: tidyNote(d.step.note) } } : d)
+      finalDocs = finalDocs.map((d) => d.step ? { ...d, step: { ...d.step, title: userSpelling(d.step.title, termsRef.current), steps: screenNames(screenSpelling(tidyActions(d.step.steps, d.ocrText || "", d.text || ""), votes), d.ocrText || "").map((x) => userSpelling(x, termsRef.current)), note: tidyNote(d.step.note) } } : d)
       trace("final", finalDocs)
 
       setAnnotatedDocs(finalDocs)

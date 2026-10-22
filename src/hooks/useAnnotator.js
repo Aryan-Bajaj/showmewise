@@ -7,6 +7,7 @@ import {
   SEGMENT_PROMPT, SEGMENT_SCHEMA, isScreenlessFrame, groundStepInEvidence,
 } from "../lib/skillPrompt"
 import { callOllama, callWebLLM, callLocalEngine, WEBLLM_NO_VISION } from "../lib/llm"
+import { termsIn } from "../lib/terms"
 import { findPointers, notStatic, staticSpots, clickLine, grayFromDataUrl } from "../lib/pointer"
 import { PLAN_PROMPT, PLAN_SCHEMA, planBatches, parsePlan, groundPlan, addPlanToWindows } from "../lib/plan"
 import { smartCrop } from "../lib/smartCrop"
@@ -241,7 +242,7 @@ export default function useAnnotator() {
   // names harvested from webcam tiles — blocked from becoming artifact names.
   const annotate = useCallback(async (
     chunks, frames, aiMode, onProgress, onStatus, sections, ollamaModel, ocrFrameTexts = [],
-    shouldCancel = () => false, useVision = false, sceneCuts = [], onDraft = null, participants = [],
+    shouldCancel = () => false, useVision = false, sceneCuts = [], onDraft = null, participants = [], userTerms = [],
   ) => {
     // Build windows across the WHOLE video timeline (not just where someone spoke),
     // so silent stretches are still documented from the on-screen (OCR) text.
@@ -296,7 +297,8 @@ export default function useAnnotator() {
       // screen text of the part for the checks below
       const changes = screenChanges(ocrFrameTexts, a, b)
       const seen = [ocr, ...changes.lines].filter(Boolean).join("\n")
-      windows.push({ a, b, center, text, ocr, seen, changes: changes.log, opened: changes.opened, actions: spokenActions(text) })
+      windows.push({ a, b, center, text, ocr, seen, changes: changes.log, opened: changes.opened, actions: spokenActions(text), userTerms: termsIn(`${text}
+${seen}`, userTerms) })
     }
 
     // Clicks nobody says: when a window opens, the pointer in the frame just
@@ -431,7 +433,10 @@ export default function useAnnotator() {
       const changed = win.changes
         ? `\n[What newly appeared on the screen in this part, in time order. A window, menu, tab, field or button that appears is usually the result of a click just before it, also when nobody says it: write that click as an action, with the exact name shown. Never write "note" or "observe" lines for these labels, and ignore data values and misread text]:\n${win.changes}`
         : ""
-      const userMsg = buildContextPrompt(win.text, label, prev, next, win.ocr) + said + changed
+      // the user's key words in this part: their spelling, and each must be used
+      const words = win.userTerms?.length ? `
+[Key words the user gave for this video, said or shown in this part. Use each where it belongs, spelled exactly like this]: ${win.userTerms.join(", ")}` : ""
+      const userMsg = buildContextPrompt(win.text, label, prev, next, win.ocr) + said + changed + words
       // up to 3 pictures of the part in time order, so the model sees the sequence
       const images = useImg ? (win.pics?.length ? win.pics : [frame]).map((f) => f.imageData) : undefined
       const schema = STEP_JSON_SCHEMA
@@ -568,10 +573,10 @@ export default function useAnnotator() {
       // this part must reach the step. Missing ones → ONE rewrite that names
       // them; kept only when it covers more and drops no action.
       // The spoken actions are checked the same way.
-      const terms = keyTerms(win.text, win.seen)
+      const terms = [...new Set([...keyTerms(win.text, win.seen), ...(win.userTerms || [])])]
       let miss = missingTerms(step, terms)
       let missA = missingActions(step, win.actions)
-      if (worthRetry(miss) || missA.length >= 2) {
+      if (worthRetry(miss) || missA.length >= 2 || miss.some((m) => win.userTerms?.includes(m))) {
         try {
           const rawC = await runWindow(win, frame, label, prevText, nextText, visionLive && !!frame?.imageData, COVERAGE_ADDENDUM(miss, missA))
           const stepC = parseProcedureStep(rawC)
