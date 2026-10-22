@@ -134,7 +134,7 @@ export function tidyActions(steps, screen = "", spoken = "") {
     if (twin < 0) { out.push(a); continue }
     if (nums(a).every((n) => (screen || "").includes(n)) && !nums(out[twin]).every((n) => (screen || "").includes(n))) out[twin] = a
   }
-  return dropScreenLists(dropFieldTour(dropSpokenValues(out, screen)), spoken)
+  return dropDescriptions(dropScreenLists(dropFieldTour(dropSpokenValues(out, screen)), spoken))
 }
 
 // "Observe the Account Number field", "Observe the Company Code field", ...:
@@ -144,6 +144,15 @@ const LOOK = /^(observe|note|see|look at|review|identify|view|check)\s+the\s+.{1
 // "View the available options: Office, Logistics, Accounting, ...": the screen
 // read out as a list, not something to do (seen on a real run).
 const LOOK_LIST = /^(observe|note|see|look at|review|identify|view|check)\s+(the\s+)?[^:]{1,50}:\s*[^,]+(,[^,]+){2,}$/i
+// "The dashboard displays a table with columns ...": a description of the
+// screen, not an action (seen on a real run). Dropped when the part has real
+// actions; a part with only descriptions keeps them, so it is not left empty.
+const DESCRIBES = /^(the|there|this|it|its)\b[^.]{0,90}?\b(shows?|displays?|is|are|provides?|compares?|prompts?|contains?|lists?|indicates?|appears?)\b/i
+function dropDescriptions(steps) {
+  const acts = steps.filter((s) => !DESCRIBES.test(s))
+  return acts.length ? acts : steps
+}
+
 function dropFieldTour(steps) {
   const out = []
   for (let i = 0; i < steps.length;) {

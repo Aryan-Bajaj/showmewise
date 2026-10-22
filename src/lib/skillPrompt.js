@@ -157,6 +157,9 @@ function tidyLine(s) {
     .replace(/^\s*(okay|ok|so|now|then|alright|well|um+|uh+|yeah|and)[,!.\s]+/i, "")
     // speech copied as a step ("You can save this version", "You type your
     // Okta information", seen on a real run): the order without "you can"
+    // "If you want to bring your WBS Elements, you can bring." → the wish is the order
+    .replace(/^if\s+(you|we)\s+(want|wish|need)\s+to\s+([^,]+),\s*(you|we)\s+can\b.*$/i, "$3.")
+    .replace(/^come here and\s+/i, "")
     .replace(/^(you|we)\s+(can|could|should|need to|have to|will|must)\s+(even\s+|also\s+|then\s+|just\s+)?/i, "")
     .replace(/^(you|we)\s+(?=(type|click|select|open|go|enter|choose|press|add|save|export|copy|paste|navigate|log|search|drag|drop|scroll)\b)/i, "")
     .replace(/\b(let me|i'?ll|i will|i'?m going to|i am going to|we'?ll|we will|we'?re going to|let'?s)\s+/gi, "")
