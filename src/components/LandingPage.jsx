@@ -445,6 +445,18 @@ export default function LandingPage() {
               }}>
               See how it works ↓
             </button>
+
+            {/* a finished guide, made by VideoDoc from our public demo video: see the result before waiting for a run */}
+            <a href="/example/" target="_blank" rel="noopener" className="lp-ghost"
+              style={{
+                padding: '15px 32px', borderRadius: 100,
+                background: 'transparent',
+                border: '1px solid rgba(167,139,250,0.45)',
+                color: '#e4dcff', textDecoration: 'none',
+                cursor: 'pointer', fontSize: '1rem', fontWeight: 600,
+              }}>
+              📄 See an example guide
+            </a>
           </div>
 
 
