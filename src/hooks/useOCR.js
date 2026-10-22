@@ -479,7 +479,17 @@ const misread = (l) => /[[\]{}|]/.test(l) || l.split(/\s+/).some((w) => {
 })
 const isLabel = (l, k) => k.length >= 3 && k.length <= 40 && k.split(" ").length <= 6
   && (k.match(/[a-z]/g) || []).length >= 3 && (l.match(/[A-Za-z ]/g) || []).length / l.length >= 0.7 && !misread(l)
-export function screenChanges(frameTexts, a, b, maxChars = 700) {
+function editDistance(a, b) {
+  if (Math.abs(a.length - b.length) > 4) return 99
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j)
+  for (let i = 1; i <= a.length; i++) {
+    const cur = [i]
+    for (let j = 1; j <= b.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1))
+    prev = cur
+  }
+  return prev[b.length]
+}
+export function screenChanges(frameTexts, a, b, maxChars = 900) {
   const frames = (frameTexts || []).filter((f) => f.timestamp >= a - 2 && f.timestamp <= b + 2).sort((x, y) => x.timestamp - y.timestamp)
   if (frames.length < 2) return { log: "", lines: [] }
   const labels = frames.map((f) => {
@@ -491,7 +501,12 @@ export function screenChanges(frameTexts, a, b, maxChars = 700) {
   const events = [], lines = []
   for (let i = 1; i < frames.length; i++) {
     const next = labels[i + 1]
-    const fresh = [...labels[i]].filter(([k]) => !seen.has(k) && (!next || next.has(k)))
+    // Normally a label must still be there on the next frame (so a misread does
+    // not count). But a window that is open for only ~3 s (SAP "Change Layout"
+    // on a real run) shows up on one frame: a label of 2+ words counts then too,
+    // unless it is a near-copy of a label on the frame before or after (a misread).
+    const near = (k) => [labels[i - 1], next].some((m) => m && [...m.keys()].some((o) => o !== k && editDistance(o, k) <= Math.max(2, Math.floor(k.length / 4))))
+    const fresh = [...labels[i]].filter(([k]) => !seen.has(k) && (!next || next.has(k) || (k.includes(" ") && !near(k))))
     labels[i].forEach((_, k) => seen.add(k))
     if (!fresh.length) continue
     const t = Math.round(frames[i].timestamp), at = `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`
@@ -499,7 +514,7 @@ export function screenChanges(frameTexts, a, b, maxChars = 700) {
     lines.push(...names)
     events.push(names.length > 10
       ? `${at} the screen changed (a new page or window), showing: ${names.slice(0, 5).map((n) => `"${n}"`).join(", ")}`
-      : `${at} new on screen: ${names.slice(0, 8).map((n) => `"${n}"`).join(", ")}`)
+      : `${at} new on screen: ${names.slice(0, 5).map((n) => `"${n}"`).join(", ")}`)
   }
   let log = ""
   for (const e of events) { if ((log + e).length > maxChars) break; log += (log ? "\n" : "") + e }

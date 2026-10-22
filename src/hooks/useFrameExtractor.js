@@ -15,7 +15,7 @@ export default function useFrameExtractor() {
   // than MAX_FRAMES (so OCR time + memory stay bounded on long recordings).
   // A frame every ~3 s: a dialog that is open for a few seconds must be seen.
   // (At 10 s a whole selection screen or popup slipped between two frames.)
-  const TARGET_SPACING = 3  // seconds between frames we aim for
+  const TARGET_SPACING = 2  // seconds between frames we aim for (3 s missed a window open for 3 s)
   const MIN_FRAMES = 12     // floor — even a 30s clip gets real coverage
   const MAX_FRAMES = 300    // ceiling — 15 min keeps 3 s, a 30-min recording a frame every 6 s; ~60 MB of JPEGs
   const MAX_W = 1920        // full HD always: small UI labels must stay readable for OCR and markers
