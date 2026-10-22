@@ -46,6 +46,8 @@ export function parsePlan(raw) {
       .map((a) => ({ t: secs(a?.t), do: String(a?.do || "").replace(/\s+/g, " ").trim().slice(0, 120) }))
       // a thin item ("Click", "login") says nothing a reader can do
       .filter((a) => a.t != null && a.do.length >= 4 && !/^(click|copy|paste|select|open|go|type|enter|press|choose|tap)\W*$/i.test(a.do))
+      // only points, names nothing ("go to this tab here", "click here"): a reader cannot follow it
+      .filter((a) => !(/\b(here|this|that|there)\b/i.test(a.do) && !/\d|'|"|[A-Z]/.test(a.do.slice(1))))
   } catch { return [] }
 }
 

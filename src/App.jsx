@@ -19,7 +19,7 @@ import { webLLMLabel, isWebLLMVision, ollamaModelHasVision } from "./lib/llm"
 import { generateInsights } from "./lib/insights"
 import { flowFromDocs, flowToMermaid } from "./lib/flow"
 import { consolidateProcedure, verifyProcedure, sanitizeDocs } from "./lib/refine"
-import { scrubSensitive } from "./lib/skillPrompt"
+import { scrubSensitive, tidyLine } from "./lib/skillPrompt"
 import { fixTranscriptChunks } from "./lib/transcriptFixups"
 import { fixChunksWithScreen } from "./lib/screenVocab"
 import { userSpelling } from "./lib/terms"
@@ -447,7 +447,7 @@ export default function App() {
       // last word on numbers: the screen's most-read spelling (no later stage may
       // bring back a heard "7731520" for the "7731320" on screen)
       const votes = screenCounts(ocrFrameTexts)
-      finalDocs = finalDocs.map((d) => d.step ? { ...d, suggest: (d.suggest || []).filter((s) => { const m = s.match(/^Use '(.+)'\.$/); return !m || !JSON.stringify(d.step).toLowerCase().replace(/[^a-z0-9]/g, '').includes(m[1].toLowerCase().replace(/[^a-z0-9]/g, '')) }), step: { ...d.step, title: userSpelling(d.step.title, termsRef.current), steps: screenNames(screenSpelling(tidyActions(d.step.steps, d.ocrText || "", d.text || ""), votes), d.ocrText || "").map((x) => userSpelling(x, termsRef.current)), note: tidyNote(d.step.note) } } : d)
+      finalDocs = finalDocs.map((d) => d.step ? { ...d, suggest: (d.suggest || []).filter((s) => { const m = s.match(/^Use '(.+)'\.$/); return !m || !JSON.stringify(d.step).toLowerCase().replace(/[^a-z0-9]/g, '').includes(m[1].toLowerCase().replace(/[^a-z0-9]/g, '')) }), step: { ...d.step, title: userSpelling(d.step.title, termsRef.current), steps: screenNames(screenSpelling(tidyActions((d.step.steps || []).map(tidyLine), d.ocrText || "", d.text || ""), votes), d.ocrText || "").map((x) => userSpelling(x, termsRef.current)), note: tidyNote(d.step.note) } } : d)
       trace("final", finalDocs)
 
       setAnnotatedDocs(finalDocs)
