@@ -95,7 +95,6 @@ Version 5 is about making a guide easy to follow. Everything still runs on your 
 * **App names must be on screen.** The detected app name is only used when it really appears on screen or in the audio.
 * **Clicks nobody says.** When a window opens, the mouse pointer in the frame just before shows what was clicked (the word under it, or the toolbar icon that opened the window), and that click is always in the guide. No pointer found, nothing added.
 * **The whole transcript first.** The AI lists every action of the full recording with its time; the tools check each one against what was said then and give it to its part as a must-cover item.
-* **Noisy sound cleaned, clean sound left alone.** The speech level is measured against the background; only a noisy recording gets the background taken out before the transcript.
 * **Editable flow diagram.** It follows your step edits, and in Edit document you can rename, add or remove its boxes and phases.
 
 ---
@@ -496,7 +495,6 @@ video-docs/
         ├── limits.js             ← Netlify build size/length limits
         ├── systemCheck.js        ← Detects available engine (Ollama/llama.cpp/WebLLM)
         ├── transcriptFixups.js   ← Noise scrub + known-mishearing corrections
-        ├── denoise.js            ← Background noise removal (only for noisy sound)
         ├── plan.js               ← Whole-transcript action list, checked against the speech
         ├── pointer.js            ← Finds the mouse pointer when a window opens
         ├── flow.js               ← Flow diagram as editable phases and boxes
