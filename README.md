@@ -93,7 +93,7 @@ Version 5 is about making a guide easy to follow. Everything still runs on your 
 * **Short videos, clean steps.** Step length now scales with the recording, so a one-minute how-to becomes several clear parts instead of one.
 * **Whole audio, always.** Fixed a bug where each five-minute window only transcribed its first 30 seconds.
 * **App names must be on screen.** The detected app name is only used when it really appears on screen or in the audio.
-* **Clicks nobody says.** When a window opens, the mouse pointer in the frame just before shows what was clicked (the word under it, or the toolbar icon that opened the window), and that click is always in the guide. No pointer found, nothing added.
+* **Clicks nobody says.** When a window opens, the mouse pointer in the frame just before shows what was clicked (the word under it, or the toolbar icon that opened the window), and that click is always in the guide. No pointer found, nothing added. For now: the white pointer on dark screens.
 * **The whole transcript first.** The AI lists every action of the full recording with its time; the tools check each one against what was said then and give it to its part as a must-cover item.
 * **Editable flow diagram.** It follows your step edits, and in Edit document you can rename, add or remove its boxes and phases.
 
@@ -183,6 +183,8 @@ Everything below runs client-side. No server, no API keys.
 ┌───────▼──────────────────────────────────────────────────────────┐
 │   Chunk transcript into time windows (covers the WHOLE video)     │
 │   then AI Annotation (auto-detected)                              │
+│   + whole transcript read first: every action, kept when it       │
+│     was said and shown; clicks found by the mouse pointer         │
 │   ┌──────────────────────┐    ┌──────────────────────────────┐   │
 │   │  Ollama found?       │    │  WebLLM fallback             │   │
 │   │  localhost:11434     │    │  Llama-3.2-3B via WebGPU     │   │

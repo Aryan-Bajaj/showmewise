@@ -31,15 +31,19 @@ the network is software/models coming *to* the user — never the user's content
         │  (read locally — never uploaded)
         ▼
  ① Extract frames        → screenshots                  [on your machine]
- ② Extract + denoise audio → Whisper → transcript        [on your machine]
+ ② Extract audio (light speech filter) → Whisper → transcript [on your machine]
  ③ Tesseract OCR reads on-screen text from frames        [on your machine]
         │
         ▼
- ④ gemma3 (via llama.cpp) reads transcript + screen text
-    + screenshots  →  writes the step-by-step guide       [on your machine]
+ ④ gemma3 (via llama.cpp) reads the whole transcript once
+    (every action, checked against the speech and screen),
+    then transcript + screen text + screenshots per part
+    →  writes the step-by-step guide                      [on your machine]
+    Clicks nobody says: found by the mouse pointer in the
+    frames, by plain code (no AI)                          [on your machine]
         │
         ▼
- ⑤ You review & edit  →  ⑥ Export to PDF / HTML / Word    [on your machine]
+ ⑤ You review & edit (steps and flow diagram)  →  ⑥ Export to PDF / HTML / Word
 ```
 
 **At no step does your video, audio, screenshots or text leave the computer.**
