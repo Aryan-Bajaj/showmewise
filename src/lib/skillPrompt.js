@@ -151,7 +151,7 @@ function talkToAction(s) {
   return rest
 }
 
-function tidyLine(s) {
+export function tidyLine(s) {
   if (typeof s !== "string") return s
   let out = talkToAction(s.trim())
     .replace(/^\s*(okay|ok|so|now|then|alright|well|um+|uh+|yeah|and)[,!.\s]+/i, "")

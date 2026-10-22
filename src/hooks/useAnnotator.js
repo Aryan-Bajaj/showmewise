@@ -8,6 +8,7 @@ import {
 } from "../lib/skillPrompt"
 import { callOllama, callWebLLM, callLocalEngine, WEBLLM_NO_VISION } from "../lib/llm"
 import { termsIn } from "../lib/terms"
+import { tidyLine } from "../lib/skillPrompt"
 import { findPointers, notStatic, staticSpots, clickLine, grayFromDataUrl } from "../lib/pointer"
 import { PLAN_PROMPT, PLAN_SCHEMA, planBatches, parsePlan, groundPlan, addPlanToWindows } from "../lib/plan"
 import { smartCrop } from "../lib/smartCrop"
@@ -357,6 +358,17 @@ ${seen}`, userTerms) })
       console.info(`[VideoDoc] whole transcript: ${plan.length} actions (${items.length - plan.length} not found in the speech): ${plan.map((p) => `${p.t}s ${p.do}`).join(" | ")}`)
     } catch (e) { console.info("[VideoDoc] whole transcript pass skipped:", e?.message || e) }
 
+    // "Said but not written": what was said (and shown) in this part but is not
+    // in its step, for the reader to add with one click. At most 3, and only
+    // with a name that is on screen, a code or a number, or the user's key word.
+    const suggestions = (step, win) => {
+      const screen = (win.seen || "").toLowerCase()
+      const shown = (a) => /\d/.test(a) || (a.toLowerCase().match(/[a-z]{4,}/g) || []).some((w) => !/^(this|that|then|here|there|with|from|have|will|just|what|when|your)$/.test(w) && screen.includes(w))
+      const acts = missingActions(step, win.actions).filter(shown).map((a) => tidyLine(a.replace(/\.$/, "")) + ".")
+      const words = missingTerms(step, win.userTerms || []).map((t) => `Use '${t}'.`)
+      return [...new Set([...words, ...acts])].filter((x) => x.length > 4).slice(0, 3)
+    }
+
     // Every part that is dropped says why, in the browser console: missing
     // content must always be traceable to a rule, never a mystery.
     const why = (label, reason) => console.info(`[VideoDoc] part ${label} dropped: ${reason}`)
@@ -634,6 +646,7 @@ ${seen}`, userTerms) })
         frameTimestamp: frame?.timestamp ?? win.center,
         ocrText: win.seen || null,
         lowConfidence,
+        suggest: suggestions(step, win),
       })
       // Live draft: let the UI render steps as they are written.
       onDraft?.([...results])

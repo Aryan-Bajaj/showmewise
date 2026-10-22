@@ -114,6 +114,23 @@ function StepEditor({ step, onSave, onCancel }) {
 }
 
 // Read view of one step. The whole block is clickable: click any text to edit.
+// "Said in the video, not in this step": one tap adds it, one tap hides it
+function Suggestions({ items, onAdd, onHide }) {
+  if (!items?.length) return null
+  return (
+    <div className="mt-3 rounded-lg border border-amber-300/25 bg-amber-300/[0.06] px-3 py-2.5">
+      <p className="text-[12.5px] text-amber-100/90 mb-1.5">Said in the video, but not in this step:</p>
+      {items.map((s) => (
+        <div key={s} className="flex items-center gap-2 py-1">
+          <span className="text-[13.5px] text-zinc-100 flex-1 min-w-0">{s}</span>
+          <button onClick={() => onAdd(s)} className="h-7 px-2.5 rounded-md text-[12.5px] font-semibold text-white bg-violet-600 hover:bg-violet-500 transition shrink-0">+ Add</button>
+          <button onClick={() => onHide(s)} className="h-7 px-2.5 rounded-md text-[12.5px] text-zinc-300 border border-white/15 hover:border-white/30 transition shrink-0">Hide</button>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function StepView({ step, letter, verified, onClickAcr, onEdit }) {
   if (!step) return null
   return (
@@ -144,6 +161,7 @@ function StepView({ step, letter, verified, onClickAcr, onEdit }) {
 const LETTER = (i) => { let s = "", n = i; do { s = String.fromCharCode(65 + (n % 26)) + s; n = Math.floor(n / 26) - 1 } while (n >= 0); return s }
 
 export default function DocPreview({ transcriptChunks, annotatedDocs, onSeek, onEditStep, onMoveStep, onDeleteStep, onReplaceEverywhere }) {
+  const [hiddenTips, setHiddenTips] = useState(() => new Set())
   const hasAnnotations = annotatedDocs?.length > 0
   const hasTranscript = transcriptChunks?.length > 0
 
@@ -252,6 +270,9 @@ export default function DocPreview({ transcriptChunks, annotatedDocs, onSeek, on
               ) : doc.step ? (
                 <>
                   <StepView step={doc.step} letter={LETTER(i)} verified={verified} onClickAcr={openVerify} onEdit={() => setEditing(i)} />
+                  <Suggestions items={(doc.suggest || []).filter((s) => !hiddenTips.has(`${i}|${s}`))}
+                    onAdd={(s) => { onEditStep?.(i, { ...doc.step, steps: [...(doc.step.steps || []), s] }); setHiddenTips((h) => new Set(h).add(`${i}|${s}`)) }}
+                    onHide={(s) => setHiddenTips((h) => new Set(h).add(`${i}|${s}`))} />
                   <MarkedShots shots={doc.shots} onOpen={(src, k) => setLightbox({ src, label: `Part ${LETTER(i)} · screenshot ${k + 1}` })} />
                   {!doc.shots?.length && doc.frame && (
                     <button onClick={() => setLightbox({ src: doc.frame, label: `Part ${LETTER(i)} · ${doc.label}` })} className="mt-2.5 block w-40 cursor-zoom-in" title="Click to enlarge">
