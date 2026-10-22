@@ -75,13 +75,22 @@ export function addPlanToWindows(windows, plan, max = 12) {
   for (const it of plan) {
     const w = windows.find((x) => it.t >= x.a && it.t < x.b) || windows.find((x) => it.t < x.b) || windows[windows.length - 1]
     if (!w) continue
-    const list = w.actions || (w.actions = [])
     const k = actionKey(it.do)
+    // said AND shown: a name of the action must be on screen in this part, or
+    // it carries a code or number. Loose talk ("take out the filter here")
+    // otherwise turns into vague steps (seen on a real run).
+    const screen = (w.seen || "").toLowerCase()
+    const names = k.length ? k : [it.do.toLowerCase().split(" ")[0].replace(/\W/g, "")]
+    if (!/\d/.test(it.do) && !names.some((x) => x.length >= 4 && screen.includes(x.slice(0, 5)))) continue
+    const list = w.actions || (w.actions = [])
     const have = list.some((a) => { const ka = actionKey(a); return k.length ? k.every((x) => ka.some((y) => y.slice(0, 5) === x.slice(0, 5))) : a.toLowerCase() === it.do.toLowerCase() })
     if (have || list.length >= max) continue
     // put it where it falls in time inside the part (the list is in order)
-    const at = Math.round(((it.t - w.a) / Math.max(1, w.b - w.a)) * list.length)
-    list.splice(Math.max(0, Math.min(list.length, at)), 0, it.do)
+    // and after the listed action added before it (the plan is in time order)
+    const after = w.lastPlan != null ? list.indexOf(w.lastPlan) + 1 : 0
+    const at = Math.max(after, Math.round(((it.t - w.a) / Math.max(1, w.b - w.a)) * list.length))
+    list.splice(Math.min(list.length, at), 0, it.do)
+    w.lastPlan = it.do
   }
   return windows
 }
