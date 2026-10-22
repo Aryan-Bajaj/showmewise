@@ -337,7 +337,7 @@ ${seen}`, userTerms) })
           const ch = changedNear(prev.gray, g.gray, g.w, g.h, prev.p)
           const word = ch.count >= 20 && ch.frac <= 0.5 ? wordAt((ocrFrameTexts || []).find((x) => Math.abs(x.timestamp - prev.t) < 0.6)?.words || [], prev.p) : null
           const w = word && word.length >= 3 && partAt(f.timestamp)
-          if (w) { addAction(w, f.timestamp, `Click '${word}'.`); console.info(`[VideoDoc] click at ${Math.round(f.timestamp)}s on '${word}' (pointer rested, the screen changed near it)`) }
+          if (w && (w.restClicks = (w.restClicks || 0) + 1) <= 3) { addAction(w, f.timestamp, `Click '${word}'.`); console.info(`[VideoDoc] click at ${Math.round(f.timestamp)}s on '${word}' (pointer rested, the screen changed near it)`) }
         }
         prev = { t: f.timestamp, p, gray: g.gray, w: g.w }
       }

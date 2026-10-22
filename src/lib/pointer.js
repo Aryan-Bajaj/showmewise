@@ -165,8 +165,10 @@ export async function grayFromDataUrl(url) {
   const c = new OffscreenCanvas(bmp.width, bmp.height)
   const ctx = c.getContext("2d")
   ctx.drawImage(bmp, 0, 0)
-  const { data } = ctx.getImageData(0, 0, bmp.width, bmp.height)
-  return { gray: toGray(data, bmp.width, bmp.height), w: bmp.width, h: bmp.height }
+  const { width: w, height: h } = bmp
+  bmp.close?.() // free the picture at once (300 frames on a 10-minute video)
+  const { data } = ctx.getImageData(0, 0, w, h)
+  return { gray: toGray(data, w, h), w, h }
 }
 
 // Did the screen change around the pointer between two frames (the pointer
