@@ -140,13 +140,17 @@ export function tidyActions(steps, screen = "", spoken = "") {
 // "Observe the Account Number field", "Observe the Company Code field", ...:
 // 3+ in a row is the model reading the screen out, not something the user does
 // (seen on a real run). One such line alone can be a real check, so it stays.
-const LOOK = /^(observe|note|see|look at|review)\s+the\s+.{1,60}\b(field|button|checkbox|check box|tab|menu|column|option|icon|link|dropdown)s?\b\W*$/i
+const LOOK = /^(observe|note|see|look at|review|identify|view|check)\s+the\s+.{1,60}\b(field|button|checkbox|check box|tab|menu|column|option|icon|link|dropdown)s?\b\W*$/i
+// "View the available options: Office, Logistics, Accounting, ...": the screen
+// read out as a list, not something to do (seen on a real run).
+const LOOK_LIST = /^(observe|note|see|look at|review|identify|view|check)\s+(the\s+)?[^:]{1,50}:\s*[^,]+(,[^,]+){2,}$/i
 function dropFieldTour(steps) {
   const out = []
   for (let i = 0; i < steps.length;) {
     let j = i
     while (j < steps.length && LOOK.test(steps[j])) j++
     if (j - i >= 3) { i = j; continue }
+    if (LOOK_LIST.test(steps[i])) { i++; continue }
     out.push(steps[i]); i++
   }
   return out
