@@ -93,8 +93,10 @@ Version 5 is about making a guide easy to follow. Everything still runs on your 
 * **Short videos, clean steps.** Step length now scales with the recording, so a one-minute how-to becomes several clear parts instead of one.
 * **Whole audio, always.** Fixed a bug where each five-minute window only transcribed its first 30 seconds.
 * **App names must be on screen.** The detected app name is only used when it really appears on screen or in the audio.
-* **Clicks nobody says.** When a window opens, the mouse pointer in the frame just before shows what was clicked (the word under it, or the toolbar icon that opened the window), and that click is always in the guide. No pointer found, nothing added. For now: the white pointer on dark screens.
+* **Clicks nobody says.** When a window opens, the mouse pointer in the frame just before shows what was clicked (the word under it, or the toolbar icon that opened the window), and that click is always in the guide. No pointer found, nothing added. Works on dark and light screens.
 * **The whole transcript first.** The AI lists every action of the full recording with its time; the tools check each one against what was said then and give it to its part as a must-cover item.
+* **Key words box, suggestions and review mode.** Type the names or codes of your video once; see what was said but not written under each step (+ Add); jump to only the steps that need a look.
+* **Picks up where it stopped.** A crash or a closed tab no longer loses an hour of work: the same video continues from the last finished part.
 * **Editable flow diagram.** It follows your step edits, and in Edit document you can rename, add or remove its boxes and phases.
 
 ---
@@ -500,6 +502,8 @@ video-docs/
         ├── plan.js               ← Whole-transcript action list, checked against the speech
         ├── pointer.js            ← Finds the mouse pointer when a window opens
         ├── flow.js               ← Flow diagram as editable phases and boxes
+        ├── terms.js              ← The user's key words (spelling, coverage)
+        ├── resume.js             ← Picks up an unfinished run (kept in the browser)
         ├── exportHTML.js         ← HTML guide (title, tools, step GIFs/clips)
         ├── exportPDF.js          ← jsPDF export (title + tools)
         └── exportDOCX.js         ← docx export (title + tools + GIFs)

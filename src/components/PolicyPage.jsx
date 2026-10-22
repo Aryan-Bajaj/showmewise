@@ -4,7 +4,7 @@ import { MAX_VIDEO_MB, MAX_VIDEO_MIN } from '../lib/limits'
 
 // Privacy, terms and credits in plain English. Everything here describes what
 // the app really does (checked against the code): keep it true when the app changes.
-const UPDATED = '21 October 2026'
+const UPDATED = '22 October 2026'
 const REPO = 'https://github.com/Aryan-Bajaj/video-docs'
 
 const C = { bg: '#0f0b24', card: 'rgba(28,18,55,0.7)', line: 'rgba(167,139,250,0.18)', ink: '#ece9ff', body: 'rgba(236,233,255,0.78)', dim: 'rgba(236,233,255,0.55)', acc: '#a78bfa' }
@@ -86,7 +86,7 @@ export default function PolicyPage() {
             <><b>Vidi</b>, the help chat, answers from the help text of this website. It reads error messages shown on the page, and screenshots you paste, on your computer only. For written answers it uses Ollama on your computer or a small AI in your browser (downloaded once), never a server.</>,
           ]} />
           <H>What stays on your device</H>
-          <p style={{ margin: 0 }}>Downloaded model files stay in your browser's storage so the next run starts faster. An exported HTML guide can remember your checklist ticks in that browser. Vidi remembers how you want it to answer (Ollama, browser AI or no AI) in this browser. While a video is processed, the page asks the browser to keep the screen on, so the computer does not go to sleep halfway; this ends when processing ends or when you leave the tab. You can remove all of this at any time by clearing the site data in your browser settings.</p>
+          <p style={{ margin: 0 }}>Downloaded model files stay in your browser's storage so the next run starts faster. An exported HTML guide can remember your checklist ticks in that browser. Vidi remembers how you want it to answer (Ollama, browser AI or no AI) in this browser. To pick up where a run stopped (a crash, a closed tab, the computer going to sleep), the transcript, the screen text and the parts already written of the last video are kept in this browser's storage; they are cleared when the guide is finished or when you start another video. While a video is processed, the page asks the browser to keep the screen on, so the computer does not go to sleep halfway; this ends when processing ends or when you leave the tab. You can remove all of this at any time by clearing the site data in your browser settings.</p>
           <H>Your rights</H>
           <p style={{ margin: 0 }}>Under data protection law such as the GDPR you have rights over your personal data. VideoDoc itself holds no personal data about you. For hosting logs, contact Netlify. For any question about this page, see Contact below.</p>
         </Section>
