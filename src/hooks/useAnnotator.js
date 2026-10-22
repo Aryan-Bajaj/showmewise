@@ -9,7 +9,7 @@ import {
 import { callOllama, callWebLLM, callLocalEngine, WEBLLM_NO_VISION } from "../lib/llm"
 import { termsIn } from "../lib/terms"
 import { tidyLine } from "../lib/skillPrompt"
-import { findPointers, notStatic, staticSpots, clickLine, grayFromDataUrl } from "../lib/pointer"
+import { findPointers, notStatic, staticSpots, clickLine, grayFromDataUrl, changedNear, wordAt } from "../lib/pointer"
 import { PLAN_PROMPT, PLAN_SCHEMA, planBatches, parsePlan, groundPlan, addPlanToWindows } from "../lib/plan"
 import { smartCrop } from "../lib/smartCrop"
 import { ocrNear, screenChanges } from "./useOCR"
@@ -312,12 +312,37 @@ ${seen}`, userTerms) })
     try {
       const atFrame = (t) => (frames || []).find((f) => Math.abs(f.timestamp - t) < 0.6 && f.imageData)
       const wanted = windows.flatMap((w) => (w.opened || []).filter((o) => o.t >= w.a && o.t < w.b).map((o) => ({ w, o }))) // parts overlap by 2 s: each window once
+      const pics = (frames || []).filter((f) => f.imageData).sort((x, y) => x.timestamp - y.timestamp)
+      const sample = pics.filter((_, i, a) => a.length <= 10 || i % Math.ceil(a.length / 10) === 0)
+      const lists = []
+      for (const f of sample) { const g = await grayFromDataUrl(f.imageData); lists.push(findPointers(g.gray, g.w, g.h)) }
+      const spots = staticSpots(lists)
+      const partAt = (t) => windows.find((x) => t >= x.a && t < x.b)
+      const addAction = (w, t, line) => {
+        const list = w.actions || (w.actions = [])
+        if (list.some((a) => a.toLowerCase() === line.toLowerCase())) return
+        const at = Math.round(((t - w.a) / Math.max(1, w.b - w.a)) * list.length)
+        list.splice(Math.max(0, Math.min(list.length, at)), 0, line)
+      }
+      // clicks where no window opens: the pointer rests on a word while the
+      // area around it changes (a tick box, a tab, a row). They go on the
+      // part's checklist (never straight into the guide).
+      onStatus?.("Following the mouse pointer…")
+      let prev = null
+      for (const f of pics) {
+        if (shouldCancel()) break
+        const g = await grayFromDataUrl(f.imageData)
+        const p = notStatic(findPointers(g.gray, g.w, g.h), spots)[0] || null
+        if (prev?.p && p && Math.abs(prev.p.x - p.x) <= 6 && Math.abs(prev.p.y - p.y) <= 6 && prev.w === g.w) {
+          const ch = changedNear(prev.gray, g.gray, g.w, g.h, prev.p)
+          const word = ch.count >= 20 && ch.frac <= 0.5 ? wordAt((ocrFrameTexts || []).find((x) => Math.abs(x.timestamp - prev.t) < 0.6)?.words || [], prev.p) : null
+          const w = word && word.length >= 3 && partAt(f.timestamp)
+          if (w) { addAction(w, f.timestamp, `Click '${word}'.`); console.info(`[VideoDoc] click at ${Math.round(f.timestamp)}s on '${word}' (pointer rested, the screen changed near it)`) }
+        }
+        prev = { t: f.timestamp, p, gray: g.gray, w: g.w }
+      }
       if (wanted.length) {
         onStatus?.("Looking for the mouse pointer where a window opens…")
-        const sample = (frames || []).filter((f) => f.imageData).filter((_, i, a) => a.length <= 10 || i % Math.ceil(a.length / 10) === 0)
-        const lists = []
-        for (const f of sample) { const g = await grayFromDataUrl(f.imageData); lists.push(findPointers(g.gray, g.w, g.h)) }
-        const spots = staticSpots(lists)
         for (const { w, o } of wanted) {
           const f = atFrame(o.before)
           if (!f) continue
@@ -334,9 +359,7 @@ ${seen}`, userTerms) })
           const words = (ocrFrameTexts || []).find((x) => Math.abs(x.timestamp - o.before) < 0.6)?.words || []
           const line = clickLine(pt, words, o.title, g.h)
           ;(w.clicks || (w.clicks = [])).push({ t: o.t, title: o.title, line })
-          const list = w.actions || (w.actions = [])
-          const at = Math.round(((o.t - w.a) / Math.max(1, w.b - w.a)) * list.length)
-          list.splice(Math.max(0, Math.min(list.length, at)), 0, line)
+          addAction(w, o.t, line)
           console.info(`[VideoDoc] click at ${Math.round(o.t)}s (pointer ${pt.x},${pt.y}): ${line}`)
         }
       }

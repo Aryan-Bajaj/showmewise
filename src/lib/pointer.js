@@ -168,3 +168,38 @@ export async function grayFromDataUrl(url) {
   const { data } = ctx.getImageData(0, 0, bmp.width, bmp.height)
   return { gray: toGray(data, bmp.width, bmp.height), w: bmp.width, h: bmp.height }
 }
+
+// Did the screen change around the pointer between two frames (the pointer
+// itself left out)? A click on a tick box, a tab or a row changes the area
+// right around it. r: half the box looked at, skip: the pointer's own area.
+export function changedNear(g1, g2, w, h, pt, r = 110, skip = 30) {
+  let diff = 0, n = 0
+  for (let y = Math.max(0, pt.y - r); y < Math.min(h, pt.y + r); y += 2) {
+    for (let x = Math.max(0, pt.x - r); x < Math.min(w, pt.x + r); x += 2) {
+      if (x >= pt.x - 4 && x < pt.x + skip && y >= pt.y - 4 && y < pt.y + skip * 1.4) continue
+      const i = y * w + x
+      if (Math.abs(g1[i] - g2[i]) > 40) diff++
+      n++
+    }
+  }
+  return { count: diff, frac: n ? diff / n : 0 }
+}
+
+// Clicks where no window opens: the pointer rests on the same spot in two
+// frames in a row while the area around it changes, and a word is under it.
+// frames: [{ t, gray, w, h, pts }] in time order; wordsAt(t) gives OCR words.
+export function restClicks(frames, wordsAt, spots = []) {
+  const out = []
+  for (let i = 0; i + 1 < frames.length; i++) {
+    const a = frames[i], b = frames[i + 1]
+    const pa = notStatic(a.pts, spots)[0], pb = notStatic(b.pts, spots)[0]
+    if (!pa || !pb || Math.abs(pa.x - pb.x) > 6 || Math.abs(pa.y - pb.y) > 6 || a.w !== b.w) continue
+    const ch = changedNear(a.gray, b.gray, a.w, a.h, pa)
+    if (ch.count < 20 || ch.frac > 0.5) continue // a small change near it, not a new page
+    const word = wordAt(wordsAt(a.t), pa)
+    if (!word || word.length < 3) continue
+    if (out.length && out[out.length - 1].word === word && b.t - out[out.length - 1].t < 6) continue
+    out.push({ t: b.t, word, line: `Click '${word}'.` })
+  }
+  return out
+}
