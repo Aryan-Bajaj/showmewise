@@ -247,22 +247,34 @@ export default function App() {
         return
       }
 
-      updateStep('audio', { status: 'active', detail: 'Reading audio track...', startedAt: Date.now() })
-      // Many screen recorders save no sound at all. The pictures are fine, so
-      // the guide is then written from the screen alone instead of stopping.
-      const sound = await extractAudio(file).catch(() => null)
-      updateStep('audio', { status: 'done', detail: sound ? `${sound.sampleRate / 1000}kHz mono` : 'No sound in this video (or it could not be read)', endedAt: Date.now() })
+      // The speech of the same video is reused even when a frame or two came out
+      // differently this time (a slow seek on a busy computer skips a frame):
+      // only the screen is read again then.
+      let chunks
+      if (s1?.chunks) {
+        const again = 'kept from the last try'
+        updateStep('audio', { status: 'done', detail: again, startedAt: Date.now(), endedAt: Date.now() })
+        updateStep('transcribe', { status: 'done', detail: `${s1.chunks.length} segments, ${again}`, startedAt: Date.now(), endedAt: Date.now() })
+        chunks = s1.chunks
+        setTranscriptChunks(chunks)
+      } else {
+        updateStep('audio', { status: 'active', detail: 'Reading audio track...', startedAt: Date.now() })
+        // Many screen recorders save no sound at all. The pictures are fine, so
+        // the guide is then written from the screen alone instead of stopping.
+        const sound = await extractAudio(file).catch(() => null)
+        updateStep('audio', { status: 'done', detail: sound ? `${sound.sampleRate / 1000}kHz mono` : 'No sound in this video (or it could not be read)', endedAt: Date.now() })
 
-      updateStep('transcribe', { status: 'active', detail: sound ? 'Loading model...' : 'Skipped', startedAt: Date.now() })
-      const result = sound ? await transcribe(sound.audio, sound.sampleRate, opts.language || 'en', !!opts.accurate) : { chunks: [] }
-      const chunks = fixTranscriptChunks(result?.chunks ?? [])           // correct known domain mis-hearings
-        .map(c => ({ ...c, text: scrubSensitive(c.text) }))               // scrub ASR mis-hears like "Hitler" before anything sees them
-      setTranscriptChunks(chunks)
-      if (cancelRef.current || result?.cancelled) {
-        updateStep('transcribe', { status: 'error', detail: `Cancelled · ${chunks.length} segments kept`, endedAt: Date.now() })
-        return
+        updateStep('transcribe', { status: 'active', detail: sound ? 'Loading model...' : 'Skipped', startedAt: Date.now() })
+        const result = sound ? await transcribe(sound.audio, sound.sampleRate, opts.language || 'en', !!opts.accurate) : { chunks: [] }
+        chunks = fixTranscriptChunks(result?.chunks ?? [])           // correct known domain mis-hearings
+          .map(c => ({ ...c, text: scrubSensitive(c.text) }))               // scrub ASR mis-hears like "Hitler" before anything sees them
+        setTranscriptChunks(chunks)
+        if (cancelRef.current || result?.cancelled) {
+          updateStep('transcribe', { status: 'error', detail: `Cancelled · ${chunks.length} segments kept`, endedAt: Date.now() })
+          return
+        }
+        updateStep('transcribe', { status: 'done', detail: chunks.length ? `${chunks.length} segments found` : 'No speech: the guide is written from the screen only', endedAt: Date.now() })
       }
-      updateStep('transcribe', { status: 'done', detail: chunks.length ? `${chunks.length} segments found` : 'No speech: the guide is written from the screen only', endedAt: Date.now() })
 
       // OCR: read on-screen text from frames → captures exact UI labels + detects tools used
       updateStep('ocr', { status: 'active', detail: 'Reading on-screen text...', startedAt: Date.now() })
@@ -278,7 +290,7 @@ export default function App() {
       setParticipants(people || [])
       setToolsUsed(tools)
       updateStep('ocr', { status: 'done', detail: tools.length ? `Tools: ${tools.join(', ')}` : `${frameTexts.length} frames read`, endedAt: Date.now() })
-      saveRun(key, { stage1: { frameCount: extracted.length, chunks, frameTexts, tools, cuts: cuts || [], people: people || [] }, annot: null })
+      saveRun(key, { stage1: { frameCount: extracted.length, chunks, frameTexts, tools, cuts: cuts || [], people: people || [] }, ...(s1 ? {} : { annot: null }) }) // a run that had begun keeps its written parts
 
       setShowAISettings(true)
     } catch (e) {
