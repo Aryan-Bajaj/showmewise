@@ -517,7 +517,8 @@ export function screenChanges(frameTexts, a, b, maxChars = 900) {
     // "More chars" or "Ledger Leading Ledger"), read top to bottom. Kept with
     // the frame before, where the click was. (Asking for 10+ new labels lost
     // the real "Change Layout" on a run: the app reads only part of a dialog.)
-    const realWords = (n) => n.trim().split(" ").every((w) => /[aeiouy]/i.test(w) && w.length >= 2) && n.split(" ").some((w) => w.length >= 4)
+    // a misread has 4 consonants in a row ("Standard Templs"), real words do not
+    const realWords = (n) => n.trim().split(" ").every((w) => /[aeiouy]/i.test(w) && w.length >= 2 && !/[^aeiouy\W\d]{4}/i.test(w)) && n.split(" ").some((w) => w.length >= 4)
     const titled = (n) => { const w = n.trim().split(" "); return w.every((x) => /^[A-Z]/.test(x)) && new Set(w.map((x) => x.toLowerCase())).size === w.length }
     const title = names.length >= 4 && names.find((n) => /^[A-Za-z][A-Za-z&/-]*( [A-Za-z][A-Za-z&/-]*){1,2}$/.test(n.trim()) && realWords(n) && titled(n) && !misread(n.trim()))
     if (title) opened.push({ t: frames[i].timestamp, before: frames[i - 1].timestamp, title: title.trim() })
