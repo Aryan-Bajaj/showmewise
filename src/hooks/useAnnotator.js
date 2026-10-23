@@ -375,7 +375,7 @@ ${seen}`, userTerms) })
       const items = []
       for (let k = 0; k < batches.length && !shouldCancel(); k++) {
         onStatus?.(`Reading the whole transcript for every action${batches.length > 1 ? ` (${k + 1} of ${batches.length})` : ""}…`)
-        const opts = { schema: PLAN_SCHEMA, maxTokens: 900, temperature: 0.1 }
+        const opts = { schema: PLAN_SCHEMA, maxTokens: 1600, temperature: 0.1 }
         const raw = aiMode === "ollama"
           ? await callOllama(batches[k], PLAN_PROMPT, ollamaModel, opts)
           : aiMode === "local"

@@ -24,7 +24,7 @@ const ts = (s) => { const m = Math.floor(s / 60), x = Math.floor(s % 60); return
 const secs = (t) => { const m = String(t || "").match(/(\d{1,2}):(\d{2})/); return m ? +m[1] * 60 + +m[2] : null }
 
 // The transcript as "[mm:ss] text" lines, cut into pieces the model can read whole.
-export function planBatches(chunks, maxChars = 6000) {
+export function planBatches(chunks, maxChars = 3500) {
   const lines = (chunks || []).filter((c) => c.text?.trim()).map((c) => `[${ts(c.timestamp?.[0] ?? 0)}] ${c.text.trim()}`)
   const out = []
   let cur = ""
@@ -37,18 +37,23 @@ export function planBatches(chunks, maxChars = 6000) {
 }
 
 // The model's answer → [{ t, do }], only well-formed items.
+// The model's answer → [{ t, do }], only well-formed items. An answer cut off
+// at the word limit is still read: every complete {"t", "do"} item counts
+// (a cut-off list used to lose ALL its actions on a real run).
 export function parsePlan(raw) {
-  const m = String(raw || "").match(/\{[\s\S]*\}/)
-  if (!m) return []
-  try {
-    const o = JSON.parse(m[0])
-    return (Array.isArray(o.actions) ? o.actions : [])
-      .map((a) => ({ t: secs(a?.t), do: String(a?.do || "").replace(/\s+/g, " ").trim().slice(0, 120) }))
-      // a thin item ("Click", "login") says nothing a reader can do
-      .filter((a) => a.t != null && a.do.length >= 4 && !/^(click|copy|paste|select|open|go|type|enter|press|choose|tap)\W*$/i.test(a.do))
-      // only points, names nothing ("go to this tab here", "click here"): a reader cannot follow it
-      .filter((a) => !(/\b(here|this|that|there)\b/i.test(a.do) && !/\d|'|"|[A-Z]/.test(a.do.slice(1))))
-  } catch { return [] }
+  const text = String(raw || "")
+  let list = []
+  const m = text.match(/\{[\s\S]*\}/)
+  try { list = m ? JSON.parse(m[0]).actions || [] : [] } catch { list = [] }
+  if (!Array.isArray(list) || !list.length) {
+    list = [...text.matchAll(/\{\s*"t"\s*:\s*"([^"]*)"\s*,\s*"do"\s*:\s*"((?:[^"\\]|\\.)*)"\s*\}/g)].map((x) => ({ t: x[1], do: x[2].replace(/\\"/g, '"') }))
+  }
+  return list
+    .map((a) => ({ t: secs(a?.t), do: String(a?.do || "").replace(/\s+/g, " ").trim().slice(0, 120) }))
+    // a thin item ("Click", "login") says nothing a reader can do
+    .filter((a) => a.t != null && a.do.length >= 4 && !/^(click|copy|paste|select|open|go|type|enter|press|choose|tap)\W*$/i.test(a.do))
+    // only points, names nothing ("go to this tab here", "click here"): a reader cannot follow it
+    .filter((a) => !(/\b(here|this|that|there)\b/i.test(a.do) && !/\d|'|"|[A-Z]/.test(a.do.slice(1))))
 }
 
 // Keep an action only when its words were said near its time (±20 s): the
