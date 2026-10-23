@@ -152,6 +152,22 @@ export const HOWTO = [
     ],
   },
   {
+    id: "progress", title: "The progress list: what each line means (Skipped, kept from the last try, times)",
+    body: [
+      "Each line is one job, with what came out of it on the right and how long it took. Why does a job skip? It is switched off or not needed, see below.",
+      "Self-Verify Steps: Skipped means it is switched off. It is off by default, because in our tests it also removed correct details and took about a third longer. Switch it on in the AI settings (Self-verify each step) if you want it. Nothing is missing because of it.",
+      "Consolidate Procedure: Skipped means it is switched off, or the guide has only one part, so there is nothing to tidy or join.",
+      "Transcribe Audio: Skipped means the video has no sound, or the browser could not read it. The guide is written from the screen only.",
+      "Purpose · Summary · FAQ · Flow: skipped means the AI gave no usable summary this time. Your steps are fine. Press Re-annotate to try again.",
+      "\"kept from the last try\" (with 0s): you chose the same video with the same settings as a run that did not finish. The speech and the screen text were saved then, so they are not read again. That is why it takes 0 seconds.",
+      "\"Picking up where it stopped: ... parts already written\": parts written in the last try are kept; only the rest is written now.",
+      "VideoDoc knows it is the same video when the file name, the exact size, the time the file was last saved, the speech language and the Fast or Accurate choice all match. A new recording (even with one extra sentence) is a new file, so it starts fresh. Written parts are only kept with the same AI model, settings and key words.",
+      "\"... entries annotated\": how many parts the guide has. \"... segments\": how many pieces of speech were written down. \"... frames\": how many pictures were taken from the video.",
+      "A very long time, for example 356m: the time is the clock time from start to end. If the computer went to sleep in between, the sleep is counted too. The work itself waits while the computer sleeps and goes on when it wakes. Keep the laptop open, plugged in and the tab in front.",
+      "\"Ollama · gemma3...\" with 0s next to Load AI Model: Ollama loads the model itself, so this line is done at once. With the browser AI it shows the download and loading.",
+    ],
+  },
+  {
     id: "done", title: "Step 5. When it is done", img: "done",
     marks: [
       { n: 1, x: 10.8, y: 18.6, dir: "left", text: "COMPLETE: every job has a green tick, with how long it took." },
@@ -313,12 +329,14 @@ export const HOWTO = [
       "Can I use another tab meanwhile? Yes, but keep the VideoDoc tab open. It works best when its tab is in front.",
       "Which languages? The video can be in English, Hindi or Hinglish, German, Spanish, French or another language. The guide is in English.",
       "Can I change the guide after it is written? Yes, with Edit on every step, before you save it.",
+      "Why does it say Skipped? A job that is switched off (Self-verify is off by default) or not needed. See The progress list.",
+      "Why 0s and \"kept from the last try\"? It is the same video as an unfinished run, so that work was reused.",
     ],
   },
 ]
 
 // Words that mean the question is about VideoDoc at all (anything else is off topic)
-const TOPIC = /video|record|guide|step|upload|file|mp4|mov|webm|ollama|model|ai\b|llm|webllm|speech|language|transcri|screen|export|save|pdf|docx|word|html|chat|limit|size|mb|gb|minute|long|slow|fast|time|error|fail|stuck|sleep|install|download|browser|chrome|edge|privacy|free|account|edit|title|company|start|use|how|help|work|gpu|graphics|memory|ram|computer|laptop|lid|phone|mobile|sound|audio|desktop|accurate|cancel|new|vidi|videodoc|setting|option|verify|consolidat|accura|ocr|annotat|procedure|frame|clip|gif|checklist|faq|summary|flow|tip|result|marker|picture|screenshot|button|click|tab|ctrl|error|message|wrong|missing/i
+const TOPIC = /video|record|guide|step|upload|file|mp4|mov|webm|ollama|model|ai\b|llm|webllm|speech|language|transcri|screen|export|save|pdf|docx|word|html|chat|limit|size|mb|gb|minute|long|slow|fast|time|error|fail|stuck|sleep|install|download|browser|chrome|edge|privacy|free|account|edit|title|company|start|use|how|help|work|gpu|graphics|memory|ram|computer|laptop|lid|phone|mobile|sound|audio|desktop|accurate|cancel|new|vidi|videodoc|setting|option|verify|consolidat|accura|ocr|annotat|procedure|frame|clip|gif|checklist|faq|summary|flow|tip|result|marker|picture|screenshot|button|click|tab|ctrl|error|message|wrong|missing|skip|kept|resum|progress|segment|entr|annotat/i
 
 const STOP = new Set("the and for you your can how what which does with this that are not from into when then there here will have use using about its just get got want need".split(" "))
 const words = (t) => ((t || "").toLowerCase().match(/[a-z0-9]{3,}/g) || []).filter((w) => !STOP.has(w)).map((w) => w.replace(/(ing|ed|es|s)$/, ""))
