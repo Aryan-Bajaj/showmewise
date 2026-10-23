@@ -219,7 +219,7 @@ export const HOWTO = [
       { n: 2, x: 49.8, y: 70.7, dir: "up", text: "PDF: ready to print, with a cover page, contents and page numbers." },
       { n: 3, x: 76.1, y: 70.7, dir: "up", text: "DOCX: the same guide as a Word file you can change." },
     ],
-    body: ["The files are made on your computer and go to your Downloads folder. Nothing is uploaded."],
+    body: ["The files are made on your computer and go to your Downloads folder. Nothing is uploaded.", "Videos in the files: only the HTML file has moving clips (click one to see it big). Word has short GIFs in some parts. A PDF cannot play videos, so it has still pictures only."],
   },
   {
     id: "vidchat", title: "Step 7. Ask questions about the video (Vid Chat)", img: "chat",
@@ -288,6 +288,22 @@ export const HOWTO = [
       "The computer went to sleep, the tab was closed or the browser crashed: choose the same video again with the same settings. VideoDoc picks up where it stopped: speech and screen are not read again, and parts already written are kept.",
       "A step is wrong or missing: change it with Edit. Next time, try a bigger model or Accurate speech.",
       "The video is too big: the website takes up to the size shown on the upload page. Cut the video into parts.",
+    ],
+  },
+  {
+    id: "limits", title: "Limits, limitations and accuracy: how accurate is it, mistakes, what it can't do (yet)",
+    body: [
+      "How accurate is it? We test every release against manuals written by hand for real screen recordings and read each guide step by step. With the best setup (Ollama, gemma3 12B, Accurate speech, key words typed in) the guide got 60 to 67,5 % of all actions fully right.",
+      "So a guide is a strong first draft, not a finished manual. Read it and fix it with Edit before you share it. Start with the steps that need a quick look.",
+      "Results change from run to run: the AI never writes the same text twice. In our tests the same video scored up to 10 points higher or lower.",
+      "Often missed: a click where nothing visible changes, and a button with only an icon and no text. Small clicks that were seen go to the checklist, not into the guide.",
+      "Names and codes can be misheard. Type them into the key words box: in our tests this helped the most.",
+      "Smaller or faster models are less exact. A small 4B model got only about 30 % in our tests. The browser AI is weaker than Ollama.",
+      "It is slow on a normal laptop: with the best model a 10 minute video took about 1¾ hours on a 16 GB laptop. The computer must stay awake the whole time.",
+      "The guide is always written in English, not in Hindi, German or another language, even when the video is in that language.",
+      "Laptop or desktop only, with Chrome or Edge. Phones and tablets do not work.",
+      "Saved files: only the HTML guide has moving clips. Word has short GIFs in some parts, PDF has still pictures only, no videos. Doc Chat cannot read PDF files.",
+      LIMIT,
     ],
   },
   {

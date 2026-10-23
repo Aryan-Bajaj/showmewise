@@ -1113,6 +1113,38 @@ export default function LandingPage() {
           </p>
         </section>
 
+        {/* ── Limits: told up front (same facts as the "limits" part in lib/howto.js) ── */}
+        <section id="lp-limits" className="lp-section" style={{ padding: '40px 24px 60px', maxWidth: 940, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 30 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7b96ff', marginBottom: 12 }}>
+              Before you start
+            </div>
+            <h2 style={{ fontSize: 'clamp(1.8rem, 4.2vw, 2.8rem)', fontWeight: 700, letterSpacing: '-0.025em' }}>What it can't do (yet)</h2>
+            <p style={{ maxWidth: 640, margin: '14px auto 0', fontSize: '0.98rem', lineHeight: 1.7, color: 'rgba(255,255,255,0.64)' }}>
+              We test every release against manuals written by hand for real screen recordings, and read the guide step by step.
+              With the best setup (Ollama, gemma3 12B, Accurate speech, key words typed in) the guide got <b style={{ color: '#fff' }}>60 to 67,5 %</b> of
+              all actions fully right. A guide is a strong first draft, not a finished manual: read it and fix it before you share it.
+            </p>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14 }}>
+            {[
+              ['Some steps are missing or rough', 'A click where nothing visible changes, or a button with only an icon and no text, is often not named. Small clicks that were seen go to the checklist, not into the guide.'],
+              ['Results change from run to run', 'The AI never writes the same text twice. In our tests the same video scored up to 10 points higher or lower.'],
+              ['Names and codes can be misheard', 'Type the names and codes of your app into the key words box. It made the biggest difference in our tests.'],
+              ['It is slow on a normal laptop', 'With the best model, a 10 minute video took about 1¾ hours on a 16 GB laptop. Smaller models are faster but less exact.'],
+              ['The computer must stay awake', 'Sleep, a closed lid or a closed tab stops the work. Choose the same video again and it picks up where it stopped.'],
+              ['The guide is in English', 'The video can be in English, Hindi, Hinglish, German and more. The guide itself is always written in English.'],
+              ['Laptop or desktop only', 'Chrome or Edge on a computer. Phones and tablets do not work. The browser AI is weaker than Ollama.'],
+              ['Saved files differ', 'Only the HTML guide has moving clips. Word has short GIFs in some parts, PDF has still pictures only. Doc Chat cannot read PDF files.'],
+            ].map(([title, desc], i) => (
+              <div key={i} style={{ borderRadius: 16, padding: '22px 20px', background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'rgba(255,255,255,0.9)', marginBottom: 8 }}>{title}</div>
+                <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.66)', lineHeight: 1.6, margin: 0 }}>{desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* ── What's next in v5 (coming soon) ──────────────────── */}
         <section className="lp-section" style={{ padding: '40px 24px 90px', maxWidth: 940, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 36 }}>
@@ -1133,9 +1165,8 @@ export default function LandingPage() {
               ['Better with accents', 'Understands accented and technical speech better by learning the words it can see on screen.'],
               ['Guides in your language', 'Recordings in many languages work today; next, the guide itself written in your language, not only in English.'],
               ['Custom branding', 'Your logo and colours, applied as a clean document theme.'],
-              ['Resume anytime', 'A long video interrupted halfway? Pick up where it stopped instead of starting over.'],
               ['Batch mode', 'Drop in several recordings and collect the finished documents one by one.'],
-              ['Published accuracy', 'Test results against hand-written manuals, shown with every release.'],
+              ['Icons without text', 'Name buttons that show only a symbol, by looking at the picture of each click.'],
             ].map(([title, desc], i) => (
               <div key={i} style={{ borderRadius: 16, padding: '22px 20px', background: 'rgba(255,255,255,0.025)', border: '1px dashed rgba(123,150,255,0.35)' }}>
                 <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'rgba(255,255,255,0.9)', marginBottom: 8 }}>{title}</div>

@@ -16,6 +16,7 @@
 
 1. [What Is This?](#-what-is-this)
 2. [Live Demo](#-live-demo)
+   - [Limits and Accuracy](#-limits-and-accuracy)
 3. [New in v5](#-new-in-v5) `🆕`
    - [New in v4](#-new-in-v4)
 4. [New in v3](#-new-in-v3)
@@ -76,6 +77,21 @@ P.S. Version 5 is here: the clicks marked on the screen, in a document that read
 * `/` is the landing page
 * `/#/app` is the VideoDoc app (video to documentation)
 * `/#/docchat` is the Doc Chat app (upload a document and chat with it)
+
+---
+
+## 📏 Limits and Accuracy
+
+Every release is tested against manuals written by hand for real screen recordings, and each guide is read step by step against them. With the best setup (Ollama, gemma3 12B, Accurate speech, key words typed in) the guide got **60 to 67,5 %** of all actions fully right. A guide is a strong first draft, not a finished manual: read it and fix it before you share it.
+
+* **Some steps are missing or rough.** A click where nothing visible changes, or a button with only an icon and no text, is often not named. Small clicks that were seen go to the checklist, not into the guide.
+* **Results change from run to run.** The AI never writes the same text twice; the same video scored up to 10 points higher or lower.
+* **Names and codes can be misheard.** The key words box helped the most in our tests.
+* **Smaller models are less exact.** A 4B model got about 30 %. The browser AI is weaker than Ollama.
+* **Slow on a normal laptop.** With the best model a 10 minute video took about 1¾ hours on a 16 GB laptop, and the computer must stay awake.
+* **The guide is in English**, whatever the language of the video.
+* **Laptop or desktop only**, Chrome or Edge. Phones and tablets do not work.
+* **Saved files differ.** Only the HTML guide has moving clips; Word has GIFs in some parts, PDF has still pictures. Doc Chat cannot read PDF files.
 
 ---
 
