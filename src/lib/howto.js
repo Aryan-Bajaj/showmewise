@@ -250,6 +250,7 @@ export const HOWTO = [
     body: [
       "The VideoDoc plugin for Chrome and Edge puts VideoDoc in a small window under its icon in the toolbar. Open on the side keeps it next to your page.",
       "Record your screen from the plugin: the whole screen, any app window or a tab. When you stop, the guide is written by itself with the AI you used last time, and you get a notification when it is ready.",
+      "Before you record, open Key words, language and speech in the plugin (optional): type the names and codes said in the video, pick the spoken language, and Fast or Accurate speech. Same as on the upload page; the plugin remembers them.",
       "The plugin shows the steps and the time left while VideoDoc works. It keeps the computer awake while it records or writes.",
       "Ask Vidi in the plugin: about your video, about the page you are on, about a document (PDF, Word, web page or text), or Help for questions about VideoDoc itself.",
       "This page: if the answer is not on the page, Vidi reads the links on it that match your question (same site, up to 3) and says which pages it read. Reading pages needs your OK once.",

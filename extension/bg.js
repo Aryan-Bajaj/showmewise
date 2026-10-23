@@ -63,7 +63,7 @@ async function openEngine() {
 
 // ---- recording -------------------------------------------------------------
 let starting = null
-async function record() {
+async function record(opts = {}) {
   const id = await ensureEngine()
   const { status } = await getState()
   if (status?.state === "working") throw new Error("VideoDoc is still writing a guide. Record the next one when it is done.")
@@ -79,7 +79,7 @@ async function record() {
   const streamId = await new Promise((res) => chrome.desktopCapture.chooseDesktopMedia(["screen", "window", "tab", "audio"], tab, (sid) => res(sid)))
   if (!streamId) throw new Error("Recording was not started: nothing was chosen.")
   await setState({ auto: true })
-  await send(id, { type: "record", streamId })
+  await send(id, { type: "record", streamId, opts })
   if (back && back.id !== id) chrome.tabs.update(back.id, { active: true }).catch(() => {})
 }
 
@@ -155,7 +155,7 @@ chrome.runtime.onMessage.addListener((m, from, reply) => {
   const done = (p) => p.then((r) => reply({ ok: true, ...(r || {}) }), (e) => reply({ ok: false, error: e.message }))
   if (m.type === "state") done(getState().then(async (st) => ({ ...st, site: await site() })))
   // pressed again while the picker is still open: that press does nothing
-  else if (m.type === "record") done(starting ? Promise.resolve({ busy: true }) : (starting = record().finally(() => { starting = null })))
+  else if (m.type === "record") done(starting ? Promise.resolve({ busy: true }) : (starting = record(m.opts).finally(() => { starting = null })))
   else if (m.type === "stop") done(findEngine().then((id) => id && send(id, { type: "stop" })))
   // Continue after a closed tab: the same recording, then writing starts by itself again
   else if (m.type === "recover") done(setState({ auto: true }).then(ensureEngine).then((id) => send(id, { type: "recover" })))

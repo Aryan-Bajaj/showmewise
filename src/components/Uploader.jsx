@@ -20,7 +20,8 @@ export default function Uploader({ onVideoSelect }) {
 
   // Enforce build-level limits BEFORE the pipeline touches the file, so a
   // too-big video is a friendly message instead of a crashed browser tab.
-  const handleVideo = async (file) => {
+  // `o`: options sent with a plugin recording (else the fields on this page)
+  const handleVideo = async (file, o = null) => {
     setLimitError("")
     if (!file.type.startsWith("video/") && !/\.(mp4|mov|webm|mkv)$/i.test(file.name)) {
       setLimitError("That file is not a video. Please drop an MP4, MOV or WEBM recording.")
@@ -30,7 +31,7 @@ export default function Uploader({ onVideoSelect }) {
     if (sizeErr) { setLimitError(sizeErr); return }
     const durErr = await checkVideoDuration(file)
     if (durErr) { setLimitError(durErr); return }
-    onVideoSelect(file, { language, accurate: useAccurate, terms: parseTerms(keywords) })
+    onVideoSelect(file, o ? { language: o.language || "en", accurate: !desktop && !!o.accurate, terms: parseTerms(o.terms || "") } : { language, accurate: useAccurate, terms: parseTerms(keywords) })
   }
 
   // Record your screen: the whole screen, a window or a tab, with your voice
@@ -38,18 +39,19 @@ export default function Uploader({ onVideoSelect }) {
   const [recNote, setRecNote] = useState("")
   const [saved, setSaved] = useState(null)    // "cut" | "unfinished" | null
   useEffect(() => { savedRecording().then(setSaved) }, [])
-  const record = async (streamId = null) => {
+  const record = async (streamId = null, o = null) => {
     setLimitError(""); setRecNote("")
     try {
       const r = await startRecording({
         streamId,
+        meta: o || { terms: keywords, language, accurate: useAccurate },
         onTick: (ms) => {
           setRec((x) => x && { ...x, ms })
           post("status", { state: "recording", ms, steps: [] })
           // the website takes up to MAX_VIDEO_MIN minutes: stop there, not after
           if (MAX_VIDEO_MIN && ms >= MAX_VIDEO_MIN * 60000) r.stop()
         },
-        onEnd: (file) => { setRec(null); post("status", { state: "upload", steps: [] }); if (file) handleVideo(file); else setLimitError("The recording is empty. Try again and share a screen, window or tab.") },
+        onEnd: (file) => { setRec(null); post("status", { state: "upload", steps: [] }); if (file) handleVideo(file, o); else setLimitError("The recording is empty. Try again and share a screen, window or tab.") },
       })
       setRec({ stop: r.stop, ms: 0 })
       if (r.micNote) setRecNote(r.micNote)
@@ -57,9 +59,15 @@ export default function Uploader({ onVideoSelect }) {
   }
   // the browser plugin starts a recording with a screen it picked
   useEffect(() => {
-    const on = (e) => { if (e.detail?.streamId && !rec) record(e.detail.streamId) }
+    const on = (e) => {
+      if (!e.detail?.streamId || rec) return
+      const o = e.detail.opts || null
+      // show the plugin's choices in the fields here too
+      if (o) { setKeywords(o.terms || ""); setLanguage(o.language || "en"); setAccurate(!!o.accurate) }
+      record(e.detail.streamId, o)
+    }
     const stop = () => rec?.stop()
-    const again = async () => { const f = await recoverRecording(); setSaved(null); if (f) handleVideo(f) }
+    const again = async () => { const f = await recoverRecording(); setSaved(null); if (f) handleVideo(f, f.vdOpts) }
     window.addEventListener("videodoc:record", on); window.addEventListener("videodoc:stop", stop); window.addEventListener("videodoc:recover", again)
     return () => { window.removeEventListener("videodoc:record", on); window.removeEventListener("videodoc:stop", stop); window.removeEventListener("videodoc:recover", again) }
   })
@@ -128,7 +136,7 @@ export default function Uploader({ onVideoSelect }) {
           {saved && (
             <span className="text-xs text-amber-200 flex flex-wrap items-center justify-center gap-2">
               {saved === "cut" ? "A recording was cut short." : "Your last recording has no finished guide yet."}
-              <button onClick={async () => { const f = await recoverRecording(); setSaved(null); if (f) handleVideo(f) }} className="underline hover:text-white">Use it</button>
+              <button onClick={async () => { const f = await recoverRecording(); setSaved(null); if (f) handleVideo(f, f.vdOpts) }} className="underline hover:text-white">Use it</button>
               <button onClick={() => { discardSavedRecording(); setSaved(null) }} className="underline text-zinc-400 hover:text-white">Delete it</button>
             </span>
           )}

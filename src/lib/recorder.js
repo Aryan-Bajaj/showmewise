@@ -51,7 +51,8 @@ async function screenStream(streamId) {
 // Start recording. Resolves when recording runs; stop() gives the video file.
 // onEnd(file) also fires when the user ends it from the browser's own
 // "Stop sharing" bar. Throws a plain-language error if nothing can be recorded.
-export async function startRecording({ streamId = null, mic = true, onEnd, onTick } = {}) {
+// `meta`: the options of this recording (key words, language), kept with it for Continue
+export async function startRecording({ streamId = null, mic = true, onEnd, onTick, meta = null } = {}) {
   let screen
   try { screen = await screenStream(streamId) } catch (e) {
     if (e?.name === "NotAllowedError") throw new Error("Recording was not started: nothing was chosen to share, or sharing was blocked.")
@@ -84,7 +85,7 @@ export async function startRecording({ streamId = null, mic = true, onEnd, onTic
         ctx.close().catch(() => {})
         // the last piece is written by ondataavailable just before onstop
         await new Promise((r) => setTimeout(r, 300))
-        const file = await assemble(Date.now() - t0)
+        const file = await assemble(Date.now() - t0, meta)
         resolve(file); onEnd?.(file)
       }
       if (rec.state !== "inactive") rec.stop(); else rec.onstop()
@@ -98,7 +99,7 @@ export async function startRecording({ streamId = null, mic = true, onEnd, onTic
 }
 
 // the saved pieces as one video file with its length written in
-async function assemble(durationMs) {
+async function assemble(durationMs, meta) {
   const items = await run("readonly", (s) => s.getAll()).catch(() => [])
   if (!items?.length) return null
   const type = items[0].type || "video/webm"
@@ -108,16 +109,16 @@ async function assemble(durationMs) {
   const d = new Date()
   const stamp = `${d.getDate()} ${d.toLocaleString("en", { month: "short" })} ${d.getFullYear()}, ${String(d.getHours()).padStart(2, "0")}-${String(d.getMinutes()).padStart(2, "0")}`
   const file = new File([blob], `Screen recording ${stamp}.${/mp4/.test(type) ? "mp4" : "webm"}`, { type: type.split(";")[0], lastModified: Date.now() })
-  await keepFinal(file)
+  await keepFinal(file, meta)
   return file
 }
 
 // The finished recording stays saved until its guide is done (App calls
 // discardSavedRecording then). A closed tab or crash in between: the same
 // file is offered again, so the run picks up where it stopped.
-async function keepFinal(file) {
+async function keepFinal(file, meta = null) {
   await clearSaved()
-  await run("readwrite", (s) => s.add({ final: true, name: file.name, type: file.type, lastModified: file.lastModified, blob: file })).catch(() => {})
+  await run("readwrite", (s) => s.add({ final: true, name: file.name, type: file.type, lastModified: file.lastModified, blob: file, meta })).catch(() => {})
 }
 
 // A recording cut short by a crash: its pieces are still saved. The length is
@@ -126,7 +127,7 @@ export async function recoverRecording() {
   const items = await run("readonly", (s) => s.getAll()).catch(() => [])
   if (!items?.length) return null
   const fin = items.find((i) => i.final)
-  if (fin) return new File([fin.blob], fin.name, { type: fin.type, lastModified: fin.lastModified })
+  if (fin) return Object.assign(new File([fin.blob], fin.name, { type: fin.type, lastModified: fin.lastModified }), { vdOpts: fin.meta || null })
   const type = items[0].type || "video/webm"
   const blob = new Blob(items.map((i) => i.blob), { type })
   const ms = await measure(blob)

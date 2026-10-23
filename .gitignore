@@ -38,3 +38,4 @@ eng.traineddata
 !.env.netlify
 !.env.desktop
 dev/
+dist-extension/

@@ -20,13 +20,21 @@ $("side").onclick = async () => {
 }
 
 // ---- record + status ----------------------------------------------------------
+// the optional fields of the upload page: remembered for next time
+const recOpts = () => ({ terms: $("terms").value.trim(), language: $("lang").value, accurate: $("speech").value === "accurate" })
+chrome.storage.local.get("recOpts").then(({ recOpts: o }) => {
+  if (!o) return
+  $("terms").value = o.terms || ""; $("lang").value = o.language || "en"; $("speech").value = o.accurate ? "accurate" : "fast"
+  if (o.terms || o.language !== "en" || o.accurate) $("recOpts").open = true
+})
+for (const id of ["terms", "lang", "speech"]) $(id).addEventListener("change", () => chrome.storage.local.set({ recOpts: recOpts() }))
 let status = null
 $("recBtn").onclick = async () => {
   if ($("recBtn").dataset.wait) return // a second click while the first is still on its way
   $("recBtn").dataset.wait = "1"
   $("recErr").hidden = true
   try {
-    const r = status?.state === "recording" ? await bg("stop") : await bg("record")
+    const r = status?.state === "recording" ? await bg("stop") : await bg("record", { opts: recOpts() })
     if (!r?.ok) { $("recErr").textContent = r?.error || "Something went wrong."; $("recErr").hidden = false }
   } finally { setTimeout(() => delete $("recBtn").dataset.wait, 800) }
 }
