@@ -163,7 +163,7 @@ export const HOWTO = [
       "\"Picking up where it stopped: ... parts already written\": parts written in the last try are kept; only the rest is written now.",
       "VideoDoc knows it is the same video when the file name, the exact size, the time the file was last saved, the speech language and the Fast or Accurate choice all match. A new recording (even with one extra sentence) is a new file, so it starts fresh. Written parts are only kept with the same AI model, settings and key words.",
       "\"... entries annotated\": how many parts the guide has. \"... segments\": how many pieces of speech were written down. \"... frames\": how many pictures were taken from the video.",
-      "A very long time, for example 356m: the time is the clock time from start to end. If the computer went to sleep in between, the sleep is counted too. The work itself waits while the computer sleeps and goes on when it wakes. Keep the laptop open, plugged in and the tab in front.",
+      "A very long time, for example 356m, or \"computer slept 5h\": the work waits while the computer sleeps and goes on when it wakes. The time the computer slept is not counted and is shown on its own. Keep the laptop open, plugged in and the tab in front.",
       "\"Ollama · gemma3...\" with 0s next to Load AI Model: Ollama loads the model itself, so this line is done at once. With the browser AI it shows the download and loading.",
     ],
   },

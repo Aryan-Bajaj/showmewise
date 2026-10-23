@@ -120,6 +120,17 @@ export default function App() {
   // 30 minutes), which cut two test runs in half. While anything is processing,
   // ask the browser to keep the screen and so the computer awake; let go after.
   const busy = !!pipelineSteps?.some(s => s.status === 'active')
+  // Sleep shows up as a jump of the clock. Hidden tabs tick only once a minute,
+  // so a gap counts as sleep from 90 s; it is kept off the running steps' time.
+  useEffect(() => {
+    if (!busy) return
+    let last = Date.now()
+    const id = setInterval(() => {
+      const t = Date.now(), gap = t - last - 1000; last = t
+      if (gap > 90000) setPipelineSteps(prev => prev?.map(s => s.status === 'active' ? { ...s, slept: (s.slept || 0) + gap } : s) ?? null)
+    }, 1000)
+    return () => clearInterval(id)
+  }, [busy])
   useEffect(() => {
     if (!busy || !navigator.wakeLock) return
     let lock = null, live = true

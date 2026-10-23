@@ -111,9 +111,11 @@ export default function PipelineStatus({ steps, etaHint = null }) {
         const isDone   = step.status === 'done'
         const isError  = step.status === 'error'
 
+        // time the computer slept is not work time (a run that slept showed 356m)
         const elapsed = step.startedAt
-          ? (step.endedAt ?? now) - step.startedAt
+          ? Math.max(0, (step.endedAt ?? now) - step.startedAt - (step.slept || 0))
           : null
+        const slept = step.slept > 60000 ? ` · computer slept ${formatTime(step.slept)}` : ''
 
         // Determine fill %
         const fillPct = step.pct != null
@@ -157,7 +159,7 @@ export default function PipelineStatus({ steps, etaHint = null }) {
                   <span className="text-violet-300 font-semibold tabular-nums">{fillPct}%</span>
                 )}
                 {isActive && elapsed != null && (
-                  <span className="text-zinc-500">{formatTime(elapsed)}</span>
+                  <span className="text-zinc-500">{formatTime(elapsed)}{slept}</span>
                 )}
                 {isActive && eta && (
                   <span className="text-zinc-500 border border-zinc-700 rounded px-1.5 py-0.5">{eta}</span>
@@ -168,7 +170,7 @@ export default function PipelineStatus({ steps, etaHint = null }) {
                   </span>
                 )}
                 {(isDone || isError) && elapsed != null && (
-                  <span className="text-zinc-600 tabular-nums">{formatTime(elapsed)}</span>
+                  <span className="text-zinc-600 tabular-nums" title={slept ? 'The time the computer slept is not counted' : undefined}>{formatTime(elapsed)}{slept}</span>
                 )}
               </div>
             </div>
