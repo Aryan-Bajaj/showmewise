@@ -17,6 +17,20 @@ function extractHeadings(htmlText) {
     .slice(0, 10)
 }
 
+// A PDF guide saved by VideoDoc: like the HTML guide, its summaries (process at
+// a glance, checklist, quick reference) list one action per part, and Doc Chat
+// answered "how do I add a widget" from them with one step. The page footers
+// also cut steps in half. Both are left out; every step stays in the parts.
+function vdGuidePdf(t) {
+  if (!/Made with VideoDoc/.test(t)) return t
+  t = t.split('\n').filter((l) => !/^Made with VideoDoc\s+Page \d+ of \d+\s*$/.test(l.trim()) && !/\|\s*Process guide\s*$/.test(l.trim())).join('\n')
+  // the body headings: the last place each appears (the contents list them first)
+  const cut = (from, to) => { const a = t.lastIndexOf(from), b = t.lastIndexOf(to); if (a >= 0 && b > a) t = t.slice(0, a) + t.slice(b) }
+  cut('Process at a glance', 'Step by step')
+  cut('Checklist', 'Questions and answers')
+  return t
+}
+
 // Full plain-text extraction from a document (for Doc Chat).
 export async function extractText(file) {
   const name = file.name.toLowerCase()
@@ -62,7 +76,7 @@ export async function extractText(file) {
       // a line break where pdf.js marks the end of a line, so words do not jam together
       pages.push(items.map((it) => it.str + (it.hasEOL ? '\n' : ' ')).join('').replace(/[ \t]+/g, ' ').trim())
     }
-    return pages.join('\n\n')
+    return vdGuidePdf(pages.join('\n\n'))
   }
   throw new Error('This file type does not work here. Use a .pdf, .txt, .md, .csv, .json, .html or .docx file.')
 }
