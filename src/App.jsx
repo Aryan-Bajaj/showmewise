@@ -24,6 +24,8 @@ import { fixTranscriptChunks } from "./lib/transcriptFixups"
 import { fixChunksWithScreen } from "./lib/screenVocab"
 import { userSpelling } from "./lib/terms"
 import { runKey, loadRun, saveRun } from "./lib/resume"
+import { post, compactSteps, setVideoDocs } from "./lib/bridge"
+import { discardSavedRecording } from "./lib/recorder"
 import { screenCounts, screenSpelling, screenNames, tidyActions, tidyNote, dropRepeatedParts } from "./lib/coverage"
 import { buildStepShots } from "./lib/stepShots"
 
@@ -290,6 +292,8 @@ export default function App() {
   }
 
   const handleStartAnnotation = async (aiMode, sections, model, title, company, refine = {}) => {
+    // remembered, so the browser plugin can start the next guide the same way
+    try { localStorage.setItem('vd-last-ai', JSON.stringify([aiMode, sections, model, '', '', refine])) } catch { /* private window */ }
     setShowAISettings(false)
     setError(null)
     cancelRef.current = false
@@ -367,7 +371,7 @@ export default function App() {
           }
           // replace the earlier status line, so it never shows a finished stage
           updateStep('annotate', { step: i + 1, total, etaMs: etaMs > 0 ? etaMs : null,
-            detail: `Writing part ${i + 1} of ${total}: the AI looks at the screen and the narration of this part` })
+            detail: `Writing part ${i + 1} of ${total}: the AI looks at the screen and the narration of this part${kept ? ` (${kept} part${kept > 1 ? 's' : ''} kept from the last try)` : ''}` })
         },
         // model-loading status (WebLLM): drive the Load AI Model step
         (msg, pct, phase) => {
@@ -566,6 +570,32 @@ export default function App() {
   }, [])
 
   const isAnnotating = pipelineSteps?.find(s => s.id === 'annotate')?.status === 'active'
+
+  // Live status for the browser plugin's side panel (lib/bridge.js)
+  const insightsDone = pipelineSteps?.find(s => s.id === 'insights')?.status === 'done'
+  useEffect(() => { if (insightsDone) discardSavedRecording() }, [insightsDone]) // its guide is done
+  // what the plugin's chat answers from: the guide, or the speech before it is written
+  useEffect(() => { setVideoDocs(annotatedDocs.length ? markedDocs : transcriptChunks.map((c) => ({ label: `${Math.floor((c.timestamp?.[0] ?? 0) / 60)}:${String(Math.floor((c.timestamp?.[0] ?? 0) % 60)).padStart(2, '0')}`, text: c.text, timestamp: c.timestamp?.[0] ?? 0, frame: null, annotation: null }))) }, [annotatedDocs, markedDocs, transcriptChunks])
+  const runState = !videoFile ? 'upload' : busy ? 'working' : showAISettings ? 'settings'
+    : error || pipelineSteps?.some(s => s.status === 'error') ? 'stopped' : insightsDone ? 'done' : 'ready'
+  useEffect(() => {
+    if (runState === 'upload') return // the upload page reports recording itself
+    let lastAI = null
+    try { const l = JSON.parse(localStorage.getItem('vd-last-ai') || 'null'); if (l) lastAI = l[0] === 'ollama' ? `Ollama · ${l[2]}` : l[0] === 'local' ? 'Bundled engine' : `Browser AI · ${l[2]}` } catch { /* none */ }
+    post('status', { state: runState, steps: compactSteps(pipelineSteps), title: docTitle || videoFile?.name || '', file: videoFile?.name || '', lastAI, error: error || '' })
+  }, [runState, pipelineSteps, docTitle, videoFile, error])
+  useEffect(() => { if (runState === 'upload') post('status', { state: 'upload', steps: [] }) }, [runState])
+
+  // plugin commands: start with the last AI settings, or start a new video
+  useEffect(() => {
+    const gen = () => {
+      if (!showAISettings) return
+      try { const l = JSON.parse(localStorage.getItem('vd-last-ai') || 'null'); if (l) handleStartAnnotation(...l) } catch { /* none saved */ }
+    }
+    const fresh = () => { if (!busy) handleNewVideo() }
+    window.addEventListener('videodoc:generate', gen); window.addEventListener('videodoc:new', fresh)
+    return () => { window.removeEventListener('videodoc:generate', gen); window.removeEventListener('videodoc:new', fresh) }
+  })
 
   return (
     <div className="min-h-screen text-white font-sans" style={{ position: 'relative', background: '#0d0d2b' }}>

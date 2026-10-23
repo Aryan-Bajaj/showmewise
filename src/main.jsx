@@ -10,6 +10,10 @@ import ErrorBoundary from './components/ErrorBoundary.jsx'
 import MobileNotice from './components/MobileNotice.jsx'
 import HowToPage from './components/HowToPage.jsx'
 import Vidi from './components/Vidi.jsx'
+import { listen } from './lib/bridge'
+import PluginChat from './components/PluginChat.jsx'
+
+listen() // the browser plugin, if installed, talks to the page through this
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -23,6 +27,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/howto" element={<HowToPage />} />
       </Routes>
       <ErrorBoundary name="Vidi"><Vidi /></ErrorBoundary>
+      <PluginChat />
     </HashRouter>
   </StrictMode>,
 )

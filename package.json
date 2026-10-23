@@ -15,6 +15,7 @@
     "@huggingface/transformers": "^4.2.0",
     "@mlc-ai/web-llm": "^0.2.73",
     "docx": "^8.5.0",
+    "fix-webm-duration": "1.0.6",
     "gifenc": "^1.0.3",
     "jspdf": "^4.2.1",
     "lucide-react": "^0.475.0",

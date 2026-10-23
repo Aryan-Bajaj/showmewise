@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VideoDoc</title>
+<style>
+:root{--bg:#0f0b24;--card:#17113a;--line:rgba(255,255,255,.1);--ink:#f1eeff;--ink2:#b9b3d8;--ink3:#8a84ad;--acc:#7c5cff;--ok:#34d399;--rec:#ef4444;--warn:#fbbf24}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:2}
+header img{width:22px;height:22px}
+header b{font-size:15px}
+header a{margin-left:auto;color:var(--ink2);font-size:12px;text-decoration:none}
+header a:hover{color:#fff}
+main{padding:12px;display:flex;flex-direction:column;gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
+h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin:0 0 8px}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--line);background:#231a52;color:var(--ink);padding:8px 12px}
+button:hover{border-color:rgba(124,92,255,.7)}
+button:disabled{opacity:.5;cursor:default}
+.big{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:600;padding:11px}
+.rec{background:#3a1220;border-color:rgba(239,68,68,.5)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--rec);display:inline-block}
+.live .dot{animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.3}}
+.note{font-size:12px;color:var(--ink3);margin:6px 0 0}
+.err{font-size:12px;color:#fca5a5;margin:6px 0 0}
+.steps{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:5px}
+.steps li{display:flex;gap:7px;align-items:baseline;font-size:12.5px;color:var(--ink2)}
+.steps li span.i{width:14px;flex:none;text-align:center}
+.steps li.done span.i{color:var(--ok)} .steps li.active{color:#fff} .steps li.active span.i{color:var(--acc)} .steps li.error span.i{color:var(--rec)}
+.steps li em{margin-left:auto;font-style:normal;color:var(--ink3);font-size:11.5px;white-space:nowrap;max-width:48%;overflow:hidden;text-overflow:ellipsis}
+.bar{height:5px;background:rgba(255,255,255,.07);border-radius:9px;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#7c5cff,#22d3ee);width:0;transition:width .6s}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.tabs{display:flex;gap:4px;background:#0f0b24;border-radius:10px;padding:3px}
+.tabs button{flex:1;border:0;background:transparent;padding:6px 4px;font-size:12.5px;color:var(--ink2)}
+.tabs button.on{background:#2b2063;color:#fff}
+.msgs{display:flex;flex-direction:column;gap:8px;margin-top:10px;max-height:46vh;overflow:auto}
+.q{align-self:flex-end;background:rgba(52,211,153,.14);border:1px solid rgba(52,211,153,.3);border-radius:12px 12px 2px 12px;padding:6px 10px;max-width:88%}
+.a{background:#1f1747;border:1px solid var(--line);border-radius:12px 12px 12px 2px;padding:8px 10px;white-space:pre-wrap}
+.a small{display:block;color:var(--ink3);margin-top:6px;font-size:11.5px}
+.a a{color:#c4b5fd}
+.ask{display:flex;gap:6px;margin-top:10px}
+.ask input{flex:1;min-width:0;background:#0f0b24;border:1px solid var(--line);border-radius:10px;color:#fff;padding:8px 10px;font:inherit}
+label.chk{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--ink2);margin-top:8px}
+.ctx{font-size:12px;color:var(--ink2);margin-top:8px}
+footer{padding:4px 14px 14px;font-size:11.5px;color:var(--ink3)}
+footer a{color:var(--ink2)}
+</style>
+</head>
+<body>
+<header>
+  <img src="icons/icon32.png" alt="">
+  <b>VideoDoc</b>
+  <a id="site" href="https://videodoc.netlify.app/" target="_blank" rel="noopener">Open the website ↗</a>
+</header>
+<main>
+  <section class="card" id="recCard">
+    <h2>Record</h2>
+    <button class="big rec" id="recBtn"><span class="dot"></span> <span id="recLabel">Record your screen</span></button>
+    <p class="note" id="recNote">The whole screen, one app window or a tab, with your voice. Talk while you do the task. The guide starts by itself when you stop.</p>
+    <p class="err" id="recErr" hidden></p>
+  </section>
+
+  <section class="card" id="runCard" hidden>
+    <h2 id="runTitle">Your guide</h2>
+    <div id="runLine" class="note" style="margin:0"></div>
+    <div class="bar"><i id="runBar"></i></div>
+    <ul class="steps" id="steps"></ul>
+    <div class="row" id="runBtns"></div>
+  </section>
+
+  <section class="card">
+    <h2>Chat</h2>
+    <div class="tabs" role="tablist">
+      <button class="on" data-scope="video" role="tab">This video</button>
+      <button data-scope="page" role="tab">This page</button>
+      <button data-scope="doc" role="tab">A document</button>
+    </div>
+    <div class="ctx" id="ctx"></div>
+    <label class="chk" id="linksWrap" hidden><input type="checkbox" id="links" checked> If it is not on the page, also read links on it that match my question (same site)</label>
+    <input type="file" id="file" accept=".pdf,.docx,.html,.htm,.txt,.md,.csv,.json" hidden>
+    <div class="msgs" id="msgs" aria-live="polite"></div>
+    <form class="ask" id="askForm"><input id="q" placeholder="Ask a question..." autocomplete="off"><button id="send">Ask</button></form>
+  </section>
+</main>
+<footer>
+  <label class="chk"><input type="checkbox" id="auto" checked> Start writing the guide by itself after a recording (with the AI used last time)</label>
+  <p>Everything runs on your computer through the VideoDoc website. Nothing is uploaded. <a href="https://videodoc.netlify.app/#/policy" target="_blank" rel="noopener" id="privacy">Privacy</a></p>
+</footer>
+<script src="panel.js"></script>
+</body>
+</html>

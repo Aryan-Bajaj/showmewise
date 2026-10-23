@@ -1,5 +1,7 @@
-import { useRef, useState } from "react"
-import { Video, ShieldCheck, Sparkles, CloudUpload } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { Video, ShieldCheck, Sparkles, CloudUpload, Circle, Square } from "lucide-react"
+import { post } from "../lib/bridge"
+import { canRecord, startRecording, savedRecording, recoverRecording, discardSavedRecording } from "../lib/recorder"
 import { checkVideoSize, checkVideoDuration, MAX_VIDEO_MB, MAX_VIDEO_MIN } from "../lib/limits"
 import { parseTerms } from "../lib/terms"
 
@@ -30,6 +32,38 @@ export default function Uploader({ onVideoSelect }) {
     if (durErr) { setLimitError(durErr); return }
     onVideoSelect(file, { language, accurate: useAccurate, terms: parseTerms(keywords) })
   }
+
+  // Record your screen: the whole screen, a window or a tab, with your voice
+  const [rec, setRec] = useState(null)        // { stop, ms } while recording
+  const [recNote, setRecNote] = useState("")
+  const [saved, setSaved] = useState(null)    // "cut" | "unfinished" | null
+  useEffect(() => { savedRecording().then(setSaved) }, [])
+  const record = async (streamId = null) => {
+    setLimitError(""); setRecNote("")
+    try {
+      const r = await startRecording({
+        streamId,
+        onTick: (ms) => {
+          setRec((x) => x && { ...x, ms })
+          post("status", { state: "recording", ms, steps: [] })
+          // the website takes up to MAX_VIDEO_MIN minutes: stop there, not after
+          if (MAX_VIDEO_MIN && ms >= MAX_VIDEO_MIN * 60000) r.stop()
+        },
+        onEnd: (file) => { setRec(null); post("status", { state: "upload", steps: [] }); if (file) handleVideo(file); else setLimitError("The recording is empty. Try again and share a screen, window or tab.") },
+      })
+      setRec({ stop: r.stop, ms: 0 })
+      if (r.micNote) setRecNote(r.micNote)
+    } catch (e) { setLimitError(e.message); post("status", { state: "upload", steps: [], error: e.message }) }
+  }
+  // the browser plugin starts a recording with a screen it picked
+  useEffect(() => {
+    const on = (e) => { if (e.detail?.streamId && !rec) record(e.detail.streamId) }
+    const stop = () => rec?.stop()
+    const again = async () => { const f = await recoverRecording(); setSaved(null); if (f) handleVideo(f) }
+    window.addEventListener("videodoc:record", on); window.addEventListener("videodoc:stop", stop); window.addEventListener("videodoc:recover", again)
+    return () => { window.removeEventListener("videodoc:record", on); window.removeEventListener("videodoc:stop", stop); window.removeEventListener("videodoc:recover", again) }
+  })
+  const mmss = (ms) => `${Math.floor(ms / 60000)}:${String(Math.floor(ms / 1000) % 60).padStart(2, "0")}`
 
   const limitHint = [
     MAX_VIDEO_MIN ? `up to ${MAX_VIDEO_MIN} min` : null,
@@ -75,6 +109,32 @@ export default function Uploader({ onVideoSelect }) {
           <span className="text-xs text-zinc-500">MP4, MOV or WEBM{limitHint ? ` · ${limitHint}` : ""}</span>
         </div>
       </button>
+
+      {/* Or record the screen right here */}
+      {canRecord() && (rec ? (
+        <div role="status" className="w-full max-w-2xl flex items-center gap-3 rounded-xl border border-red-400/40 bg-red-500/10 px-4 py-3">
+          <span className="w-3 h-3 rounded-full bg-red-500 animate-pulse shrink-0" />
+          <span className="text-sm text-red-100">Recording <b className="tabular-nums">{mmss(rec.ms)}</b>{MAX_VIDEO_MIN ? <span className="text-red-200/70"> · stops by itself at {MAX_VIDEO_MIN} min</span> : null}. Do the task and explain it out loud.</span>
+          <button onClick={() => rec.stop()} className="ml-auto inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-500 rounded-lg px-3 py-1.5">
+            <Square className="w-3.5 h-3.5" /> Stop
+          </button>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center gap-1.5">
+          <button onClick={() => record()} className="inline-flex items-center gap-2 text-sm font-semibold text-red-100 border border-red-400/40 hover:bg-red-500/10 rounded-full px-4 py-2 transition">
+            <Circle className="w-3.5 h-3.5 fill-red-500 text-red-500" /> Record your screen
+          </button>
+          <span className="text-xs text-zinc-500">The whole screen, one app window or a tab, with your voice. The recording stays on your computer.</span>
+          {saved && (
+            <span className="text-xs text-amber-200 flex flex-wrap items-center justify-center gap-2">
+              {saved === "cut" ? "A recording was cut short." : "Your last recording has no finished guide yet."}
+              <button onClick={async () => { const f = await recoverRecording(); setSaved(null); if (f) handleVideo(f) }} className="underline hover:text-white">Use it</button>
+              <button onClick={() => { discardSavedRecording(); setSaved(null) }} className="underline text-zinc-400 hover:text-white">Delete it</button>
+            </span>
+          )}
+        </div>
+      ))}
+      {recNote && <p className="text-xs text-amber-200 max-w-2xl text-center">{recNote}</p>}
 
       {/* Spoken language: English uses the English model; others are translated to English */}
       <div className="flex flex-wrap items-center justify-center gap-2 text-sm">
