@@ -22,9 +22,13 @@ $("side").onclick = async () => {
 // ---- record + status ----------------------------------------------------------
 let status = null
 $("recBtn").onclick = async () => {
+  if ($("recBtn").dataset.wait) return // a second click while the first is still on its way
+  $("recBtn").dataset.wait = "1"
   $("recErr").hidden = true
-  const r = status?.state === "recording" ? await bg("stop") : await bg("record")
-  if (!r?.ok) { $("recErr").textContent = r?.error || "Something went wrong."; $("recErr").hidden = false }
+  try {
+    const r = status?.state === "recording" ? await bg("stop") : await bg("record")
+    if (!r?.ok) { $("recErr").textContent = r?.error || "Something went wrong."; $("recErr").hidden = false }
+  } finally { setTimeout(() => delete $("recBtn").dataset.wait, 800) }
 }
 
 function render(s, closed) {

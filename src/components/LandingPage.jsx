@@ -1099,6 +1099,9 @@ export default function LandingPage() {
                 ['📘', 'A real process manual in PDF, Word and HTML'],
                 ['🔘', 'Reads coloured buttons and popups'],
                 ['🧩', 'Short how-tos split into clean steps'],
+                ['⏺', 'Record your screen right here, with your voice'],
+                ['🔑', 'Key words: names and codes spelled right'],
+                ['↩️', 'Picks up where it stopped after a crash or sleep'],
               ].map(([ic, t], i) => (
                 <div key={i} style={{ display: 'flex', gap: 9, alignItems: 'flex-start', padding: '7px 0', fontSize: '0.86rem', color: 'rgba(255,255,255,0.92)' }}>
                   <span style={{ flexShrink: 0 }}>{ic}</span>{t}
@@ -1111,6 +1114,34 @@ export default function LandingPage() {
             <span style={{ background: 'linear-gradient(90deg,#7b96ff,#a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontWeight: 700 }}>Why v5 matters:</span>{' '}
             v3 taught it to <em>see and hear like a person</em>. v4 made it <em>honest</em>. v5 makes it <em>easy to follow</em>: every action points at the exact spot on the screen, in a document that reads like a real manual.
           </p>
+        </section>
+
+        {/* ── The browser plugin ───────────────────────────────── */}
+        <section id="lp-plugin" className="lp-section" style={{ padding: '40px 24px 60px', maxWidth: 940, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 30 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#22d3ee', marginBottom: 12 }}>
+              New · browser plugin
+            </div>
+            <h2 style={{ fontSize: 'clamp(1.8rem, 4.2vw, 2.8rem)', fontWeight: 700, letterSpacing: '-0.025em' }}>VideoDoc, one click away</h2>
+            <p style={{ maxWidth: 620, margin: '14px auto 0', fontSize: '0.98rem', lineHeight: 1.7, color: 'rgba(255,255,255,0.64)' }}>
+              A small window under the VideoDoc icon in your browser bar. For Chrome and Edge, coming soon to the Chrome Web Store.
+            </p>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14 }}>
+            {[
+              ['⏺', 'Record any app', 'The whole screen, one window or a tab, with your voice. Press Stop and the guide writes itself.'],
+              ['🔔', 'Small and quiet', 'The steps and the time left in a small window, and a notification when your guide is ready.'],
+              ['💬', 'Ask Vidi anything', 'About your video, the page you are on, a PDF or Word file, or VideoDoc itself.'],
+              ['🔗', 'Looks behind links', 'Not on the page? Vidi reads the links that match your question (same site) and tells you which.'],
+              ['📍', 'Show me on the page', 'Vidi marks the right button on the real page and puts a screenshot in the chat. It never clicks for you.'],
+              ['🔒', 'Same privacy', 'It runs on your computer through the VideoDoc website. One model download for both.'],
+            ].map(([ic, title, desc], i) => (
+              <div key={i} style={{ borderRadius: 16, padding: '22px 20px', background: 'rgba(34,211,238,0.04)', border: '1px solid rgba(34,211,238,0.18)' }}>
+                <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'rgba(255,255,255,0.92)', marginBottom: 8 }}><span style={{ marginRight: 8 }}>{ic}</span>{title}</div>
+                <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.66)', lineHeight: 1.6, margin: 0 }}>{desc}</p>
+              </div>
+            ))}
+          </div>
         </section>
 
         {/* ── Limits: told up front (same facts as the "limits" part in lib/howto.js) ── */}

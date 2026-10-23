@@ -4,7 +4,7 @@ import { MAX_VIDEO_MB, MAX_VIDEO_MIN } from '../lib/limits'
 
 // Privacy, terms and credits in plain English. Everything here describes what
 // the app really does (checked against the code): keep it true when the app changes.
-const UPDATED = '22 October 2026'
+const UPDATED = '23 October 2026'
 const REPO = 'https://github.com/Aryan-Bajaj/video-docs'
 
 const C = { bg: '#0f0b24', card: 'rgba(28,18,55,0.7)', line: 'rgba(167,139,250,0.18)', ink: '#ece9ff', body: 'rgba(236,233,255,0.78)', dim: 'rgba(236,233,255,0.55)', acc: '#a78bfa' }
@@ -84,6 +84,15 @@ export default function PolicyPage() {
             <><b>Ollama</b> runs on your own computer. When you choose it, the page talks to it at <code>localhost</code>, and Chrome may ask you to allow local network access. This traffic stays on your machine.</>,
             <><b>Search the web</b> in Vid Chat only runs when you click it. It opens a new tab on <b>Perplexity</b> with the question you typed, nothing else. Your video and your guide are not sent. Perplexity's own privacy policy applies there.</>,
             <><b>Vidi</b>, the help chat, answers from the help text of this website. It reads error messages shown on the page, and screenshots you paste, on your computer only. For written answers it uses Ollama on your computer or a small AI in your browser (downloaded once), never a server.</>,
+          ]} />
+          <H>The screen recorder</H>
+          <p style={{ margin: 0 }}>Record your screen only starts when you press it, and only records what you choose in the browser's own picker (the whole screen, one window or a tab), with your microphone if you allow it. The recording is saved in this browser's storage while it runs, so a crash does not lose it, and stays there until its guide is finished or you delete it. It is never uploaded.</p>
+          <H>The browser plugin</H>
+          <UL items={[
+            <>The VideoDoc plugin (Chrome and Edge) uses this website, in a tab of its own, to do the work. Everything stays on your computer, like on the website.</>,
+            <><b>Ask Vidi about this page</b> reads the page you are on only when you ask, after you allowed it once. If the answer is not there, Vidi may read up to 3 linked pages of the same site; it tells you which.</>,
+            <><b>Show me on the page</b> runs only when you press it: Vidi marks buttons on the page and takes a screenshot of the visible part for the chat. It never clicks or types for you.</>,
+            <>Chats and screenshots are kept only until you close the browser. A document you pick is read on your computer and not kept.</>,
           ]} />
           <H>What stays on your device</H>
           <p style={{ margin: 0 }}>Downloaded model files stay in your browser's storage so the next run starts faster. An exported HTML guide can remember your checklist ticks in that browser. Vidi remembers how you want it to answer (Ollama, browser AI or no AI) in this browser. To pick up where a run stopped (a crash, a closed tab, the computer going to sleep), the transcript and the screen text of the last video, and the parts already written, are kept in this browser's storage. The written parts are cleared when the guide is finished; the transcript and screen text stay, so the same video starts faster next time, until you choose another video, which replaces them. While a video is processed, the page asks the browser to keep the screen on, so the computer does not go to sleep halfway; this ends when processing ends or when you leave the tab. You can remove all of this at any time by clearing the site data in your browser settings.</p>

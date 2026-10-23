@@ -51,6 +51,7 @@ async function ensureEngine() {
 }
 
 // ---- recording -------------------------------------------------------------
+let starting = null
 async function record() {
   const id = await ensureEngine()
   const { status } = await getState()
@@ -108,9 +109,16 @@ async function focusEngine() {
 }
 
 // the engine tab was closed: say so, the work can be picked up again
+// questions still waiting when the VideoDoc tab goes away would wait forever
+const failPending = (why) => edit((log) => log.forEach((x) => { if (!x.done) Object.assign(x, { done: true, error: why }) }))
+chrome.tabs.onUpdated.addListener(async (id, info) => {
+  if (info.status === "loading" && id === (await getState()).engine) failPending("The VideoDoc tab was reloaded. Ask again.")
+})
+
 chrome.tabs.onRemoved.addListener(async (id) => {
   const st = await getState()
   if (id !== st.engine) return
+  failPending("The VideoDoc tab was closed. Ask again: Vidi opens it by itself.")
   const was = st.status?.state
   const closed = was === "working" || was === "recording" || was === "settings"
   await setState({ engine: null, status: null, closed })
@@ -132,7 +140,8 @@ chrome.runtime.onMessage.addListener((m, from, reply) => {
   if (m?.to !== "bg") return
   const done = (p) => p.then((r) => reply({ ok: true, ...(r || {}) }), (e) => reply({ ok: false, error: e.message }))
   if (m.type === "state") done(getState().then(async (st) => ({ ...st, site: await site() })))
-  else if (m.type === "record") done(record())
+  // pressed again while the picker is still open: that press does nothing
+  else if (m.type === "record") done(starting ? Promise.resolve({ busy: true }) : (starting = record().finally(() => { starting = null })))
   else if (m.type === "stop") done(findEngine().then((id) => id && send(id, { type: "stop" })))
   // Continue after a closed tab: the same recording, then writing starts by itself again
   else if (m.type === "recover") done(setState({ auto: true }).then(ensureEngine).then((id) => send(id, { type: "recover" })))

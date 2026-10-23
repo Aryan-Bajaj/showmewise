@@ -17,6 +17,7 @@
 1. [What Is This?](#-what-is-this)
 2. [Live Demo](#-live-demo)
    - [Limits and Accuracy](#-limits-and-accuracy)
+   - [Browser Plugin](#-browser-plugin)
 3. [New in v5](#-new-in-v5) `🆕`
    - [New in v4](#-new-in-v4)
 4. [New in v3](#-new-in-v3)
@@ -94,6 +95,22 @@ Every release is tested against manuals written by hand for real screen recordin
 * **Guides in English for now**, whatever the language of the video.
 * **Made for computers**, Chrome or Edge. Phones and tablets cannot run the AI on the device.
 * **The HTML guide has everything.** Word has GIFs in some parts, PDF has still pictures. Doc Chat reads PDF files with text, not scanned pages.
+
+---
+
+## 🧩 Browser Plugin
+
+The `extension/` folder holds the VideoDoc plugin for Chrome and Edge (Manifest V3). It opens as a small window under its toolbar icon, or on the side.
+
+* **Record any app.** The whole screen, one window or a tab, with your voice (`chrome.desktopCapture`). When you stop, the guide is written by itself with the AI used last time.
+* **Steps, time left and a notification** when the guide is ready. The computer is kept awake while it records or writes (`chrome.power`).
+* **Ask Vidi** about your video, the page you are on, a document (PDF, Word, HTML, text) or VideoDoc itself.
+* **Looks behind links.** If the answer is not on the page, Vidi reads up to 3 matching links of the same site and says which.
+* **Show me on the page.** On request, Vidi marks the right buttons on the real page (a numbered tag beside each, never on top) and adds a screenshot to the chat. It never clicks for you.
+* **One engine.** The plugin drives the VideoDoc website in a tab of its own (`content.js` and `src/lib/bridge.js`), so models are downloaded once, an unfinished guide picks up where it stopped, and the website shows the same progress.
+* **Privacy.** Reading other pages is an optional permission asked for on first use. Nothing is uploaded. Page text is always shown as plain text.
+
+Load it for testing: `chrome://extensions`, Developer mode, Load unpacked, pick `extension/`. The test list is in `extension/TESTING.md`.
 
 ---
 
