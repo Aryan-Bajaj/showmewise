@@ -237,6 +237,27 @@ export const HOWTO = [
     ],
   },
   {
+    id: "record", title: "Record your screen (recorder)",
+    body: [
+      "No recording yet? Press Record your screen on the upload page. Choose the whole screen, one app window or a browser tab, then do the task and explain it out loud. Press Stop when you are done, or Stop sharing in the browser bar.",
+      "The guide starts by itself after you stop. The recording stays on your computer.",
+      "Allow the microphone when the browser asks, so your voice is recorded. If it is blocked, the video has no voice and the guide is written from the screen only.",
+      "On this website a recording stops by itself at the size limit. If the tab closes while recording, the next visit offers the recording again (Use it or Delete it).",
+    ],
+  },
+  {
+    id: "plugin", title: "The VideoDoc browser plugin (extension) and Vidi in the plugin",
+    body: [
+      "The VideoDoc plugin for Chrome and Edge puts VideoDoc in a small window under its icon in the toolbar. Open on the side keeps it next to your page.",
+      "Record your screen from the plugin: the whole screen, any app window or a tab. When you stop, the guide is written by itself with the AI you used last time, and you get a notification when it is ready.",
+      "The plugin shows the steps and the time left while VideoDoc works. It keeps the computer awake while it records or writes.",
+      "Ask Vidi in the plugin: about your video, about the page you are on, about a document (PDF, Word, web page or text), or Help for questions about VideoDoc itself.",
+      "This page: if the answer is not on the page, Vidi reads the links on it that match your question (same site, up to 3) and says which pages it read. Reading pages needs your OK once.",
+      "The plugin uses the VideoDoc website in a tab of its own, so the models are downloaded only once and an unfinished guide picks up where it stopped. If that tab is closed, press Continue in the plugin.",
+      "Nothing is uploaded: the plugin and the website run on your computer.",
+    ],
+  },
+  {
     id: "docchat", title: "Step 8. Ask questions about a document (Doc Chat)", img: "docchat",
     marks: [{ n: 1, x: 65.2, y: 46.9, dir: "right", text: "Choose a document (PDF, Word, web page, text, Markdown, CSV or JSON) and ask questions about it." }],
     body: ["Doc Chat needs no video. Open it with Doc Chat in the top bar.", "If Ollama runs on your computer, it is picked for you with a quick model for chatting. You can switch to the browser AI.", "Ask anything about the document: what it is about, how to do a step, a name or a number in it."],

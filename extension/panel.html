@@ -7,11 +7,15 @@
 <style>
 :root{--bg:#0f0b24;--card:#17113a;--line:rgba(255,255,255,.1);--ink:#f1eeff;--ink2:#b9b3d8;--ink3:#8a84ad;--acc:#7c5cff;--ok:#34d399;--rec:#ef4444;--warn:#fbbf24}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+body{margin:0;background:var(--bg);color:var(--ink);font:13.5px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+body.popup{width:380px;max-height:600px}
+body.popup main{padding:10px;gap:10px}
+body.popup .msgs{max-height:200px}
+body.popup footer label{display:none}
 header{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:2}
 header img{width:22px;height:22px}
 header b{font-size:15px}
-header a{margin-left:auto;color:var(--ink2);font-size:12px;text-decoration:none}
+header a{margin-left:auto;margin-right:2px;color:var(--ink2);font-size:12px;text-decoration:none}
 header a:hover{color:#fff}
 main{padding:12px;display:flex;flex-direction:column;gap:12px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
@@ -54,13 +58,14 @@ footer a{color:var(--ink2)}
 <header>
   <img src="icons/icon32.png" alt="">
   <b>VideoDoc</b>
-  <a id="site" href="https://videodoc.netlify.app/" target="_blank" rel="noopener">Open the website ↗</a>
+  <a id="site" href="https://videodoc.netlify.app/" target="_blank" rel="noopener">Website ↗</a>
+  <button id="side" title="Keep VideoDoc open on the side of this window" style="padding:3px 8px;font-size:12px">Open on the side</button>
 </header>
 <main>
   <section class="card" id="recCard">
     <h2>Record</h2>
     <button class="big rec" id="recBtn"><span class="dot"></span> <span id="recLabel">Record your screen</span></button>
-    <p class="note" id="recNote">The whole screen, one app window or a tab, with your voice. Talk while you do the task. The guide starts by itself when you stop.</p>
+    <p class="note" id="recNote">Whole screen, one app window or a tab, with your voice. The guide starts by itself when you stop.</p>
     <p class="err" id="recErr" hidden></p>
   </section>
 
@@ -73,17 +78,19 @@ footer a{color:var(--ink2)}
   </section>
 
   <section class="card">
-    <h2>Chat</h2>
+    <h2>Ask Vidi</h2>
     <div class="tabs" role="tablist">
-      <button class="on" data-scope="video" role="tab">This video</button>
-      <button data-scope="page" role="tab">This page</button>
-      <button data-scope="doc" role="tab">A document</button>
+      <button class="on" data-scope="video" role="tab" title="Your video in VideoDoc">My video</button>
+      <button data-scope="page" role="tab" title="The page you are on">This page</button>
+      <button data-scope="doc" role="tab" title="A PDF, Word, web page or text file">Document</button>
+      <button data-scope="help" role="tab" title="How VideoDoc works, its limits, the plugin">Help</button>
     </div>
     <div class="ctx" id="ctx"></div>
     <label class="chk" id="linksWrap" hidden><input type="checkbox" id="links" checked> If it is not on the page, also read links on it that match my question (same site)</label>
     <input type="file" id="file" accept=".pdf,.docx,.html,.htm,.txt,.md,.csv,.json" hidden>
+    <button id="allow" hidden style="margin-top:8px;width:100%">Allow Vidi to read the pages I ask about</button>
     <div class="msgs" id="msgs" aria-live="polite"></div>
-    <form class="ask" id="askForm"><input id="q" placeholder="Ask a question..." autocomplete="off"><button id="send">Ask</button></form>
+    <form class="ask" id="askForm"><input id="q" placeholder="Ask Vidi about your video, this page or a document..." autocomplete="off"><button id="send">Ask</button></form>
   </section>
 </main>
 <footer>

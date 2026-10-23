@@ -6,15 +6,55 @@
   "description": "Record your screen and get a step-by-step guide. Chat with your videos, documents and the page you are on. Runs on your computer.",
   "homepage_url": "https://videodoc.netlify.app/",
   "minimum_chrome_version": "116",
-  "icons": { "16": "icons/icon16.png", "32": "icons/icon32.png", "48": "icons/icon48.png", "128": "icons/icon128.png" },
-  "action": { "default_title": "Open VideoDoc", "default_icon": { "16": "icons/icon16.png", "32": "icons/icon32.png" } },
-  "side_panel": { "default_path": "panel.html" },
-  "background": { "service_worker": "bg.js" },
-  "permissions": ["sidePanel", "desktopCapture", "notifications", "storage", "power", "scripting", "activeTab"],
-  "host_permissions": ["https://videodoc.netlify.app/*", "http://127.0.0.1:8899/*"],
-  "optional_host_permissions": ["<all_urls>"],
-  "content_scripts": [
-    { "matches": ["https://videodoc.netlify.app/*", "http://127.0.0.1:8899/*"], "js": ["content.js"], "run_at": "document_idle" }
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_title": "Open VideoDoc",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    },
+    "default_popup": "panel.html?popup=1"
+  },
+  "side_panel": {
+    "default_path": "panel.html"
+  },
+  "background": {
+    "service_worker": "bg.js"
+  },
+  "permissions": [
+    "sidePanel",
+    "desktopCapture",
+    "notifications",
+    "storage",
+    "power",
+    "scripting",
+    "activeTab"
   ],
-  "content_security_policy": { "extension_pages": "script-src 'self'; object-src 'self'" }
+  "host_permissions": [
+    "https://videodoc.netlify.app/*",
+    "http://127.0.0.1:8899/*"
+  ],
+  "optional_host_permissions": [
+    "<all_urls>"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://videodoc.netlify.app/*",
+        "http://127.0.0.1:8899/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
 }

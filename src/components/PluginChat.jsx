@@ -8,22 +8,43 @@ import { useEffect, useRef } from "react"
 import useRAG from "../hooks/useRAG"
 import { post, videoDocs } from "../lib/bridge"
 import { extractText, chunkText } from "../hooks/useDocParser"
-import { DEFAULT_WEBLLM_MODEL } from "../lib/llm"
+import { DEFAULT_WEBLLM_MODEL, callOllama, callWebLLM } from "../lib/llm"
+import { findHelp } from "../lib/howto"
+import { SYSTEM as VIDI_SYSTEM, vidiPrompt } from "./Vidi.jsx"
 
-const words = (t) => new Set((String(t || "").toLowerCase().match(/[a-z0-9]{3,}/g) || []).filter((w) => !/^(the|and|for|you|how|what|which|does|with|this|that|are|can|from|about|into|your)$/.test(w)))
+// words, with plural and verb endings cut ("plans" = "plan", "pricing" = "pric")
+const words = (t) => new Set((String(t || "").toLowerCase().match(/[a-z0-9]{3,}/g) || [])
+  .filter((w) => !/^(the|and|for|you|how|what|which|does|with|this|that|are|can|from|about|into|your|html?|php|aspx?|www)$/.test(w))
+  .map((w) => w.replace(/(ing|es|s)$/, "")))
+
+// the links of the same site, once each
+function siteLinks(links, base) {
+  let host = ""
+  try { host = new URL(base).host } catch { /* no base */ }
+  const seen = new Set()
+  return (links || []).filter((l) => {
+    try { const u = new URL(l.href), k = u.href.split("#")[0]; return u.host === host && /^https?:$/.test(u.protocol) && k !== base.split("#")[0] && !seen.has(k) && seen.add(k) } catch { return false }
+  })
+}
 
 // links whose text or address share words with the question, best first
 export function pickLinks(question, links, base, max = 3) {
   const q = words(question)
-  let host = ""
-  try { host = new URL(base).host } catch { /* no base */ }
-  const seen = new Set()
-  return (links || [])
-    .filter((l) => { try { const u = new URL(l.href); return u.host === host && /^https?:$/.test(u.protocol) && !seen.has(u.href.split("#")[0]) && seen.add(u.href.split("#")[0]) } catch { return false } })
-    .map((l) => ({ ...l, score: [...words(l.text + " " + decodeURIComponent(new URL(l.href).pathname).replace(/[/_-]/g, " "))].filter((w) => q.has(w)).length }))
+  return siteLinks(links, base)
+    .map((l) => ({ ...l, score: [...words(l.text + " " + decodeURIComponent(new URL(l.href).pathname).replace(/[/_.-]/g, " "))].filter((w) => q.has(w)).length }))
     .filter((l) => l.score > 0)
     .sort((a, b) => b.score - a.score)
     .slice(0, max)
+}
+
+// no word in common ("cost" vs "Plans and pricing"): the AI picks by meaning
+async function pickLinksByAI(question, links, base, mode, model) {
+  const list = siteLinks(links, base).filter((l) => l.text).slice(0, 60)
+  if (!list.length) return []
+  const prompt = `Question: ${question}\n\nLinks on the page:\n${list.map((l, i) => `${i + 1}. ${l.text}`).join("\n")}\n\nWhich links most likely lead to the answer? Reply with up to 3 numbers separated by commas, best first, or 0 if none.`
+  const sys = "You pick links. Reply with numbers only."
+  const raw = mode === "ollama" ? await callOllama(prompt, sys, model, { maxTokens: 20, temperature: 0 }) : await callWebLLM(prompt, sys, null, { maxTokens: 20, model })
+  return [...new Set((String(raw).match(/\d+/g) || []).map(Number))].filter((n) => n >= 1 && n <= list.length).slice(0, 3).map((n) => list[n - 1])
 }
 
 async function pickModel() {
@@ -35,6 +56,14 @@ async function pickModel() {
     if (quick) return ["ollama", quick.name]
   } catch { /* no Ollama */ }
   return ["webllm", DEFAULT_WEBLLM_MODEL]
+}
+
+// a fetched page as plain text, without menus, scripts and styles
+function htmlText(html) {
+  const d = new DOMParser().parseFromString(html || "", "text/html")
+  d.querySelectorAll("script,style,noscript,svg,template,nav,footer,header").forEach((x) => x.remove())
+  d.querySelectorAll("p,div,li,tr,h1,h2,h3,h4,br,section,article").forEach((x) => x.append("\n"))
+  return { title: d.title, text: (d.body?.textContent || "").replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n").trim() }
 }
 
 const passagesOf = (text, label, url) => chunkText(text).map((c, i) => ({ label: `${label}${i ? ` (${i + 1})` : ""}`, text: c, url, timestamp: null, frame: null, annotation: null }))
@@ -53,6 +82,25 @@ export default function PluginChat() {
     const handle = async (m) => {
       const status = (label) => post("chat-status", { id: m.id, label })
       try {
+        // "Show me on the page": which of the page's buttons and fields the answer is about
+        if (m.scope === "pick") {
+          const [mode, model] = await pickModel()
+          const prompt = `Question: ${m.question}\nAnswer: ${m.answer}\n\nThings on the page:\n${m.elements.map((t, i) => `${i + 1}. ${t}`).join("\n")}\n\nWhich of these does the answer tell the user to use? Only the ones needed, usually just one, in the order of the answer. Reply with the numbers separated by commas (at most 3), or 0 if none fits.`
+          const sys = "You point at buttons and fields on a page. Reply with numbers only."
+          const raw = mode === "ollama" ? await callOllama(prompt, sys, model, { maxTokens: 20, temperature: 0 }) : await callWebLLM(prompt, sys, null, { maxTokens: 20, model })
+          const picks = [...new Set((String(raw).match(/\d+/g) || []).map(Number))].filter((n) => n >= 1 && n <= m.elements.length).slice(0, 3).map((n) => n - 1)
+          return post("chat-answer", { id: m.id, picks })
+        }
+        // questions about VideoDoc itself (limits, how to use, the plugin): Vidi's help
+        if (m.scope === "help" || /\b(videodoc|vidi|plugin|extension)\b/i.test(m.question)) {
+          const { onTopic, sections } = findHelp(m.question)
+          if (!onTopic) return post("chat-answer", { id: m.id, answer: "Sorry, I can only help with VideoDoc: recording, the guide, saving it, the chats and the plugin." })
+          const [mode, model] = await pickModel()
+          status("Looking in the VideoDoc help...")
+          const prompt = vidiPrompt(m.question, sections, "the VideoDoc browser plugin")
+          const answer = mode === "ollama" ? await callOllama(prompt, VIDI_SYSTEM, model, { maxTokens: 200, temperature: 0.2 }) : await callWebLLM(prompt, VIDI_SYSTEM, null, { maxTokens: 200, model })
+          return post("chat-answer", { id: m.id, answer: answer.trim(), model, sources: sections.slice(0, 1).map((h) => ({ label: h.title, url: `${location.origin}/#/howto` })) })
+        }
         const c = ctx.current
         if (m.scope === "video") {
           const docs = videoDocs()
@@ -78,21 +126,38 @@ export default function PluginChat() {
         }
         // pages the panel fetched for this question: added to what is searched
         if (m.pages?.length) {
-          for (const p of m.pages) { c.read.add(p.url); c.docs.push(...passagesOf(p.text, p.title || p.url, p.url)) }
+          for (const p of m.pages) {
+            const got = p.text != null ? p : htmlText(p.html)
+            c.read.add(p.url); c.docs.push(...passagesOf(got.text, got.title || p.title || p.url, p.url))
+          }
           status("Reading the linked pages..."); await buildIndex(c.docs, (l) => status(l))
         }
         const [mode, model] = await pickModel()
-        status(mode === "ollama" ? `Answering with ${model}...` : "Answering with the browser AI...")
-        const r = await ask(m.question, mode, model, (l) => l && status(l))
+        // Most of the question's words are nowhere on the page: the answer is
+        // likely behind a link. Checked without the AI, because a small model
+        // sometimes answers a different question instead of saying "not here".
+        const linkable = m.scope === "page" && !m.pages && m.followLinks
+        const qw = [...words(m.question)], pw = words(c.docs.map((d) => d.text).join(" "))
+        const offPage = linkable && qw.length >= 2 && qw.filter((w) => pw.has(w)).length / qw.length < 0.5
+        let r = { notFound: true, answer: "" }
+        if (!offPage) {
+          status(mode === "ollama" ? `Answering with ${model}...` : "Answering with the browser AI...")
+          r = await ask(m.question, mode, model, (l) => l && status(l))
+        }
         // not on this page: maybe behind one of its links
-        if (r.notFound && m.scope === "page" && !m.pages && m.followLinks) {
-          const next = pickLinks(m.question, c.links, c.base).filter((l) => !c.read.has(l.href))
+        // the model may say it in words instead ("That isn't covered here")
+        const missing = r.notFound || /\b(isn.?t|not|wasn.?t) (covered|mentioned|included|in (this|the) (doc|document|page|text))|couldn.?t find|no information|does(n.?t| not) (say|mention|contain)/i.test(r.answer || "")
+        if (missing && linkable) {
+          let next = pickLinks(m.question, c.links, c.base).filter((l) => !c.read.has(l.href))
+          if (!next.length) { status("Looking at the links on this page..."); next = (await pickLinksByAI(m.question, c.links, c.base, mode, model).catch(() => [])).filter((l) => !c.read.has(l.href)) }
           if (next.length) return post("chat-need-pages", { id: m.id, links: next.map(({ text, href }) => ({ text, href })) })
         }
+        // no link fits after all: answer from the page as it is
+        if (offPage) { status("Answering..."); r = await ask(m.question, mode, model, (l) => l && status(l)) }
         post("chat-answer", {
           id: m.id, answer: r.answer, notFound: !!r.notFound, model,
           sources: (r.sources || []).slice(0, 3).map((s) => ({ label: s.label, title: s.title, timestamp: s.timestamp, url: c.docs.find((d) => d.label === s.label)?.url || null, text: (s.text || "").slice(0, 300) })),
-          readPages: m.pages?.map((p) => ({ title: p.title, url: p.url })) || [],
+          readPages: m.pages?.map((p) => ({ title: c.docs.find((d) => d.url === p.url)?.label || p.title, url: p.url })) || [],
         })
       } catch (e) {
         post("chat-answer", { id: m.id, error: e.message })
