@@ -159,13 +159,17 @@ function dropDescriptions(steps) {
   return acts.length ? acts : steps
 }
 
+// "Select the 'Dam 0' option. Select the 'Segment' option. Select the ...":
+// the screen's options read out in one line (seen on a real run)
+const ONE_LINE_TOUR = (s) => (String(s).match(/(^|[.;]\s*)(select|click|choose|open|observe|view|review|note)\s+the\s+['"‘“][^'"’”]{1,40}['"’”]/gi) || []).length >= 4
+
 function dropFieldTour(steps) {
   const out = []
   for (let i = 0; i < steps.length;) {
     let j = i
     while (j < steps.length && LOOK.test(steps[j])) j++
     if (j - i >= 3) { i = j; continue }
-    if (LOOK_LIST.test(steps[i])) { i++; continue }
+    if (LOOK_LIST.test(steps[i]) || ONE_LINE_TOUR(steps[i])) { i++; continue }
     out.push(steps[i]); i++
   }
   return out
