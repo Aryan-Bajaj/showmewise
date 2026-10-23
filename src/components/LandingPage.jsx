@@ -1117,25 +1117,27 @@ export default function LandingPage() {
         <section id="lp-limits" className="lp-section" style={{ padding: '40px 24px 60px', maxWidth: 940, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 30 }}>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7b96ff', marginBottom: 12 }}>
-              Before you start
+              Good to know
             </div>
-            <h2 style={{ fontSize: 'clamp(1.8rem, 4.2vw, 2.8rem)', fontWeight: 700, letterSpacing: '-0.025em' }}>What it can't do (yet)</h2>
+            <h2 style={{ fontSize: 'clamp(1.8rem, 4.2vw, 2.8rem)', fontWeight: 700, letterSpacing: '-0.025em' }}>Free and private: what that means</h2>
             <p style={{ maxWidth: 640, margin: '14px auto 0', fontSize: '0.98rem', lineHeight: 1.7, color: 'rgba(255,255,255,0.64)' }}>
-              We test every release against manuals written by hand for real screen recordings, and read the guide step by step.
-              With the best setup (Ollama, gemma3 12B, Accurate speech, key words typed in) the guide got <b style={{ color: '#fff' }}>60 to 67,5 %</b> of
-              all actions fully right. A guide is a strong first draft, not a finished manual: read it and fix it before you share it.
+              VideoDoc is free and runs completely on your own computer: no cloud, no account, no cost per video. The AI is an open model
+              that works on your machine, so the speed and the result depend on your computer and the model you pick. With gemma3 12B on a
+              normal 16 GB laptop, <b style={{ color: '#fff' }}>60 to 67,5 %</b> of all actions came out fully right in the first draft, in our tests against manuals written by hand.
+              Big paid cloud AIs are usually faster and stronger, but your video would have to leave your computer. VideoDoc keeps it with you.
             </p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14 }}>
             {[
-              ['Some steps are missing or rough', 'A click where nothing visible changes, or a button with only an icon and no text, is often not named. Small clicks that were seen go to the checklist, not into the guide.'],
-              ['Results change from run to run', 'The AI never writes the same text twice. In our tests the same video scored up to 10 points higher or lower.'],
-              ['Names and codes can be misheard', 'Type the names and codes of your app into the key words box. It made the biggest difference in our tests.'],
-              ['It is slow on a normal laptop', 'With the best model, a 10 minute video took about 1¾ hours on a 16 GB laptop. Smaller models are faster but less exact.'],
-              ['The computer must stay awake', 'Sleep, a closed lid or a closed tab stops the work. Choose the same video again and it picks up where it stopped.'],
-              ['The guide is in English', 'The video can be in English, Hindi, Hinglish, German and more. The guide itself is always written in English.'],
-              ['Laptop or desktop only', 'Chrome or Edge on a computer. Phones and tablets do not work. The browser AI is weaker than Ollama.'],
-              ['Saved files differ', 'Only the HTML guide has moving clips. Word has short GIFs in some parts, PDF has still pictures only. Doc Chat cannot read PDF files.'],
+              ['Your computer sets the speed', 'Everything runs on your own computer, for free. On a normal 16 GB laptop, a 10 minute video took about 1¾ hours with the biggest model. A stronger computer or a smaller model is faster.'],
+              ['A bigger model gives a better guide', 'In our tests a small 4B model got about 30 % of the actions fully right, gemma3 12B 60 to 67,5 %. Pick the biggest model your computer can run. The browser AI is quick to start but smaller than Ollama.'],
+              ['A strong first draft that you finish', 'Read the guide and fix it with Edit before you share it. The review mode shows which steps to look at first. A click where nothing visible changes, or a button with only an icon, is often not named.'],
+              ['Help it with key words', 'Type the names and codes of your app into the key words box. In our tests this helped the most: codes were spelled right and missing steps came back.'],
+              ['Each run is a little different', 'An AI never writes the same text twice. In our tests the same video scored up to 10 points higher or lower from run to run.'],
+              ['Keep the computer awake', 'The work runs on your computer, so sleep or a closed lid pauses it. If it stops, choose the same video again and it picks up where it stopped.'],
+              ['Guides in English, for now', 'The video can be in English, Hindi, Hinglish, German and more. The guide itself is written in English.'],
+              ['Made for computers', 'Chrome or Edge on a laptop or desktop. Phones and tablets are not strong enough to run the AI on the device.'],
+              ['The HTML guide has everything', 'HTML has moving clips, Word has short GIFs in some parts, PDF has still pictures (a PDF cannot play videos). Doc Chat reads PDF, Word, HTML and text files, but not scanned pages (pictures of text).'],
             ].map(([title, desc], i) => (
               <div key={i} style={{ borderRadius: 16, padding: '22px 20px', background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.08)' }}>
                 <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'rgba(255,255,255,0.9)', marginBottom: 8 }}>{title}</div>

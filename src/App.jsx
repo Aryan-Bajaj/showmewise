@@ -695,6 +695,7 @@ export default function App() {
                 aiMode={aiMode || "webllm"}
                 ollamaModel={aiModel}
                 onSeek={handleDocSeek}
+                allowDocs
               />
               </ErrorBoundary>
             )}

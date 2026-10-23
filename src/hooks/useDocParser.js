@@ -50,7 +50,20 @@ export async function extractText(file) {
     const { value } = await mammoth.default.extractRawText({ arrayBuffer: await file.arrayBuffer() })
     return value || ''
   }
-  throw new Error('This file type does not work here. Use a .txt, .md, .csv, .json, .html or .docx file. PDF files do not work.')
+  if (/\.pdf$/.test(name)) {
+    // pdf.js reads the text layer on this computer; a scanned PDF has none
+    const pdfjs = await import('pdfjs-dist')
+    pdfjs.GlobalWorkerOptions.workerSrc = (await import('pdfjs-dist/build/pdf.worker.min.mjs?url')).default
+    const pdf = await pdfjs.getDocument({ data: await file.arrayBuffer() }).promise
+    const pages = []
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const { items } = await (await pdf.getPage(i)).getTextContent()
+      // a line break where pdf.js marks the end of a line, so words do not jam together
+      pages.push(items.map((it) => it.str + (it.hasEOL ? '\n' : ' ')).join('').replace(/[ \t]+/g, ' ').trim())
+    }
+    return pages.join('\n\n')
+  }
+  throw new Error('This file type does not work here. Use a .pdf, .txt, .md, .csv, .json, .html or .docx file.')
 }
 
 // Chunk long documents into overlapping passages so big docs index cleanly for RAG.

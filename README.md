@@ -82,16 +82,18 @@ P.S. Version 5 is here: the clicks marked on the screen, in a document that read
 
 ## 📏 Limits and Accuracy
 
-Every release is tested against manuals written by hand for real screen recordings, and each guide is read step by step against them. With the best setup (Ollama, gemma3 12B, Accurate speech, key words typed in) the guide got **60 to 67,5 %** of all actions fully right. A guide is a strong first draft, not a finished manual: read it and fix it before you share it.
+VideoDoc is free and runs completely on your own computer: no cloud, no account, no cost per video. The AI is an open model on your machine, so the speed and the result depend on your computer and the model you pick. Big paid cloud AIs are usually faster and stronger, but the video would have to leave your computer; VideoDoc keeps it with you.
 
-* **Some steps are missing or rough.** A click where nothing visible changes, or a button with only an icon and no text, is often not named. Small clicks that were seen go to the checklist, not into the guide.
-* **Results change from run to run.** The AI never writes the same text twice; the same video scored up to 10 points higher or lower.
-* **Names and codes can be misheard.** The key words box helped the most in our tests.
-* **Smaller models are less exact.** A 4B model got about 30 %. The browser AI is weaker than Ollama.
-* **Slow on a normal laptop.** With the best model a 10 minute video took about 1¾ hours on a 16 GB laptop, and the computer must stay awake.
-* **The guide is in English**, whatever the language of the video.
-* **Laptop or desktop only**, Chrome or Edge. Phones and tablets do not work.
-* **Saved files differ.** Only the HTML guide has moving clips; Word has GIFs in some parts, PDF has still pictures. Doc Chat cannot read PDF files.
+Every release is tested against manuals written by hand for real screen recordings, and each guide is read step by step against them. With gemma3 12B on a normal 16 GB laptop (Accurate speech, key words typed in), **60 to 67,5 %** of all actions came out fully right in the first draft. A guide is a strong first draft that you finish: read it and fix it before you share it.
+
+* **Your computer sets the speed.** With the biggest model a 10 minute video took about 1¾ hours on a 16 GB laptop. A stronger computer or a smaller model is faster. The computer must stay awake; if it stops, the same video picks up where it stopped.
+* **A bigger model gives a better guide.** A 4B model got about 30 %. The browser AI is quick to start but smaller than Ollama.
+* **Often missed:** a click where nothing visible changes, and a button with only an icon. Small clicks that were seen go to the checklist.
+* **Key words help the most.** Names and codes typed in are spelled right.
+* **Each run is a little different.** The same video scored up to 10 points higher or lower.
+* **Guides in English for now**, whatever the language of the video.
+* **Made for computers**, Chrome or Edge. Phones and tablets cannot run the AI on the device.
+* **The HTML guide has everything.** Word has GIFs in some parts, PDF has still pictures. Doc Chat reads PDF files with text, not scanned pages.
 
 ---
 

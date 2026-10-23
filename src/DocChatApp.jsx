@@ -56,7 +56,7 @@ export default function DocChatApp() {
       try {
         const text = await extractText(file)
         const chunks = chunkText(text)
-        if (!chunks.length) throw new Error("Could not read any text from that file.")
+        if (!chunks.length) throw new Error("Could not read any text from that file. A scanned PDF is only pictures of text, so there is nothing to read.")
         setPassages(chunks.map((c, i) => ({ label: `Passage ${i + 1}`, text: c, timestamp: null, frame: null, annotation: null })))
       } catch (e) {
         setError(e.message)
@@ -103,7 +103,7 @@ export default function DocChatApp() {
                 className="border border-zinc-700 hover:border-emerald-500 rounded-2xl p-12 flex flex-col items-center gap-3 transition-all group cursor-pointer bg-zinc-900/70 w-full max-w-md">
                 <Upload className="w-9 h-9 text-zinc-500 group-hover:text-emerald-400 transition-colors" />
                 <span className="text-sm text-zinc-300">Upload a document</span>
-                <span className="text-xs text-zinc-600">.txt · .md · .csv · .json · .html · .docx</span>
+                <span className="text-xs text-zinc-600">.pdf · .docx · .html · .txt · .md · .csv · .json</span>
               </button>
               {error && <p role="alert" className="text-sm text-red-400 max-w-md text-center">{error}</p>}
               <p className="text-xs text-zinc-600 max-w-md text-center">Everything runs in your browser. Nothing is uploaded. Big docs are chunked automatically.</p>
@@ -201,7 +201,7 @@ export default function DocChatApp() {
             </>
           )}
 
-          <input ref={fileRef} type="file" accept=".txt,.md,.csv,.json,.html,.htm,.docx" className="hidden"
+          <input ref={fileRef} type="file" accept=".pdf,.txt,.md,.csv,.json,.html,.htm,.docx" className="hidden"
             onChange={(e) => e.target.files[0] && load(e.target.files[0])} />
         </main>
       </div>

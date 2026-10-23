@@ -1,8 +1,9 @@
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
+import { extractText, chunkText } from "../hooks/useDocParser"
 import useRAG from "../hooks/useRAG"
 import ChatText from "./ChatText"
 import { renderShot } from "../lib/annotateImage"
-import { MessageSquare, Send, CornerDownRight, Sparkles, Globe } from "lucide-react"
+import { MessageSquare, Send, CornerDownRight, Sparkles, Globe, FilePlus } from "lucide-react"
 
 function fmt(ts) {
   if (ts == null) return ""
@@ -70,8 +71,13 @@ function SourceCard({ source, part, onSeek, onZoom }) {
   )
 }
 
-export default function DocChat({ docs, aiMode, ollamaModel, onSeek, autoStart = false, name = "Vid Chat", about = "this recording" }) {
+export default function DocChat({ docs: videoDocs, aiMode, ollamaModel, onSeek, autoStart = false, name = "Vid Chat", about = "this recording", allowDocs = false }) {
   const { buildIndex, ask, askGeneral, isReady } = useRAG()
+  // Vid Chat can also read documents (a manual, notes, a PDF): their passages
+  // are searched together with the video. Read on this computer only.
+  const [added, setAdded] = useState([]) // [{ name, passages }]
+  const docs = added.length ? [...(videoDocs || []), ...added.flatMap((a) => a.passages)] : videoDocs
+  const fileRef = useRef(null)
   const [open, setOpen] = useState(autoStart)
   const [ready, setReady] = useState(false)
   const [status, setStatus] = useState(null) // { label, pct, phase } | null
@@ -106,6 +112,26 @@ export default function DocChat({ docs, aiMode, ollamaModel, onSeek, autoStart =
     setStatus(null)
     setReady(true)
   }, [ready, isReady, buildIndex, docs, onStatus])
+
+  const addDoc = async (file) => {
+    if (!file || busy) return
+    setBusy(true)
+    try {
+      onStatus(`Reading ${file.name}...`, null, "index")
+      const chunks = chunkText(await extractText(file))
+      if (!chunks.length) throw new Error(`Could not read any text from ${file.name}. A scanned PDF is only pictures of text.`)
+      const n = added.reduce((k, a) => k + a.passages.length, 0)
+      const passages = chunks.map((c, i) => ({ label: `Doc ${n + i + 1}`, text: `From the document "${file.name}":\n${c}`, timestamp: null, frame: null, annotation: null }))
+      const next = [...added, { name: file.name, passages }]
+      setAdded(next)
+      await buildIndex([...(videoDocs || []), ...next.flatMap((a) => a.passages)], onStatus)
+      setReady(true)
+    } catch (e) {
+      setMessages((m) => [...m, { q: `Add ${file.name}`, a: `⚠️ ${e.message}`, sources: [] }])
+    } finally {
+      setBusy(false); setStatus(null)
+    }
+  }
 
   const handleOpen = async () => {
     setOpen(true)
@@ -195,7 +221,22 @@ export default function DocChat({ docs, aiMode, ollamaModel, onSeek, autoStart =
         <span className="text-sm font-semibold text-white">{name}</span>
         <span className="text-xs text-zinc-400">· ask anything about {about}</span>
         {busy && <span className="text-xs text-violet-300 ml-auto animate-pulse">Working...</span>}
+        {allowDocs && (
+          <>
+            <button onClick={() => fileRef.current?.click()} disabled={busy} title="Add a manual, notes or any document. Answers then come from the video and the document."
+              className={`${busy ? "" : "ml-auto"} flex items-center gap-1.5 text-xs text-zinc-200 border border-white/15 hover:border-violet-400/50 hover:bg-violet-500/10 disabled:opacity-50 rounded-full px-3 py-1 transition`}>
+              <FilePlus className="w-3.5 h-3.5" /> Add a document
+            </button>
+            <input ref={fileRef} type="file" accept=".pdf,.docx,.html,.htm,.txt,.md,.csv,.json" className="hidden"
+              onChange={(e) => { addDoc(e.target.files?.[0]); e.target.value = "" }} />
+          </>
+        )}
       </div>
+      {added.length > 0 && (
+        <div className="px-5 py-2 border-b border-white/5 text-xs text-zinc-400 flex flex-wrap gap-2">
+          Also reading: {added.map((a) => <span key={a.name} className="text-zinc-200 bg-white/5 rounded-full px-2 py-0.5">📄 {a.name}</span>)}
+        </div>
+      )}
 
       <div className="flex-1 overflow-y-auto p-5 space-y-5">
         {messages.length === 0 && !busy && (
