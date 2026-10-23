@@ -131,7 +131,7 @@ export async function exportHTML(docs, videoName, allFrames, meta = {}) {
         ${p.result ? `<div class="result"><span>Result</span><p>${esc(p.result)}</p></div>` : ''}
         ${p.tip ? `<div class="box ${p.lowConfidence ? 'warn' : 'tip'}"><b>${p.lowConfidence ? 'Important' : 'Tip'}</b><p>${esc(p.tip)}</p></div>` : ''}
       </div>
-      ${media || zoom ? `<aside class="part-media"><div class="watch">${media ? `<div class="mini">Watch it</div><div class="clip">${media}</div>` : ''}${zoom}</div></aside>` : ''}
+      ${media || zoom ? `<aside class="part-media"><div class="watch">${media ? `<div class="mini">Watch it · click to enlarge</div><div class="clip">${media}</div>` : ''}${zoom}</div></aside>` : ''}
     </div>
   </article>`
   }).join('')
@@ -259,7 +259,7 @@ h2{font-size:28px;line-height:1.2;color:var(--ink)}
 .part-media{border-left:1px solid var(--line);background:var(--tint2)}
 .watch{position:sticky;top:72px;padding:22px 22px}
 .clip{border-radius:12px;overflow:hidden;background:#0f0b24;box-shadow:0 10px 30px rgba(20,10,60,.18)}
-.clip video,.clip img{width:100%;display:block}
+.clip video,.clip img{width:100%;display:block;cursor:zoom-in}
 .anim-wrap{position:relative;aspect-ratio:16/9}
 .anim-frame{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0}
 .zoom{margin-top:14px}.zoom img{width:100%;border-radius:10px;border:1px solid #d9d0ff}
@@ -293,7 +293,7 @@ h2{font-size:28px;line-height:1.2;color:var(--ink)}
 footer{margin-top:50px;background:var(--ink);color:#d8d4f0;text-align:center;padding:36px 20px;font-size:13.5px}
 footer b{color:#c4b5fd}
 .lb{position:fixed;inset:0;background:rgba(15,11,36,.88);display:none;align-items:center;justify-content:center;z-index:100;padding:24px;cursor:zoom-out}
-.lb::after{content:'✕  Close';position:absolute;top:14px;right:18px;color:#fff;font:600 14px/1 system-ui,sans-serif;opacity:.85}.lb.on{display:flex}.lb img{max-width:100%;max-height:100%;border-radius:10px}
+.lb::after{content:'✕  Close';position:absolute;top:14px;right:18px;color:#fff;font:600 14px/1 system-ui,sans-serif;opacity:.85}.lb.on{display:flex}.lb img,.lb video{max-width:100%;max-height:100%;border-radius:10px}
 .reveal{opacity:0;transform:translateY(16px);transition:opacity .5s ease,transform .5s ease}
 .reveal.visible{opacity:1;transform:none}
 @media(max-width:900px){
@@ -330,17 +330,21 @@ footer b{color:#c4b5fd}
 </div>
 ${transcriptHtml}
 <footer>Made with <b>VideoDoc</b> &bull; ${esc(date)} &bull; ${g.parts.length} parts &bull; ${g.figures} marked screenshots</footer>
-<div class="lb" id="lb"><img alt=""></div>
+<div class="lb" id="lb"><img alt=""><video muted loop playsinline></video></div>
 <script>
 (function(){
   var bar=document.getElementById('pbar');
   addEventListener('scroll',function(){var e=document.documentElement;bar.style.width=(e.scrollTop/(e.scrollHeight-e.clientHeight)*100)+'%'});
   var io=new IntersectionObserver(function(en){en.forEach(function(x){if(x.isIntersecting)x.target.classList.add('visible')})},{threshold:.05});
   document.querySelectorAll('.reveal').forEach(function(el){io.observe(el)});
-  var lb=document.getElementById('lb'),li=lb.querySelector('img');
-  document.querySelectorAll('[data-zoom]').forEach(function(im){im.addEventListener('click',function(){li.src=im.src;lb.classList.add('on')})});
-  lb.addEventListener('click',function(){lb.classList.remove('on')});
-  addEventListener('keydown',function(e){if(e.key==='Escape')lb.classList.remove('on')});
+  var lb=document.getElementById('lb'),li=lb.querySelector('img'),lv=lb.querySelector('video');
+  function show(src,isVideo){li.style.display=isVideo?'none':'';lv.style.display=isVideo?'':'none';if(isVideo){lv.src=src;lv.play&&lv.play()}else{li.src=src}lb.classList.add('on')}
+  function hide(){lb.classList.remove('on');try{lv.pause()}catch(e){}}
+  document.querySelectorAll('[data-zoom]').forEach(function(im){im.addEventListener('click',function(){show(im.src,false)})});
+  // the small clips open big too, and keep playing
+  document.querySelectorAll('.clip video,.clip img').forEach(function(m){m.addEventListener('click',function(){show(m.currentSrc||m.src,m.tagName==='VIDEO')})});
+  lb.addEventListener('click',hide);
+  addEventListener('keydown',function(e){if(e.key==='Escape')hide()});
   var key='vd-check-'+document.title;
   var saved={};try{saved=JSON.parse(localStorage.getItem(key)||'{}')}catch(e){}
   document.querySelectorAll('[data-ck]').forEach(function(c){
