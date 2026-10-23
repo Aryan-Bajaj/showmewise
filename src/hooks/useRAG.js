@@ -160,9 +160,27 @@ export default function useRAG() {
 
     // Keep each excerpt shorter when there are many, to bound generation time.
     const cap = overview ? 500 : 1000
-    const context = picked
+    let context = picked
       .map((d, i) => `Excerpt ${i + 1} (at ${d.label}):\n${docText(d).slice(0, cap)}`)
       .join("\n\n")
+    // "How do I change the title": the right part was found, but a small model
+    // answered with its first action ("Click Add widget"). The actions that hold
+    // the question's words (and the one just before each, usually the click that
+    // opens it) are pointed out first. Words found in every part do not count.
+    if (steps && !overview) {
+      const SAME = { change: "edit", rename: "title", modify: "edit", delete: "remove", remove: "delete", turn: "enable", activate: "enable" }
+      // each question word is one group with its synonym; an action scores the groups it holds
+      const groups = keys.filter((k) => weight[k] === 1).map((k) => [k, SAME[k]].filter(Boolean))
+      const score = (a) => groups.filter((g) => g.some((k) => a.toLowerCase().includes(k))).length
+      // the action just before counts only when it matches too ("Click 'edit'" before "Edit title"; not "Click Save" before "Share")
+      const all = picked.flatMap((d) => (d.step?.steps || []).map((a, i, acts) => ({ a, prev: acts[i - 1] && score(acts[i - 1]) > 0 ? acts[i - 1] : null, s: score(a) })))
+      const best = Math.max(0, ...all.map((x) => x.s))
+      const hits = []
+      // only the best-matching actions: "chart" alone must not point at "Select 'Bar chart'"
+      for (const x of all) if (best > 0 && x.s === best) for (const y of [x.prev, x.a]) if (y && !hits.includes(y)) hits.push(y)
+      hits.splice(4)
+      if (hits.length) context = `ACTIONS THAT MATCH THE QUESTION (start from these, in this order):\n${hits.map((h) => `- ${h}`).join("\n")}\n\n${context}`
+    }
 
     const system = overview
       ? `You are summarizing a document/recording using ONLY the excerpts below (sampled across the whole thing).
