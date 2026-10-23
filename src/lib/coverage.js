@@ -122,6 +122,42 @@ export function missingActions(step, actions) {
 // ("enter 7731520" / "enter 7731320") keep the one the screen shows. A remark
 // like "the error message is displayed" STAYS: it can be the check a user needs.
 const bag = (a) => [...new Set(a.toLowerCase().match(/[a-z]{3,}/g) || [])].filter((w) => !["the", "and", "then", "into"].includes(w)).sort().join(" ")
+
+// Two lines that ask for the same thing. Same meaning words (type = enter,
+// choose/pick = select, press = click; "button", "field", "the" left out), or
+// the same verb with every quoted name of the later line in the earlier one.
+const SAME_VERB = { type: "enter", choose: "select", pick: "select", press: "click", tap: "click", hit: "click" }
+const MEANING_STOP = new Set(["the", "and", "then", "into", "button", "field", "option", "tab", "from", "with", "for", "its", "this", "that", "your", "dialog", "window"])
+const verbOf = (a) => { const v = (a.toLowerCase().match(/[a-z]+/) || [""])[0]; return SAME_VERB[v] || v }
+const meaning = (a) => [...new Set((a.toLowerCase().match(/[a-z]{3,}/g) || []).map((w) => SAME_VERB[w] || w).filter((w) => !MEANING_STOP.has(w)))].sort().join(" ") + (/\bas\W*$/i.test(a) ? " +as" : "") // "Save as" is not "Save"
+const quoted = (a) => [...a.matchAll(/['"‘“]([^'"’”]{2,60})['"’”]/g)].map((m) => m[1].toLowerCase().trim())
+export function sameAction(a, b) {
+  if (!a || !b) return false
+  if (meaning(a) && meaning(a) === meaning(b)) return true
+  // "Click Share" and "Click Share to open the dialog": the same click with its
+  // purpose added (but "Click Save" and "Click Save as" are two different ones)
+  const norm = (s) => s.toLowerCase().replace(/['"‘’“”.,!]/g, "").replace(/\s+/g, " ").trim().replace(/^[a-z]+/, (v) => SAME_VERB[v] || v)
+  const [short, long] = norm(a).length <= norm(b).length ? [norm(a), norm(b)] : [norm(b), norm(a)]
+  if (short.split(" ").length >= 2 && long.startsWith(short) && /^(\s+(to|so|and|in order)\b.*)?$/.test(long.slice(short.length))) return true
+  const qa = quoted(a), qb = quoted(b)
+  return qb.length > 0 && verbOf(a) === verbOf(b) && qb.every((q) => qa.includes(q))
+}
+
+// A part that repeats what the part before it ends with (the model wrote the
+// same moment twice): those actions are dropped; a part with nothing new left
+// is dropped. docs: [{ step: { steps } }] in order.
+export function dropRepeatedParts(docs) {
+  const out = []
+  for (const d of docs || []) {
+    const prev = [...out].reverse().find((x) => x.step)?.step?.steps || []
+    if (!d.step || !prev.length) { out.push(d); continue }
+    const keep = (d.step.steps || []).filter((a) => !prev.some((b) => sameAction(b, a)))
+    if (!keep.length) continue
+    out.push(keep.length === d.step.steps.length ? d : { ...d, step: { ...d.step, steps: keep } })
+  }
+  return out
+}
+
 export function tidyActions(steps, screen = "", spoken = "") {
   // "again" / "(repeated)": the model's way of writing the line above twice
   const skeleton = (a) => a.toLowerCase().replace(/\(?\b(again|repeated)\b\)?/g, "").replace(/\d+/g, "#").replace(/[^a-z# ]/g, "").replace(/\s+/g, " ").trim()
@@ -136,6 +172,11 @@ export function tidyActions(steps, screen = "", spoken = "") {
     // with no value written again later in the part ("Enter the asset number.")
     if (out.length && !nums(a).length && bag(out[out.length - 1]) === bag(a)) continue
     if (!/\d|'|"/.test(a) && out.some((b) => skeleton(b) === skeleton(a))) continue
+    // the same action said again in other words later in the part ("Type
+    // 'Weekly Overview' into the name field" after "Enter 'Weekly Overview'
+    // in the 'Name' field", "Click the Create button" after "Click 'Create'")
+    // (the same words again later is a real second click and stays)
+    if (!nums(a).length && out.some((b) => skeleton(b) !== skeleton(a) && sameAction(b, a))) continue
     const twin = out.findIndex((b) => skeleton(b) === skeleton(a) && nums(a).length && nums(a).every((n, i) => near(n, nums(b)[i] || "")))
     if (twin < 0) { out.push(a); continue }
     if (nums(a).every((n) => (screen || "").includes(n)) && !nums(out[twin]).every((n) => (screen || "").includes(n))) out[twin] = a

@@ -24,7 +24,7 @@ import { fixTranscriptChunks } from "./lib/transcriptFixups"
 import { fixChunksWithScreen } from "./lib/screenVocab"
 import { userSpelling } from "./lib/terms"
 import { runKey, loadRun, saveRun } from "./lib/resume"
-import { screenCounts, screenSpelling, screenNames, tidyActions, tidyNote } from "./lib/coverage"
+import { screenCounts, screenSpelling, screenNames, tidyActions, tidyNote, dropRepeatedParts } from "./lib/coverage"
 import { buildStepShots } from "./lib/stepShots"
 
 const INITIAL_STEPS = [
@@ -448,6 +448,7 @@ export default function App() {
       // bring back a heard "7731520" for the "7731320" on screen)
       const votes = screenCounts(ocrFrameTexts)
       finalDocs = finalDocs.map((d) => d.step ? { ...d, suggest: (d.suggest || []).filter((s) => { const m = s.match(/^Use '(.+)'\.$/); return !m || !JSON.stringify(d.step).toLowerCase().replace(/[^a-z0-9]/g, '').includes(m[1].toLowerCase().replace(/[^a-z0-9]/g, '')) }), step: { ...d.step, title: userSpelling(d.step.title, termsRef.current), steps: screenNames(screenSpelling(tidyActions((d.step.steps || []).map(tidyLine), d.ocrText || "", d.text || ""), votes), d.ocrText || "").map((x) => userSpelling(x, termsRef.current)), note: tidyNote(d.step.note) } } : d)
+      finalDocs = dropRepeatedParts(finalDocs) // a part that only repeats the one before it
       trace("final", finalDocs)
 
       setAnnotatedDocs(finalDocs)
