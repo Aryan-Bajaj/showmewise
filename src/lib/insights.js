@@ -6,6 +6,7 @@
 //   - deterministic fallbacks so a section never comes back empty/broken.
 
 import { docHeading, flowFromDocs, flowToMermaid } from "./flow.js"
+import { groundInsights } from "./ground.js"
 import { callOllama, callWebLLM, callLocalEngine, cleanLLMOutput } from "./llm"
 import { isFillerNote, cleanTranscriptText } from "./skillPrompt"
 
@@ -345,5 +346,7 @@ export async function generateInsights(docs, transcriptChunks, aiMode, model, on
   note("Drawing flow diagram…")
   const mermaid = await genMermaid(outline, usable, aiMode, model, note)
 
-  return { purpose, prerequisites, keyObservations, summary, faqs, mermaid }
+  // names must come from the video (a made-up app name becomes "the app")
+  const evidence = [(transcriptChunks || []).map((c) => c.text).join(" "), ...(docs || []).map((d) => [d.ocrText, d.text, JSON.stringify(d.step || {})].join(" ")), (tools || []).join(" ")].join(" ")
+  return groundInsights({ purpose, prerequisites, keyObservations, summary, faqs, mermaid }, evidence)
 }

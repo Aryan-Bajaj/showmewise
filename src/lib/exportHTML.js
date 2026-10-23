@@ -105,7 +105,9 @@ export async function exportHTML(docs, videoName, allFrames, meta = {}) {
       : gif ? `<img src="${gif}" alt="${esc(p.title)}">`
       : frames.length > 1 ? buildAnimatedMedia(frames, i)
       : frames.length === 1 ? `<img src="${frames[0]}" alt="${esc(p.title)}">` : ''
-    const zoom = p.doc.zoomFrame ? `<figure class="zoom"><img src="${p.doc.zoomFrame}" alt="Where it happens"><figcaption>Zoomed: where this part happens on screen</figcaption></figure>` : ''
+    // the zoomed crop only where a part has no marked screenshot: its loose box
+    // added nothing next to the markers and could cut through a window
+    const zoom = p.doc.zoomFrame && !p.shots?.some((s) => s.rendered) ? `<figure class="zoom"><img src="${p.doc.zoomFrame}" alt="Where it happens"><figcaption>Zoomed: where this part happens on screen</figcaption></figure>` : ''
     const groups = p.groups.map(grp => {
       const shot = grp.shotIdx >= 0 ? p.shots[grp.shotIdx] : null
       return `
