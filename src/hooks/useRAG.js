@@ -71,9 +71,17 @@ export default function useRAG() {
     // them; the word "template" or "purpose" in a passage finds it.
     const STOP = /^(what|which|when|where|does|this|that|with|from|have|about|there|their|they|your|into|after|before|then|next|used|show|tell|give)$/
     const keys = [...new Set((question.toLowerCase().match(/[a-z0-9]{4,}/g) || []).filter((w) => !STOP.test(w)))]
-    const lexical = (doc) => { const t = docText(doc).toLowerCase(); return keys.filter((k) => t.includes(k)).length }
+    // A word found in every part says little ("dashboard" in a dashboard guide);
+    // a rare one says a lot ("share" only in the sharing part), and one in a
+    // part's title counts extra. Plain counting sent "How do I share the
+    // dashboard?" to the part that creates it.
+    const texts = indexRef.current.map((it) => docText(it.doc).toLowerCase())
+    const titles = indexRef.current.map((it) => String(it.doc.step?.title || "").toLowerCase())
+    const N = texts.length
+    const weight = Object.fromEntries(keys.map((k) => [k, N > 1 && texts.every((t) => t.includes(k)) ? 0.25 : 1]))
+    const lexical = (i) => keys.reduce((sum, k) => sum + (texts[i].includes(k) ? weight[k] * (titles[i].includes(k) ? 1.5 : 1) : 0), 0)
     const scored = indexRef.current
-      .map((it) => { const lex = lexical(it.doc); return { ...it, lex, score: cosine(qvec, it.vec) + Math.min(0.24, 0.08 * lex) } })
+      .map((it, i) => { const lex = lexical(i); return { ...it, lex, score: cosine(qvec, it.vec) + Math.min(0.3, 0.1 * lex) } })
       .sort((a, b) => b.score - a.score)
 
     const overview = isOverviewQuestion(question)
