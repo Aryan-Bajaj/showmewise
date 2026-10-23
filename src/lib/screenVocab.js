@@ -48,7 +48,7 @@ export function screenVocab(frameTexts) {
 }
 
 // One transcript line → the line with sound-alike phrases replaced
-// loose (the user's own key words): a code may also be one digit off ("CJ888" heard for CJ88)
+// loose (the user's own key words): a code may also be one digit off ("ME211N" heard for ME21N)
 export function fixWithVocab(text, vocab, { loose = false } = {}) {
   if (!text || !vocab?.length) return text
   const terms = vocab.map((t) => ({ t, c: canon(t), n: t.split(" ").length }))

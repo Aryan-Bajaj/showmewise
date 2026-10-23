@@ -48,15 +48,16 @@ export const HOWTO = [
   {
     id: "upload", title: "Step 1. Start: choose your video", img: "upload",
     marks: [
-      { n: 1, x: 58.5, y: 70.7, dir: "right", text: "The size limit of the website. Check it before you choose a long recording." },
-      { n: 2, x: 28.0, y: 58.7, dir: "left", text: "Drop your video here, or click here to pick it from your computer. MP4, MOV and WEBM files work." },
-      { n: 3, x: 36.5, y: 85.9, dir: "left", text: "The language people speak in the video. If it is not in the list, pick Another language. The guide is always written in English." },
-      { n: 4, x: 39.7, y: 91.7, dir: "left", text: "How the speech is heard. Fast is good for clear English. Accurate hears names, codes and mixed languages better, but takes 3 to 4 times longer on most laptops." },
+      { n: 1, x: 57.8, y: 60.2, dir: "right", text: "The size limit of the website. Check it before you choose a long recording." },
+      { n: 2, x: 29.0, y: 50.1, dir: "left", text: "Drop your video here, or click here to pick it from your computer. MP4, MOV and WEBM files work." },
+      { n: 3, x: 37.1, y: 73.1, dir: "left", text: "The language people speak in the video. If it is not in the list, pick Another language. The guide is always written in English." },
+      { n: 4, x: 40.1, y: 78.3, dir: "left", text: "How the speech is heard. Fast is good for clear English. Accurate hears names, codes and mixed languages better, but takes 3 to 4 times longer on most laptops." },
+      { n: 5, x: 29.0, y: 92.5, dir: "left", text: "Key words (optional): names or codes from the video, separated by commas. The guide spells them exactly like this." },
     ],
     body: [
       "First pick the language and the speech option. Then choose the video. VideoDoc starts at once.",
       "No sound in your video? That is fine. The guide is then made from the screen only.",
-      "Key words (optional): type names or codes from the video, separated by commas, for example FS10N, Weekly Overview. The guide spells them exactly like this, and a part where one is said or shown uses it.",
+      "Key words (optional): type names or codes from the video, separated by commas, for example ME21N, Weekly Overview. The guide spells them exactly like this, and a part where one is said or shown uses it.",
     ],
   },
   {
