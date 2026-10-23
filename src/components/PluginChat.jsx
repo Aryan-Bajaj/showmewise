@@ -66,6 +66,16 @@ function htmlText(html) {
   return { title: d.title, text: (d.body?.textContent || "").replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n").trim() }
 }
 
+// a huge page or document: only the parts that share the most words with the
+// question are read closely (reading all 1.800 parts of a 1,6 MB page took 4 min)
+const BIG = 300
+function closest(docs, question) {
+  const q = words(question)
+  const score = (d) => [...words(d.text)].filter((w) => q.has(w)).length
+  const top = new Set(docs.map((d, i) => [score(d), i]).sort((a, b) => b[0] - a[0]).slice(0, BIG - 10).map(([, i]) => i))
+  return docs.filter((_, i) => i < 10 || top.has(i))
+}
+
 const passagesOf = (text, label, url) => chunkText(text).map((c, i) => ({ label: `${label}${i ? ` (${i + 1})` : ""}`, text: c, url, timestamp: null, frame: null, annotation: null }))
 
 export default function PluginChat() {
@@ -81,6 +91,13 @@ export default function PluginChat() {
     }
     const handle = async (m) => {
       const status = (label) => post("chat-status", { id: m.id, label })
+      let built = false
+      const indexDocs = async () => {
+        built = true
+        if (c.docs.length > BIG) status("This is long: picking the parts that fit your question...")
+        await buildIndex(c.docs.length > BIG ? closest(c.docs, m.question) : c.docs, (l) => status(l))
+      }
+      const c = ctx.current
       try {
         // "Show me on the page": which of the page's buttons and fields the answer is about
         if (m.scope === "pick") {
@@ -101,18 +118,21 @@ export default function PluginChat() {
           const answer = mode === "ollama" ? await callOllama(prompt, VIDI_SYSTEM, model, { maxTokens: 200, temperature: 0.2 }) : await callWebLLM(prompt, VIDI_SYSTEM, null, { maxTokens: 200, model })
           return post("chat-answer", { id: m.id, answer: answer.trim(), model, sources: sections.slice(0, 1).map((h) => ({ label: h.title, url: `${location.origin}/#/howto` })) })
         }
-        const c = ctx.current
         if (m.scope === "video") {
           const docs = videoDocs()
           if (!docs.length) throw new Error("There is no video guide in VideoDoc yet. Record or upload a video first.")
-          if (c.key !== "video:" + docs.length) { status("Reading the video guide..."); c.docs = docs; c.links = []; await buildIndex(docs, (l) => status(l)); c.key = "video:" + docs.length }
+          if (c.key !== "video:" + docs.length) { status("Reading the video guide..."); c.docs = docs; c.links = []; await indexDocs(); c.key = "video:" + docs.length }
         } else if (m.scope === "page") {
           if (c.key !== "page:" + m.page.url) {
             status("Reading this page...")
             c.docs = passagesOf(m.page.text, m.page.title || "This page", m.page.url)
             c.links = m.page.links || []; c.base = m.page.url; c.read = new Set([m.page.url])
             if (!c.docs.length) throw new Error("This page has no text to read.")
-            await buildIndex(c.docs, (l) => status(l)); c.key = "page:" + m.page.url
+            // words that are only in links (menus) are not "on the page": the answer is behind them
+            let body = m.page.text
+            for (const l of c.links) if ((l.text || "").length > 2) body = body.split(l.text).join(" ")
+            c.bodyWords = words(body)
+            await indexDocs(); c.key = "page:" + m.page.url
           }
         } else if (m.scope === "doc") {
           if (c.key !== "doc:" + m.doc.name + m.doc.size) {
@@ -121,7 +141,7 @@ export default function PluginChat() {
             const text = await extractText(new File([bytes], m.doc.name))
             c.docs = passagesOf(text, m.doc.name)
             if (!c.docs.length) throw new Error(`Could not read any text from ${m.doc.name}. A scanned PDF is only pictures of text.`)
-            c.links = []; await buildIndex(c.docs, (l) => status(l)); c.key = "doc:" + m.doc.name + m.doc.size
+            c.links = []; await indexDocs(); c.key = "doc:" + m.doc.name + m.doc.size
           }
         }
         // pages the panel fetched for this question: added to what is searched
@@ -130,14 +150,16 @@ export default function PluginChat() {
             const got = p.text != null ? p : htmlText(p.html)
             c.read.add(p.url); c.docs.push(...passagesOf(got.text, got.title || p.title || p.url, p.url))
           }
-          status("Reading the linked pages..."); await buildIndex(c.docs, (l) => status(l))
+          status("Reading the linked pages..."); await indexDocs()
         }
+        // a huge page asked again: pick the parts for this new question
+        if (!built && c.docs.length > BIG) await indexDocs()
         const [mode, model] = await pickModel()
         // Most of the question's words are nowhere on the page: the answer is
         // likely behind a link. Checked without the AI, because a small model
         // sometimes answers a different question instead of saying "not here".
         const linkable = m.scope === "page" && !m.pages && m.followLinks
-        const qw = [...words(m.question)], pw = words(c.docs.map((d) => d.text).join(" "))
+        const qw = [...words(m.question)], pw = c.bodyWords || words(c.docs.map((d) => d.text).join(" "))
         const offPage = linkable && qw.length >= 2 && qw.filter((w) => pw.has(w)).length / qw.length < 0.5
         let r = { notFound: true, answer: "" }
         if (!offPage) {
@@ -155,7 +177,7 @@ export default function PluginChat() {
         // no link fits after all: answer from the page as it is
         if (offPage) { status("Answering..."); r = await ask(m.question, mode, model, (l) => l && status(l)) }
         post("chat-answer", {
-          id: m.id, answer: r.answer, notFound: !!r.notFound, model,
+          id: m.id, answer: String(r.answer || "").trim() || "I could not find anything about that in it. Try other words, or the Help tab for questions about VideoDoc.", notFound: !!r.notFound, model,
           sources: (r.sources || []).slice(0, 3).map((s) => ({ label: s.label, title: s.title, timestamp: s.timestamp, url: c.docs.find((d) => d.label === s.label)?.url || null, text: (s.text || "").slice(0, 300) })),
           readPages: m.pages?.map((p) => ({ title: c.docs.find((d) => d.url === p.url)?.label || p.title, url: p.url })) || [],
         })

@@ -33,7 +33,7 @@ export function listen() {
   window.addEventListener("message", (e) => {
     if (e.source !== window || e.origin !== location.origin || e.data?.source !== IN) return
     const { type, ...data } = e.data
-    if (type === "hello") { post("hello", { version: 1, page: location.hash }); if (last) window.postMessage(last, location.origin); return }
+    if (type === "hello") { post("hello", { version: 1, page: location.hash }); window.postMessage(last || { source: OUT, type: "status", state: "idle", steps: [] }, location.origin); return }
     // the page parts that can act listen for these
     window.dispatchEvent(new CustomEvent(`videodoc:${type}`, { detail: data }))
   })

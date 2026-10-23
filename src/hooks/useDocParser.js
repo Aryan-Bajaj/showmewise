@@ -55,6 +55,7 @@ export async function extractText(file) {
     const pdfjs = await import('pdfjs-dist')
     pdfjs.GlobalWorkerOptions.workerSrc = (await import('pdfjs-dist/build/pdf.worker.min.mjs?url')).default
     const pdf = await pdfjs.getDocument({ data: await file.arrayBuffer() }).promise
+      .catch(() => { throw new Error(`${file.name} could not be opened. It may be damaged, protected with a password, or not really a PDF.`) })
     const pages = []
     for (let i = 1; i <= pdf.numPages; i++) {
       const { items } = await (await pdf.getPage(i)).getTextContent()

@@ -7,6 +7,7 @@
 <style>
 :root{--bg:#0f0b24;--card:#17113a;--line:rgba(255,255,255,.1);--ink:#f1eeff;--ink2:#b9b3d8;--ink3:#8a84ad;--acc:#7c5cff;--ok:#34d399;--rec:#ef4444;--warn:#fbbf24}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font:13.5px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
 body.popup{width:380px;max-height:600px}
 body.popup main{padding:10px;gap:10px}
@@ -70,7 +71,8 @@ footer a{color:var(--ink2)}
   </section>
 
   <section class="card" id="runCard" hidden>
-    <h2 id="runTitle">Your guide</h2>
+    <h2>Your guide</h2>
+    <div id="runTitle" style="font-weight:600;margin:-2px 0 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
     <div id="runLine" class="note" style="margin:0"></div>
     <div class="bar"><i id="runBar"></i></div>
     <ul class="steps" id="steps"></ul>

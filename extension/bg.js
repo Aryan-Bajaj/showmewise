@@ -19,7 +19,8 @@ const toPanel = (msg) => chrome.runtime.sendMessage({ to: "panel", ...msg }).cat
 async function findEngine() {
   const { engine } = await getState()
   const tabs = await chrome.tabs.query({ url: SITES.map((s) => s + "/*") })
-  if (engine && tabs.some((t) => t.id === engine)) return engine
+  // only a tab on the app page runs the app (the home page has no recorder)
+  if (engine && tabs.some((t) => t.id === engine && /#\/app/.test(t.url || ""))) return engine
   return tabs.find((t) => /#\/app/.test(t.url || ""))?.id ?? null
 }
 
@@ -31,21 +32,31 @@ function waitFor(ok, ms = 45000) {
     chrome.runtime.onMessage.addListener(on)
   })
 }
+// a tab still starting may not listen yet: one more try after a moment
 const send = (tabId, msg) => chrome.tabs.sendMessage(tabId, { to: "page", ...msg })
+  .catch(() => new Promise((r) => setTimeout(r, 1500)).then(() => chrome.tabs.sendMessage(tabId, { to: "page", ...msg })))
 
-async function ensureEngine() {
+// many questions at once must share one VideoDoc tab, not open one each
+let opening = null
+const ensureEngine = () => opening || (opening = openEngine().finally(() => { opening = null }))
+async function openEngine() {
   let id = await findEngine()
   if (!id) {
     const tab = await chrome.tabs.create({ url: (await site()) + "/#/app", active: false, pinned: true })
     id = tab.id
     await setState({ engine: id })
     await waitFor(() => true)
-  } else {
+  } else if (!(await getState()).ready || (await getState()).engine !== id) {
     await setState({ engine: id })
-    // a tab opened before the plugin was installed has no helper script yet
-    await send(id, { type: "hello" }).catch(async () => {
-      await chrome.scripting.executeScript({ target: { tabId: id }, files: ["content.js"] })
-    })
+    // still loading: wait until the page says it is there
+    const answered = waitFor(() => true, 30000).then(() => true, () => false)
+    const reached = await send(id, { type: "hello" }).then(() => true, () => false)
+    if (!reached) {
+      // a tab opened before the plugin was installed has no helper script yet
+      const tab = await chrome.tabs.get(id)
+      if (tab.status === "complete") await chrome.scripting.executeScript({ target: { tabId: id }, files: ["content.js"] }).catch(() => {})
+    }
+    if (!(await answered)) throw new Error("The VideoDoc tab did not answer. Reload it and try again.")
   }
   return id
 }
@@ -77,7 +88,7 @@ const BADGE = { recording: ["REC", "#dc2626"], working: ["…", "#5b3df5"], sett
 
 async function onStatus(m, tabId) {
   const before = (await getState()).status
-  const st = await setState({ status: m, engine: tabId ?? (await getState()).engine, closed: false })
+  const st = await setState({ status: m, engine: tabId ?? (await getState()).engine, closed: false, ready: true })
   const [text, color] = BADGE[m.state] || ["", "#5b3df5"]
   chrome.action.setBadgeText({ text }); if (text) chrome.action.setBadgeBackgroundColor({ color })
   // keep the computer awake while recording or writing; a sleeping laptop stops the work
@@ -112,7 +123,10 @@ async function focusEngine() {
 // questions still waiting when the VideoDoc tab goes away would wait forever
 const failPending = (why) => edit((log) => log.forEach((x) => { if (!x.done) Object.assign(x, { done: true, error: why }) }))
 chrome.tabs.onUpdated.addListener(async (id, info) => {
-  if (info.status === "loading" && id === (await getState()).engine) failPending("The VideoDoc tab was reloaded. Ask again.")
+  // only a tab that was already working: a fresh tab loading for the first time is not a reload
+  if (info.status !== "loading") return
+  const st = await getState()
+  if (id === st.engine && st.ready) { await setState({ ready: false }); failPending("The VideoDoc tab was reloaded. Ask again.") }
 })
 
 chrome.tabs.onRemoved.addListener(async (id) => {
@@ -187,7 +201,7 @@ async function chat(c) {
         target: { tabId: tab.id },
         func: () => ({
           title: document.title, url: location.href,
-          text: (document.body?.innerText || "").slice(0, 300000),
+          text: (document.body?.innerText || "").slice(0, 2000000),
           links: [...document.querySelectorAll("a[href]")].slice(0, 400).map((a) => ({ text: (a.innerText || a.title || "").trim().slice(0, 100), href: a.href })),
         }),
       })

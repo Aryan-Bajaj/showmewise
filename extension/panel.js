@@ -51,7 +51,7 @@ function render(s, closed) {
     return
   }
   if (!show) return
-  $("runTitle").textContent = s.title || "Your guide"
+  $("runTitle").textContent = (s.title || "").replace(/\.(webm|mp4|mov|mkv)$/i, "")
   const steps = s.steps || []
   const doneN = steps.filter((x) => x.status === "done").length
   $("runBar").style.width = steps.length ? `${Math.round((doneN / steps.length) * 100)}%` : "0"
@@ -144,7 +144,10 @@ function showChat(log = []) {
     else {
       a.append(el("span", null, m.error ? `⚠️ ${m.error}` : m.answer))
       if (m.readPages?.length) a.append(el("small", null, "Vidi also read: " + m.readPages.map((p) => p.title || p.url).join(" · ")))
+      const seenUrl = new Set() // one line per page, not per part of it
       for (const s of m.sources || []) {
+        if (s.url && seenUrl.has(s.url)) continue
+        if (s.url) seenUrl.add(s.url), (s.label = String(s.label || "").replace(/ \(\d+\)$/, ""))
         if (s.url) { const sm = el("small", null, "From: "); const link = el("a", null, s.label || s.url); link.href = s.url; link.target = "_blank"; link.rel = "noopener"; sm.append(link); a.append(sm) }
         else if (s.timestamp != null) a.append(el("small", null, `From the video at ${mmss(s.timestamp * 1000)}${s.title ? `: ${s.title}` : ""}`))
       }

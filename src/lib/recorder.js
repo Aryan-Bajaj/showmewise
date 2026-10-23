@@ -104,7 +104,9 @@ async function assemble(durationMs) {
   const type = items[0].type || "video/webm"
   let blob = new Blob(items.map((i) => i.blob), { type })
   if (/webm/.test(type) && durationMs) blob = await fixWebmDuration(blob, durationMs, { logger: false }).catch(() => blob)
-  const stamp = new Date().toISOString().slice(0, 16).replace("T", " ").replace(":", "-")
+  // local date and time, e.g. "Screen recording 23 Oct 2026, 21-16" (no ":" in file names)
+  const d = new Date()
+  const stamp = `${d.getDate()} ${d.toLocaleString("en", { month: "short" })} ${d.getFullYear()}, ${String(d.getHours()).padStart(2, "0")}-${String(d.getMinutes()).padStart(2, "0")}`
   const file = new File([blob], `Screen recording ${stamp}.${/mp4/.test(type) ? "mp4" : "webm"}`, { type: type.split(";")[0], lastModified: Date.now() })
   await keepFinal(file)
   return file
