@@ -1167,7 +1167,7 @@ export default function LandingPage() {
               ['Each run is a little different', 'An AI never writes the same text twice. In our tests the same video scored up to 10 points higher or lower from run to run.'],
               ['Keep the computer awake', 'The work runs on your computer, so sleep or a closed lid pauses it. If it stops, choose the same video again and it picks up where it stopped.'],
               ['Guides in English, for now', 'The video can be in English, Hindi, Hinglish, German and more. The guide itself is written in English.'],
-              ['Made for computers', 'Chrome or Edge on a laptop or desktop. Phones and tablets are not strong enough to run the AI on the device.'],
+              ['Made for computers', 'Chrome, Edge or Firefox on a laptop or desktop (the plugin: Chrome or Edge). Phones and tablets are not strong enough to run the AI on the device.'],
               ['The HTML guide has everything', 'HTML has moving clips, Word has short GIFs in some parts, PDF has still pictures (a PDF cannot play videos). Doc Chat reads PDF, Word, HTML and text files, but not scanned pages (pictures of text).'],
             ].map(([title, desc], i) => (
               <div key={i} style={{ borderRadius: 16, padding: '22px 20px', background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.08)' }}>

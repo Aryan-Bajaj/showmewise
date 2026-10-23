@@ -93,7 +93,7 @@ Every release is tested against manuals written by hand for real screen recordin
 * **Key words help the most.** Names and codes typed in are spelled right.
 * **Each run is a little different.** The same video scored up to 10 points higher or lower.
 * **Guides in English for now**, whatever the language of the video.
-* **Made for computers**, Chrome or Edge. Phones and tablets cannot run the AI on the device.
+* **Made for computers**: Chrome, Edge or Firefox (tested with Ollama). The plugin and the browser AI need Chrome or Edge. Phones and tablets cannot run the AI on the device.
 * **The HTML guide has everything.** Word has GIFs in some parts, PDF has still pictures. Doc Chat reads PDF files with text, not scanned pages.
 
 ---

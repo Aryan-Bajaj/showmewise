@@ -25,7 +25,7 @@ export const HOWTO = [
   {
     id: "before", title: "Before you start", rank: 0.8,
     body: [
-      "Use a laptop or a desktop computer with Chrome or Edge. Phones and tablets do not work.",
+      "Use a laptop or a desktop computer with Chrome, Edge or Firefox. Phones and tablets do not work. The browser AI needs Chrome or Edge; in Firefox, use Ollama.",
       "Your computer needs at least 8 GB of memory (RAM). 16 GB is better.",
       "Plug in the laptop and close programs you do not need. Making a guide is hard work for a computer.",
       "The first time, VideoDoc downloads the parts it needs. The speech part is about 970 MB (about 1.6 GB for Accurate). The AI that writes is 0.8 to 3.5 GB, unless you use Ollama. These downloads happen only once.",
@@ -326,7 +326,7 @@ export const HOWTO = [
       "Help it with key words: type the names and codes of your app into the key words box. In our tests this helped the most.",
       "Each run is a little different: an AI never writes the same text twice. In our tests the same video scored up to 10 points higher or lower.",
       "The guide is written in English for now, not in Hindi, German or another language, even when the video is in that language.",
-      "Made for computers: Chrome or Edge on a laptop or desktop. Phones and tablets are not strong enough to run the AI on the device.",
+      "Made for computers: Chrome, Edge or Firefox on a laptop or desktop. The plugin and the browser AI need Chrome or Edge; in Firefox, use Ollama. Phones and tablets are not strong enough to run the AI on the device.",
       "Saved files: the HTML guide has moving clips. Word has short GIFs in some parts, PDF has still pictures only, no videos. Doc Chat and Vid Chat read PDF files, but not scanned pages (pictures of text).",
       LIMIT,
     ],
