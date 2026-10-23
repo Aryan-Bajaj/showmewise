@@ -381,7 +381,9 @@ ${seen}`, userTerms) })
           : aiMode === "local"
           ? await callLocalEngine(batches[k], PLAN_PROMPT, null, opts)
           : await callWebLLM(batches[k], PLAN_PROMPT, null, { ...opts, model: ollamaModel })
-        items.push(...parsePlan(raw))
+        const got = parsePlan(raw)
+        if (!got.length) console.info(`[VideoDoc] whole transcript part ${k + 1}: no actions read from the answer (${String(raw || "").length} chars): ${String(raw || "").slice(0, 300)}`)
+        items.push(...got)
       }
       plan = groundPlan(items, chunks)
       console.info(`[VideoDoc] whole transcript: ${items.length - plan.length} actions not found in the speech`)
