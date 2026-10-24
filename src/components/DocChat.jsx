@@ -113,8 +113,12 @@ export default function DocChat({ docs: videoDocs, aiMode, ollamaModel, onSeek, 
     setReady(true)
   }, [ready, isReady, buildIndex, docs, onStatus])
 
+  // a document chosen while the chat is still getting ready waits for it (it was ignored)
+  const [docLater, setDocLater] = useState(null)
+  useEffect(() => { if (!busy && docLater) { const f = docLater; setDocLater(null); addDoc(f) } }) // eslint-disable-line react-hooks/exhaustive-deps
   const addDoc = async (file) => {
-    if (!file || busy) return
+    if (!file) return
+    if (busy) { setDocLater(file); return }
     setBusy(true)
     try {
       onStatus(`Reading ${file.name}...`, null, "index")
@@ -234,6 +238,9 @@ export default function DocChat({ docs: videoDocs, aiMode, ollamaModel, onSeek, 
           </>
         )}
       </div>
+      {docLater && (
+        <div className="px-5 py-2 border-b border-white/5 text-xs text-amber-200">Adding {docLater.name} as soon as the chat is ready...</div>
+      )}
       {added.length > 0 && (
         <div className="px-5 py-2 border-b border-white/5 text-xs text-zinc-400 flex flex-wrap gap-2">
           Also reading: {added.map((a) => <span key={a.name} className="text-zinc-200 bg-white/5 rounded-full px-2 py-0.5">📄 {a.name}</span>)}
