@@ -63,11 +63,29 @@ const bestLines = (section, q) => {
 
 const CHIPS = ['How do I start?', 'What are the limits?', 'Ollama is not detected', 'Which model should I pick?']
 const greeting = { who: 'vidi', text: "Hi, I'm Vidi. Ask me anything about using VideoDoc." }
+// What Vidi remembers about you, only in this browser: your name (if you give
+// it) and what you asked about last. "Forget me" clears it.
+const ME = 'vd-vidi-me'
+const loadMe = () => { try { return JSON.parse(localStorage.getItem(ME) || 'null') || {} } catch { return {} } }
+const saveMe = (me) => { try { localStorage.setItem(ME, JSON.stringify(me)) } catch { /* private window */ } }
+const hello = (me) => me.name
+  ? { who: 'vidi', text: `Welcome back, ${me.name}!${me.last ? ` Last time we talked about “${me.last}”.` : ''} What can I help you with today?` }
+  : greeting
 const store = { get: (k) => { try { return localStorage.getItem(k) } catch { return null } }, set: (k, v) => { try { localStorage.setItem(k, v) } catch { /* private window */ } } }
 
 export default function Vidi() {
   const [open, setOpen] = useState(false)
-  const [msgs, setMsgs] = useState([greeting])
+  const [me, setMeState] = useState(loadMe)
+  const setMe = (m) => { setMeState(m); saveMe(m) }
+  // first time: Vidi asks for a name once (it can be skipped)
+  const [msgs, setMsgs] = useState(() => { const m = loadMe(); return [hello(m), ...(m.asked ? [] : [{ who: 'vidi', askName: true }])] })
+  const [nameIn, setNameIn] = useState('')
+  const keepName = (skip) => {
+    const name = skip ? '' : nameIn.trim().replace(/[<>]/g, '').slice(0, 30)
+    setMe({ ...me, asked: true, ...(name ? { name } : {}) })
+    setMsgs((m) => [...m.filter((x) => !x.askName), ...(name ? [{ who: 'vidi', text: `Nice to meet you, ${name}! I will remember your name on this computer, so I know you next time.` }] : [])])
+  }
+  const forgetMe = () => { setMe({ asked: true }); setMsgs([greeting, { who: 'vidi', text: 'Done: I forgot your name and what we talked about.' }]) }
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [engine, setEngine] = useState(() => store.get('vd-vidi-engine') || '') // '' = not chosen yet
@@ -141,6 +159,7 @@ export default function Vidi() {
     const onTopic = found.onTopic || !!here
     const sections = here ? [here, ...found.sections.filter((x) => x !== here)] : found.sections
     const card = sections[0] // the best match, with its picture when it has one
+    if (card) setMe({ ...loadMe(), ...me, last: card.title.replace(/^Step [\w.]+\s*/, '').replace(/[:(].*$/, '').trim() })
     if (!onTopic) {
       setMsgs((m) => [...m, (intro ? { who: 'vidi', text: intro } : { who: 'you', text: q }), { who: 'vidi', text: "Sorry, I can only help with VideoDoc: recording, uploading, settings, the guide, exports and the chats." }])
       return
@@ -153,7 +172,9 @@ export default function Vidi() {
     setMsgs((m) => [...m, (intro ? { who: 'vidi', text: intro } : { who: 'you', text: q }), { who: 'vidi', text: '…', pending: true }])
     setBusy(true)
     try {
-      const prompt = vidiPrompt(q, sections, page, screenAlerts())
+      const prompt = vidiPrompt(q, sections, page, screenAlerts()) + (me.name ? `
+
+The user's name is ${me.name}. You may use it now and then, in a friendly way.` : '')
       const text = engine === 'ollama'
         ? await callOllama(prompt, SYSTEM, ollama || ollamaRef.current, { maxTokens: 160, temperature: 0.2, onToken: typing })
         : await callWebLLM(prompt, SYSTEM, (label, pct) => setLoadMsg(pct != null && pct < 100 ? `${label} ${pct}%` : ''), { model: WEB_MODEL.id, maxTokens: 160, onToken: typing })
@@ -198,7 +219,17 @@ export default function Vidi() {
           <div className="vidi-bg" style={{ flex: 1, overflowY: 'auto', padding: 14, display: 'flex', flexDirection: 'column', gap: 10, fontSize: 14, lineHeight: 1.55 }}>
             {msgs.map((m, i) => (
               <div key={i} style={{ alignSelf: m.who === 'you' ? 'flex-end' : 'flex-start', maxWidth: '92%', background: m.who === 'you' ? 'linear-gradient(135deg,#6d4aff,#4f46e5)' : '#241b4d', color: '#f5f3ff', border: m.who === 'you' ? 0 : '1px solid rgba(167,139,250,0.3)', boxShadow: '0 2px 10px rgba(0,0,0,0.25)', borderRadius: 14, padding: '9px 12px' }}>
-                {m.who === 'vidi' && !m.pending ? <ChatText text={m.text} /> : <div style={{ whiteSpace: 'pre-wrap' }}>{m.text}</div>}
+                {m.askName ? (
+                  <div>
+                    <div style={{ marginBottom: 8 }}>What should I call you? I will remember it next time (it stays on your computer).</div>
+                    <form onSubmit={(e) => { e.preventDefault(); if (nameIn.trim()) keepName(false) }} style={{ display: 'flex', gap: 6 }}>
+                      <input value={nameIn} onChange={(e) => setNameIn(e.target.value)} placeholder="Your first name" aria-label="Your first name" maxLength={30}
+                        style={{ flex: 1, minWidth: 0, background: '#1a1338', border: '1px solid rgba(167,139,250,0.4)', borderRadius: 10, color: '#fff', padding: '6px 10px', font: 'inherit' }} />
+                      <button type="submit" style={btn}>Save</button>
+                    </form>
+                    <button onClick={() => keepName(true)} style={{ background: 'none', border: 0, color: 'rgba(236,233,255,0.6)', fontSize: 12, marginTop: 6, cursor: 'pointer', padding: 0 }}>No thanks</button>
+                  </div>
+                ) : m.who === 'vidi' && !m.pending ? <ChatText text={m.text} /> : <div style={{ whiteSpace: 'pre-wrap' }}>{m.text}</div>}
                 {m.section && m.bullets && <ul style={{ margin: '6px 0 0', paddingLeft: 18, listStyle: 'disc' }}>{m.bullets.slice(0, 4).map((b, j) => <li key={j}>{b}</li>)}</ul>}
                 {m.section?.img && <MarkedShot section={m.section} compact />}
                 {m.offer && <button style={{ ...btn, marginTop: 8 }} onClick={() => ask(`What does this message mean and what do I do: ${m.offer.slice(0, 300)}`)}>Yes, explain it</button>}
@@ -233,6 +264,7 @@ export default function Vidi() {
             <button type="submit" disabled={busy || !input.trim()} aria-label="Send" style={{ background: 'linear-gradient(135deg,#6d4aff,#3f62ff)', border: 0, borderRadius: 10, padding: '0 12px', color: '#fff', cursor: 'pointer', opacity: busy || !input.trim() ? 0.5 : 1 }}><Send size={16} /></button>
           </form>
           <div style={{ fontSize: 11.5, color: 'rgba(236,233,255,0.6)', padding: '0 14px 8px', marginTop: -4 }}>Stuck on a message? Copy it here, or take a screenshot and paste it (Ctrl + V). I read it on your computer.</div>
+          {me.name && <button onClick={forgetMe} style={{ background: 'none', border: 0, color: 'rgba(236,233,255,0.45)', fontSize: 11, padding: '0 10px 8px 0', cursor: 'pointer' }}>Forget me</button>}
           {engine &&<button onClick={() => choose('')} style={{ background: 'none', border: 0, color: 'rgba(236,233,255,0.45)', fontSize: 11, padding: '0 0 8px', cursor: 'pointer' }}>Change how Vidi answers</button>}
         </div>
       )}

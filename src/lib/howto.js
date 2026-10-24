@@ -289,6 +289,7 @@ export const HOWTO = [
       "Do not understand a message? Copy it into the chat, or take a screenshot (Windows key + Shift + S) and paste it with Ctrl + V. Vidi reads the text in the picture on your computer.",
       "How Vidi answers: without any AI it shows the right part of this page at once. For written answers it uses Ollama if you have it, or a small browser AI (about 1 GB, downloaded once). Change how Vidi answers is at the bottom of the chat.",
       "Vidi only talks about VideoDoc. For questions about what is in your own video, use Vid Chat. For a document, use Doc Chat.",
+      "The first time, Vidi asks what to call you (you can say No thanks). It remembers your name and what you asked about last, only in your browser on this computer, to greet you next time. Forget me (at the bottom of the chat) clears it.",
     ],
   },
   {

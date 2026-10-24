@@ -22,7 +22,7 @@ function extractHeadings(htmlText) {
 // answered "how do I add a widget" from them with one step. The page footers
 // also cut steps in half. Both are left out; every step stays in the parts.
 function vdGuidePdf(t) {
-  if (!/Made with VideoDoc/.test(t)) return t
+  if (!/Made with\s+VideoDoc/.test(t)) return t
   t = t.split('\n').filter((l) => !/^Made with VideoDoc\s+Page \d+ of \d+\s*$/.test(l.trim()) && !/\|\s*Process guide\s*$/.test(l.trim())).join('\n')
   // the body headings: the last place each appears (the contents list them first)
   const cut = (from, to) => { const a = t.lastIndexOf(from), b = t.lastIndexOf(to); if (a >= 0 && b > a) t = t.slice(0, a) + t.slice(b) }
@@ -62,7 +62,7 @@ export async function extractText(file) {
   if (/\.docx$/.test(name)) {
     const mammoth = await import('mammoth')
     const { value } = await mammoth.default.extractRawText({ arrayBuffer: await file.arrayBuffer() })
-    return value || ''
+    return vdGuidePdf(value || '') // a Word guide by VideoDoc has the same summaries as the PDF
   }
   if (/\.pdf$/.test(name)) {
     // pdf.js reads the text layer on this computer; a scanned PDF has none
@@ -90,7 +90,7 @@ export function chunkText(text, size = 900, overlap = 120) {
   // mixed the end of one part with the start of the next)
   // (only body parts carry a time, "Part B: ... 00:21"; the contents list them without)
   if (/^Part [A-Z]: .*\d\d:\d\d/m.test(clean)) {
-    return clean.split(/\n(?=Part [A-Z]: .*\d\d:\d\d|\d+ (?:Questions and answers|Process flow|Transcript)\b)/)
+    return clean.split(/\n(?=Part [A-Z]: .*\d\d:\d\d|\d+\s+(?:Questions and answers|Process flow|Transcript)\b)/)
       .flatMap((sec) => (sec.length > size * 1.6 ? chunkText(sec.replace(/^Part /, 'Section '), size, overlap) : [sec.trim()]))
       .filter((c) => c.length > 20)
   }

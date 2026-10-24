@@ -14,7 +14,8 @@ export function groundNames(text, evidence) {
   let out = text.replace(NAME, (name, at, all) => {
     // the first word of a sentence is capitalised anyway: not checked
     const before = all.slice(0, at)
-    if (!before.trim() || /[.!?:]\s*$/.test(before)) return name
+    // (also after a closing quote or bracket: “...week.” Finally, ...)
+    if (!before.trim() || /[.!?:]["'”’)\]]*\s*$/.test(before)) return name
     if (name.length < 3 || have.includes(squash(name))) return name
     // a longer name whose words are all in the video stays ("Weekly Overview")
     if (name.split(/\s+/).every((w) => have.includes(squash(w)))) return name
