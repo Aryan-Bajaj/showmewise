@@ -42,6 +42,9 @@ const ensureEngine = () => opening || (opening = openEngine().finally(() => { op
 async function openEngine() {
   let id = await findEngine()
   if (!id) {
+    // can the website be reached at all? (otherwise the user waited 45 s for nothing)
+    const ok = await fetch((await site()) + "/", { method: "HEAD", cache: "no-store", signal: AbortSignal.timeout(6000) }).then((r) => r.ok, () => false)
+    if (!ok) throw new Error("The VideoDoc website cannot be reached. Check your internet connection and try again.")
     const tab = await chrome.tabs.create({ url: (await site()) + "/#/app", active: false, pinned: true })
     id = tab.id
     await setState({ engine: id })
@@ -281,7 +284,11 @@ async function showPicks(id, m) {
   if (!s) return
   if (m.error || !m.picks?.length) return chatUpdate(id, { showing: "", shotNote: "I could not tell which part of this page the answer is about." })
   await chrome.tabs.update(s.tabId, { active: true }).catch(() => {})
-  const picks = m.picks.map((idx, i) => ({ idx, n: i + 1, label: s.elements[idx].replace(/ \([a-z0-9]+\)$/, "") }))
+  // the same button twice (two toolbars with "Share"): marked once, the first one
+  const seenLabel = new Set()
+  const picks = m.picks.map((idx) => ({ idx, label: s.elements[idx].replace(/ \([a-z0-9]+\)$/, "") }))
+    .filter((p) => !seenLabel.has(p.label.toLowerCase()) && seenLabel.add(p.label.toLowerCase()))
+    .map((p, i) => ({ ...p, n: i + 1 }))
   await chrome.scripting.executeScript({
     target: { tabId: s.tabId },
     args: [picks],
@@ -336,7 +343,8 @@ async function showPicks(id, m) {
       for (const [p, el] of els) {
         const r = el.getBoundingClientRect()
         const box = document.createElement("div")
-        box.style.cssText = `position:fixed;left:${r.left - 5}px;top:${r.top - 5}px;width:${r.width + 10}px;height:${r.height + 10}px;border:3px solid #7c5cff;border-radius:8px;box-shadow:0 0 0 4px rgba(124,92,255,.25),0 0 18px rgba(124,92,255,.6)`
+        // a thin frame close around the item, so tightly packed neighbours stay readable
+        box.style.cssText = `position:fixed;left:${r.left - 3}px;top:${r.top - 3}px;width:${r.width + 6}px;height:${r.height + 6}px;border:2px solid #7c5cff;border-radius:6px;box-shadow:0 0 12px rgba(124,92,255,.55)`
         const tag = document.createElement("div")
         tag.style.cssText = "position:fixed;left:-9999px;top:0;display:flex;align-items:center;gap:6px;max-width:220px;background:#1b1342;color:#fff;border:1px solid #7c5cff;border-radius:999px;padding:4px 10px 4px 4px;box-shadow:0 4px 14px rgba(0,0,0,.35)"
         const n = document.createElement("span")
@@ -363,7 +371,7 @@ async function showPicks(id, m) {
           if (best.cost === 0) break
         }
         tag.style.left = best.x + "px"; tag.style.top = best.y + "px"
-        placed.push({ x: best.x, y: best.y, w, h }, { x: r.left - 5, y: r.top - 5, w: r.width + 10, h: r.height + 10 })
+        placed.push({ x: best.x, y: best.y, w, h }, { x: r.left - 3, y: r.top - 3, w: r.width + 6, h: r.height + 6 })
         if (best.d === 0) {
           // close by: a small arrow points from the tag to the item
           const arrow = document.createElement("div")

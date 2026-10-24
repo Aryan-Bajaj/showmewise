@@ -10,13 +10,19 @@ const mmss = (ms) => `${Math.floor(ms / 60000)}:${String(Math.floor(ms / 1000) %
 const time = (ms) => ms < 60000 ? `${Math.round(ms / 1000)}s` : ms < 3600000 ? `${Math.round(ms / 60000)}m` : `${Math.floor(ms / 3600000)}h ${Math.round(ms / 60000) % 60}m`
 const POPUP = new URLSearchParams(location.search).has("popup")
 document.body.classList.toggle("popup", POPUP)
-if (!POPUP) $("side").hidden = true
+if (!POPUP) { $("side").hidden = true; chrome.storage.session.set({ sideOpenAt: Date.now() }) } // the side panel is open (tests read this)
 
 // open on the side of this window (Chrome 116+)
 $("side").onclick = async () => {
   const w = await chrome.windows.getCurrent()
-  await chrome.sidePanel.open({ windowId: w.id }).catch(() => {})
-  window.close()
+  try {
+    await chrome.sidePanel.open({ windowId: w.id })
+    window.close()
+  } catch {
+    // not possible here (for example in a small extra window): say so instead of closing silently
+    $("side").textContent = "Not possible in this window"
+    $("side").disabled = true
+  }
 }
 
 // ---- record + status ----------------------------------------------------------
