@@ -173,7 +173,9 @@ function showChat(log = []) {
         if (m.shot) {
           const img = el("img"); img.src = m.shot; img.alt = "The page with Vidi's marks"
           img.style.cssText = "display:block;width:100%;margin-top:8px;border-radius:8px;border:1px solid rgba(124,92,255,.5);cursor:zoom-in"
-          img.onclick = () => img.style.width = img.style.width === "100%" ? "200%" : "100%"
+          // full size in its own tab (the popup is too small to zoom in)
+          img.title = "Click to see it full size"
+          img.onclick = async () => chrome.tabs.create({ url: URL.createObjectURL(await (await fetch(m.shot)).blob()) })
           a.append(img)
         }
         if (m.shotNote) a.append(el("small", null, m.shotNote))

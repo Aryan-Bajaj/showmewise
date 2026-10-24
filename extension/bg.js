@@ -292,16 +292,43 @@ async function showPicks(id, m) {
       root.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:2147483647;font:600 13px/1.3 system-ui,Segoe UI,sans-serif"
       // a spot is free when nothing readable or clickable is under it (big page backgrounds do not count)
       const placed = []
-      const big = (e) => { const b = e.getBoundingClientRect(); return b.width * b.height > innerWidth * innerHeight * 0.25 && !/^(IMG|INPUT|BUTTON|SELECT|TEXTAREA|VIDEO|CANVAS)$/.test(e.tagName) }
+      // Is there real content at this point? Controls, links, pictures, or a
+      // letter of text. A paragraph's empty space after a short line is free
+      // (counting the whole paragraph box pushed tags onto the buttons).
+      const SOLID = /^(IMG|INPUT|BUTTON|SELECT|TEXTAREA|VIDEO|CANVAS|SVG|A|LABEL|IFRAME)$/
+      const contentAt = (x, y, skip) => {
+        const e = document.elementFromPoint(x, y)
+        if (!e || e === document.body || e === document.documentElement) return false
+        if (skip && (e === skip || skip.contains(e))) return false
+        if (SOLID.test(e.tagName.toUpperCase()) || e.closest("a,button,[role=button],input,select,textarea")) return true
+        const c = document.caretRangeFromPoint?.(x, y)
+        const node = c?.startContainer
+        if (!node || node.nodeType !== 3 || !node.data.trim()) return false
+        const range = document.createRange()
+        for (const o of [c.startOffset - 1, c.startOffset]) {
+          if (o < 0 || o >= node.data.length || !node.data[o].trim()) continue
+          range.setStart(node, o); range.setEnd(node, o + 1)
+          for (const b of range.getClientRects()) if (x >= b.left - 2 && x <= b.right + 2 && y >= b.top - 2 && y <= b.bottom + 2) return true
+        }
+        return false
+      }
       const hits = (x, y, w, h) => {
         if (x < 2 || y < 2 || x + w > innerWidth - 2 || y + h > innerHeight - 2) return 99
         let n = 0
-        for (const [px, py] of [[0, 0], [.5, 0], [1, 0], [0, .5], [.5, .5], [1, .5], [0, 1], [.5, 1], [1, 1]]) {
-          const e = document.elementFromPoint(x + px * w, y + py * h)
-          if (e && e !== document.body && e !== document.documentElement && !big(e)) n++
-        }
+        for (let px = 0; px <= 1; px += 0.25) for (const py of [0, 0.5, 1]) if (contentAt(x + px * w, y + py * h)) n++
         for (const q of placed) if (!(x + w < q.x || x > q.x + q.w || y + h < q.y || y > q.y + q.h)) n += 5
         return n
+      }
+      // what a line from the tag back to the item would cross (points every 10 px)
+      const lineHits = (side, x, y, w, h, r, item) => {
+        const from = { right: [x, y + h / 2], left: [x + w, y + h / 2], below: [x + 16, y], above: [x + 16, y + h] }[side]
+        const to = { right: [r.right + 5, r.top + r.height / 2], left: [r.left - 5, r.top + r.height / 2], below: [Math.min(r.right - 6, x + 16), r.bottom + 5], above: [Math.min(r.right - 6, x + 16), r.top - 5] }[side]
+        const n = Math.max(1, Math.round(Math.hypot(to[0] - from[0], to[1] - from[1]) / 10))
+        let c = 0
+        for (let k = 1; k < n; k++) {
+          if (contentAt(from[0] + ((to[0] - from[0]) * k) / n, from[1] + ((to[1] - from[1]) * k) / n, item)) c++
+        }
+        return c
       }
       for (const [p, el] of els) {
         const r = el.getBoundingClientRect()
@@ -319,25 +346,45 @@ async function showPicks(id, m) {
         root.append(box, tag)
         document.documentElement.append(root)
         const w = tag.offsetWidth, h = tag.offsetHeight, cy = r.top + r.height / 2 - h / 2, gap = 18
-        // beside the item first, then below, above, and further out; the freest spot wins
-        const spots = [
-          ["right", r.right + gap, cy], ["left", r.left - gap - w, cy],
-          ["below", r.left, r.bottom + gap], ["above", r.left, r.top - gap - h],
-          ["below", r.left, r.bottom + gap + 40], ["right", r.right + gap + 120, cy],
-        ].map(([side, x, y]) => ({ side, x, y, cost: hits(x, y, w, h) }))
-        const best = spots.reduce((a, b) => (b.cost < a.cost ? b : a))
+        // beside the item first; when that covers something, further out step by
+        // step (a crowded toolbar row), with a thin line back to the item
+        let best = null
+        for (const d of [0, 30, 60, 100, 150, 220]) {
+          for (const [side, x, y] of [["right", r.right + gap + d, cy], ["below", r.left, r.bottom + gap + d], ["left", r.left - gap - w - d, cy], ["above", r.left, r.top - gap - h - d]]) {
+            // a far spot also pays for what its line would cross
+            // a tag on top of a button or text is far worse than a thin line crossing it
+            const cost = 4 * hits(x, y, w, h) + (d ? lineHits(side, x, y, w, h, r, el) : 0)
+            if (!best || cost < best.cost) best = { side, x, y, d, cost }
+            if (cost === 0) break
+          }
+          if (best.cost === 0) break
+        }
         tag.style.left = best.x + "px"; tag.style.top = best.y + "px"
         placed.push({ x: best.x, y: best.y, w, h }, { x: r.left - 5, y: r.top - 5, w: r.width + 10, h: r.height + 10 })
-        // the small arrow points from the tag to the item
-        const arrow = document.createElement("div")
-        const A = "position:absolute;width:0;height:0;border:7px solid transparent;"
-        arrow.style.cssText = A + {
-          right: "left:-14px;top:50%;margin-top:-7px;border-right-color:#7c5cff",
-          left: "right:-14px;top:50%;margin-top:-7px;border-left-color:#7c5cff",
-          below: "top:-14px;left:14px;border-bottom-color:#7c5cff",
-          above: "bottom:-14px;left:14px;border-top-color:#7c5cff",
-        }[best.side]
-        tag.append(arrow)
+        if (best.d === 0) {
+          // close by: a small arrow points from the tag to the item
+          const arrow = document.createElement("div")
+          const A = "position:absolute;width:0;height:0;border:7px solid transparent;"
+          arrow.style.cssText = A + {
+            right: "left:-14px;top:50%;margin-top:-7px;border-right-color:#7c5cff",
+            left: "right:-14px;top:50%;margin-top:-7px;border-left-color:#7c5cff",
+            below: "top:-14px;left:14px;border-bottom-color:#7c5cff",
+            above: "bottom:-14px;left:14px;border-top-color:#7c5cff",
+          }[best.side]
+          tag.append(arrow)
+        } else {
+          // further away: a line from the tag to the item, with a dot at the item
+          const from = { right: [best.x, best.y + h / 2], left: [best.x + w, best.y + h / 2], below: [best.x + 16, best.y], above: [best.x + 16, best.y + h] }[best.side]
+          const to = { right: [r.right + 5, r.top + r.height / 2], left: [r.left - 5, r.top + r.height / 2], below: [Math.min(r.right - 6, best.x + 16), r.bottom + 5], above: [Math.min(r.right - 6, best.x + 16), r.top - 5] }[best.side]
+          const NS = "http://www.w3.org/2000/svg"
+          const svg = document.createElementNS(NS, "svg")
+          svg.setAttribute("style", "position:fixed;inset:0;width:100vw;height:100vh;overflow:visible")
+          const line = document.createElementNS(NS, "line")
+          for (const [k, v] of [["x1", from[0]], ["y1", from[1]], ["x2", to[0]], ["y2", to[1]], ["stroke", "#7c5cff"], ["stroke-width", "2.5"], ["stroke-opacity", "0.75"]]) line.setAttribute(k, v)
+          const dot = document.createElementNS(NS, "circle")
+          for (const [k, v] of [["cx", to[0]], ["cy", to[1]], ["r", "4"], ["fill", "#7c5cff"]]) dot.setAttribute(k, v)
+          svg.append(line, dot); root.append(svg)
+        }
       }
       document.documentElement.append(root)
       // gone after 20 seconds, or at the first click or key

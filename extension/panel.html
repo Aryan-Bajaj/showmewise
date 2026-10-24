@@ -10,8 +10,11 @@
 [hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font:13.5px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
 body.popup{width:380px;max-height:600px}
+/* a vertical scrollbar must not make the popup scroll sideways */
+html,body{overflow-x:hidden}
+.msgs img{max-width:100%}
 body.popup main{padding:10px;gap:10px}
-body.popup .msgs{max-height:200px}
+body.popup .msgs{max-height:300px}
 body.popup footer label{display:none}
 header{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:2}
 header img{width:22px;height:22px}
