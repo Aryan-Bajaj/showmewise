@@ -85,6 +85,15 @@ export async function extractText(file) {
 export function chunkText(text, size = 900, overlap = 120) {
   const clean = (text || '').replace(/\r/g, '').replace(/\n{3,}/g, '\n\n').trim()
   if (!clean) return []
+  // A VideoDoc guide as PDF: each part ("Part B: Add a widget") is one piece, so
+  // its steps stay together and the part wins for its own topic (packed pieces
+  // mixed the end of one part with the start of the next)
+  // (only body parts carry a time, "Part B: ... 00:21"; the contents list them without)
+  if (/^Part [A-Z]: .*\d\d:\d\d/m.test(clean)) {
+    return clean.split(/\n(?=Part [A-Z]: .*\d\d:\d\d|\d+ (?:Questions and answers|Process flow|Transcript)\b)/)
+      .flatMap((sec) => (sec.length > size * 1.6 ? chunkText(sec.replace(/^Part /, 'Section '), size, overlap) : [sec.trim()]))
+      .filter((c) => c.length > 20)
+  }
   // prefer paragraph boundaries, then pack to ~size with a little overlap
   const paras = clean.split(/\n\s*\n/)
   const chunks = []
