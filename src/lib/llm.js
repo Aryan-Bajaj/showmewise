@@ -24,6 +24,12 @@ export const WEBLLM_MODELS = [
     note: "For Intel / integrated graphics and 8 GB RAM. Lightest — runs almost anywhere.",
   },
   {
+    id: "Qwen2.5-1.5B-Instruct-q4f16_1-MLC", name: "Qwen2.5 1.5B",
+    label: "Medium", params: "1.5B", size: "~1.0 GB", gb: 1.6,
+    accuracy: "Good", speed: "Fast", time: "15 to 40s",
+    note: "Best choice for most laptops with built-in graphics (Test my computer picks it when it fits).",
+  },
+  {
     id: "Llama-3.2-3B-Instruct-q4f16_1-MLC", name: "Llama 3.2 3B",
     label: "Balanced", params: "3B", size: "~1.9 GB", gb: 1.9,
     accuracy: "Strong", speed: "Medium", time: "30s to 1m",
@@ -276,8 +282,12 @@ export async function ensureWebLLM(onStatus, preferredModel) {
     webllmEngine = null; webllmModel = null
   }
   const { CreateMLCEngine } = await import("@mlc-ai/web-llm")
-  const ids = WEBLLM_MODELS.map((m) => m.id)
-  const order = preferredModel ? [preferredModel, ...ids.filter((id) => id !== preferredModel)] : ids
+  // When a model does not load (often: too little memory), only SMALLER ones
+  // are tried next. Trying the bigger ones after a failure could freeze a laptop
+  // whose graphics share the normal memory (seen on Intel Iris Xe).
+  const sizeOf = (id) => WEBLLM_MODELS.find((m) => m.id === id)?.gb ?? 1.6
+  const ids = WEBLLM_MODELS.filter((m) => !m.vision).map((m) => m.id).sort((a, b) => sizeOf(b) - sizeOf(a))
+  const order = preferredModel ? [preferredModel, ...ids.filter((id) => id !== preferredModel && sizeOf(id) < sizeOf(preferredModel))] : ids.slice().reverse()
   const tried = new Set()
   let lastErr = null
   for (const m of order) {

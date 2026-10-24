@@ -3,6 +3,7 @@ import { X, Globe, Cpu, Plus, FileText, ChevronDown, Eye, Gauge, AlertTriangle }
 import { DEFAULT_SECTIONS } from "../hooks/useDocParser"
 import { WEBLLM_MODELS, DEFAULT_WEBLLM_MODEL, isWebLLMVision, ollamaModelHasVision, recommendModel, modelGB, localEngineStatus } from "../lib/llm"
 import { probeSystem } from "../lib/systemCheck"
+import { savedBest } from "../lib/computerCheck"
 
 // Desktop build ships ONE engine (bundled llama.cpp + gemma3 vision) so a
 // non-technical user on an office laptop never has to choose or install
@@ -15,7 +16,7 @@ export default function AISettings({ onConfirm, onClose, suggestedSections, tool
   const autoPicked = useRef(false) // switch to Ollama once; a later choice by the user stays
   const [ollamaModels, setOllamaModels] = useState([])
   const [selectedModel, setSelectedModel] = useState("")
-  const [webModel, setWebModel] = useState(DEFAULT_WEBLLM_MODEL)
+  const [webModel, setWebModel] = useState(savedBest()?.id || DEFAULT_WEBLLM_MODEL) // "Test my computer" result first
   const [selected, setSelected] = useState([])
   const [customSections, setCustomSections] = useState([])
   const [customInput, setCustomInput] = useState("")
@@ -53,7 +54,8 @@ export default function AISettings({ onConfirm, onClose, suggestedSections, tool
       const result = await probeSystem()
       setSys(result)
       // Auto-pick the best model the device can handle (keep vision only if it fits).
-      if (result.webgpu && result.capacityGB > 0) {
+      // the real "Test my computer" result wins over this quick guess
+      if (!savedBest() && result.webgpu && result.capacityGB > 0) {
         setWebModel(recommendModel(result.capacityGB, isWebLLMVision(webModel)))
       }
     } catch {
@@ -61,6 +63,9 @@ export default function AISettings({ onConfirm, onClose, suggestedSections, tool
     }
     setTesting(false)
   }
+
+  // the quick guess runs by itself; its warning below stays useful
+  useEffect(() => { if (!DESKTOP) runSystemTest() }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Warn (simple English) if the chosen model is heavier than the device can load.
   const heavyWarning = (() => {
@@ -229,10 +234,11 @@ export default function AISettings({ onConfirm, onClose, suggestedSections, tool
               <div className="mt-3">
                 {/* System test → model recommendation */}
                 <div className="flex items-center gap-2 flex-wrap mb-2">
-                  <button onClick={runSystemTest} disabled={testing}
-                    className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border border-emerald-600/50 text-emerald-300 hover:bg-emerald-500/10 disabled:opacity-50 transition-colors">
-                    <Gauge className="w-3.5 h-3.5" /> {testing ? "Testing…" : "Test my system"}
-                  </button>
+                  {/* the real check: tries the models on this computer (CheckPage) */}
+                  <a href="/#/check" target="_blank" rel="noopener"
+                    className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border border-emerald-600/50 text-emerald-300 hover:bg-emerald-500/10 transition-colors">
+                    <Gauge className="w-3.5 h-3.5" /> {savedBest() ? `Tested: ${savedBest().name} fits best · test again` : "Test my computer (finds the best size)"}
+                  </a>
                   {sys && (
                     <span className="text-xs text-zinc-400">
                       {sys.webgpu

@@ -33,7 +33,8 @@
     "storage",
     "power",
     "scripting",
-    "activeTab"
+    "activeTab",
+    "system.memory"
   ],
   "host_permissions": [
     "https://videodoc.netlify.app/*",

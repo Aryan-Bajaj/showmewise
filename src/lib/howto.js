@@ -237,6 +237,17 @@ export const HOWTO = [
     ],
   },
   {
+    id: "check", title: "Test my computer: which browser AI size runs best",
+    body: [
+      "No Ollama? VideoDoc can use an AI that runs inside your browser. Test my computer finds the size that runs well on your computer, so nothing gets stuck. Open it from the home page, the upload page, the AI settings or the plugin.",
+      "It tries the sizes one by one, small first: Small (Llama 3.2 1B), Medium (Qwen2.5 1.5B), Large (Qwen2.5 3B). For each one you see how fast it is and if it answered a test question right. You decide whether to try the next, bigger one.",
+      "Bigger gives better answers but needs more free memory. Small is quick, but its answers are often weak.",
+      "Many laptops have built-in graphics: then the AI uses the normal memory. Close tabs and programs you do not need before the test. With the VideoDoc plugin, the test shows your free memory and how many tabs are open.",
+      "The sizes you do not need are deleted after the test, so they do not take space. The best one is kept and used from then on.",
+      "Ollama on your computer is still faster and more exact than the browser AI.",
+    ],
+  },
+  {
     id: "record", title: "Record your screen (recorder)",
     body: [
       "No recording yet? Press Record your screen on the upload page. Choose the whole screen, one app window or a browser tab, then do the task and explain it out loud. Press Stop when you are done, or Stop sharing in the browser bar.",

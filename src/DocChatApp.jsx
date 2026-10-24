@@ -3,6 +3,7 @@ import { FileText, Upload, Globe, Cpu, ChevronDown } from "lucide-react"
 import DocChat from "./components/DocChat"
 import { extractText, chunkText } from "./hooks/useDocParser"
 import { WEBLLM_MODELS, DEFAULT_WEBLLM_MODEL } from "./lib/llm"
+import { savedBest } from "./lib/computerCheck"
 
 export default function DocChatApp() {
   const fileRef = useRef()
@@ -15,7 +16,7 @@ export default function DocChatApp() {
   // Ollama found → it is chosen once, with a quick model for chatting; the user can still switch.
   const [aiMode, setAiMode] = useState("webllm")
   const autoPicked = useRef(false)
-  const [webModel, setWebModel] = useState(DEFAULT_WEBLLM_MODEL)
+  const [webModel, setWebModel] = useState(savedBest()?.id || DEFAULT_WEBLLM_MODEL) // "Test my computer" result first
   const [ollamaStatus, setOllamaStatus] = useState("checking")
   const [ollamaModels, setOllamaModels] = useState([])
   const [ollamaModel, setOllamaModel] = useState("")

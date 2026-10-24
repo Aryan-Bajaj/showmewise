@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { Video, ShieldCheck, Sparkles, CloudUpload, Circle, Square } from "lucide-react"
 import { post } from "../lib/bridge"
+import { savedBest } from "../lib/computerCheck"
 import { canRecord, startRecording, savedRecording, recoverRecording, discardSavedRecording } from "../lib/recorder"
 import { checkVideoSize, checkVideoDuration, MAX_VIDEO_MB, MAX_VIDEO_MIN } from "../lib/limits"
 import { parseTerms } from "../lib/terms"
@@ -117,6 +118,13 @@ export default function Uploader({ onVideoSelect }) {
           <span className="text-xs text-zinc-500">MP4, MOV or WEBM{limitHint ? ` · ${limitHint}` : ""}</span>
         </div>
       </button>
+
+      {/* not tested yet: which browser AI fits this computer */}
+      {!savedBest() && !desktop && (
+        <a href="/#/check" target="_blank" rel="noopener" className="text-sm text-emerald-300 hover:text-emerald-200 underline-offset-2 hover:underline">
+          No Ollama? Test your computer first: it finds the AI size that runs well (about 2 minutes).
+        </a>
+      )}
 
       {/* Or record the screen right here */}
       {canRecord() && (rec ? (

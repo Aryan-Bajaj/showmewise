@@ -3,6 +3,7 @@ import VideoDocLogo from './VideoDocLogo'
 import { MAX_VIDEO_MB, MAX_VIDEO_MIN } from '../lib/limits'
 import ProductDemo from './ProductDemo'
 import LimitBanner from './LimitBanner'
+import { PLUGIN_URL } from '../lib/links'
 import BeforeAfter from './BeforeAfter'
 import DocChatDemo from './DocChatDemo'
 
@@ -458,6 +459,14 @@ export default function LandingPage() {
               📄 See an example guide
             </a>
           </div>
+          <a href="/#/check" style={{ display: 'inline-block', marginTop: 14, color: 'rgba(255,255,255,0.7)', fontSize: '0.92rem' }}>
+            No Ollama? Test my computer first (about 2 minutes)
+          </a>
+          {PLUGIN_URL && (
+            <a href={PLUGIN_URL} target="_blank" rel="noopener" style={{ position: 'fixed', left: 16, bottom: 16, zIndex: 50, padding: '9px 14px', borderRadius: 100, background: '#1b1342', border: '1px solid rgba(124,92,255,0.6)', color: '#fff', textDecoration: 'none', fontSize: 13.5, fontWeight: 600, boxShadow: '0 6px 20px rgba(0,0,0,0.35)' }}>
+              ＋ Get the browser plugin
+            </a>
+          )}
 
 
           {/* Stats row */}
@@ -1157,6 +1166,9 @@ export default function LandingPage() {
               normal 16 GB laptop, <b style={{ color: '#fff' }}>60 to 67,5 %</b> of all actions came out fully right in the first draft, in our tests against manuals written by hand.
               Big paid cloud AIs are usually faster and stronger, but your video would have to leave your computer. VideoDoc keeps it with you.
             </p>
+            <a href="/#/check" style={{ display: 'inline-block', marginTop: 18, padding: '11px 22px', borderRadius: 100, border: '1px solid rgba(52,211,153,0.5)', color: '#a7f3d0', textDecoration: 'none', fontWeight: 600 }}>
+              🖥 Test my computer: which AI runs best on it?
+            </a>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14 }}>
             {[

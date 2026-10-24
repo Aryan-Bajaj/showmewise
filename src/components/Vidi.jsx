@@ -14,7 +14,9 @@ import { callOllama, callWebLLM } from '../lib/llm'
 // questions (same models run by Ollama): Llama 3.2 1B 33 % right (it said the
 // video is uploaded), Qwen2.5 1.5B 83 %, Qwen2.5 3B 89 % at twice the size.
 // Qwen2.5 1.5B is still a light download (about 1 GB, 1.6 GB graphics memory).
-const WEB_MODEL = { id: 'Qwen2.5-1.5B-Instruct-q4f16_1-MLC', name: 'Qwen2.5 1.5B', size: '~1 GB' }
+// Vidi needs at least the medium model (the small one answered 2 of 6 right); smaller only if Test my computer said so
+import { savedBest } from '../lib/computerCheck'
+const WEB_MODEL = savedBest()?.id === 'Llama-3.2-1B-Instruct-q4f16_1-MLC' ? { id: savedBest().id, name: 'Llama 3.2 1B', size: '~0.9 GB' } : { id: 'Qwen2.5-1.5B-Instruct-q4f16_1-MLC', name: 'Qwen2.5 1.5B', size: '~1 GB' }
 export const SYSTEM = `You are Vidi, the help assistant of VideoDoc, a free tool that turns a screen recording into a written step-by-step guide, entirely on the user's computer.
 Rules:
 - Answer ONLY from the HELP text below. Never invent features, sizes, limits or steps.

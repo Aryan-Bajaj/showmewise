@@ -41,6 +41,7 @@ Turn screen recordings into written guides and answer questions about them, the 
 - sidePanel: to show VideoDoc next to the page when the user chooses "Open on the side".
 - notifications: to say when a guide is ready.
 - storage: to keep the user's settings and the current chat until the browser closes.
+- system.memory: for "Test my computer" on the VideoDoc website: the free memory decides which AI model can run without slowing the computer down. Only the number is read; it stays on the computer.
 - power: to keep the computer awake while a recording or a guide is in progress, so the work is not cut off.
 - scripting and activeTab: to read the text of the page the user asks about, and to mark buttons on it when the user presses "Show me on the page".
 - Host permission for videodoc.netlify.app: the plugin uses the VideoDoc website in a tab to do the work on the user's computer.

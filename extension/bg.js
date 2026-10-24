@@ -145,6 +145,8 @@ chrome.runtime.onMessage.addListener((m, from, reply) => {
   if (m?.from === "page") {
     if (!isSite(from.url || from.tab?.url)) return
     if (m.type === "status") onStatus(m, from.tab?.id)
+    // "Test my computer" on the website: free memory and open tabs (a website cannot read these)
+    else if (m.type === "need-system-info") systemInfo().then((info) => from.tab?.id && send(from.tab.id, { type: "system-info", id: m.id, ...info })).catch(() => {})
     else if (m.type === "chat-status") chatUpdate(m.id, { label: m.label })
     else if (m.type === "chat-answer" && String(m.id).startsWith("pick-")) showPicks(m.id.slice(5), m)
     else if (m.type === "chat-answer") chatUpdate(m.id, { done: true, answer: m.answer, error: m.error, sources: m.sources, readPages: m.readPages, model: m.model })
@@ -402,4 +404,11 @@ async function showPicks(id, m) {
     const e = log.find((x) => x.id === id)
     if (e) Object.assign(e, { showing: "", shot, shotNote: `I marked ${picks.length} place${picks.length > 1 ? "s" : ""} on the page: ${picks.map((p) => `${p.n}. ${p.label}`).join(", ")}. The marks go away after 20 seconds or when you click.` })
   })
+}
+
+// ---- free memory and open tabs, for "Test my computer" ---------------------------
+async function systemInfo() {
+  const mem = await chrome.system.memory.getInfo()
+  const tabs = (await chrome.tabs.query({})).length
+  return { freeMB: Math.round(mem.availableCapacity / 1048576), totalMB: Math.round(mem.capacity / 1048576), tabs }
 }
