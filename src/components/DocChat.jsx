@@ -172,7 +172,9 @@ export default function DocChat({ docs: videoDocs, aiMode, ollamaModel, onSeek, 
     setMessages((m) => [...m, { q, a: null, sources: [] }])
     try {
       await ensureIndex()
-      const { answer, sources, notFound } = await ask(q, aiMode || "webllm", chatModel, onStatus)
+      // the answer shows word by word while it is written
+      const typing = (t) => setMessages((m) => m.map((x, i) => (i === m.length - 1 ? { ...x, partial: t } : x)))
+      const { answer, sources, notFound } = await ask(q, aiMode || "webllm", chatModel, onStatus, typing)
       setMessages((m) => m.map((x, i) => i === m.length - 1 ? { ...x, a: answer, sources, notFound: !!notFound, query: q } : x))
     } catch (e) {
       setMessages((m) => m.map((x, i) => i === m.length - 1 ? { ...x, a: `⚠️ ${e.message}` } : x))
@@ -187,7 +189,7 @@ export default function DocChat({ docs: videoDocs, aiMode, ollamaModel, onSeek, 
     setBusy(true)
     setMessages((m) => m.map((x, i) => i === idx ? { ...x, notFound: false } : x))
     try {
-      const a = await askGeneral(q, aiMode || "webllm", chatModel, onStatus)
+      const a = await askGeneral(q, aiMode || "webllm", chatModel, onStatus, (t) => setMessages((m) => m.map((x, i) => (i === idx ? { ...x, partial: t } : x))))
       setMessages((m) => m.map((x, i) => i === idx ? { ...x, a, sources: [], general: true } : x))
     } catch (e) {
       setMessages((m) => m.map((x, i) => i === idx ? { ...x, a: `⚠️ ${e.message}`, notFound: true } : x))
@@ -287,6 +289,8 @@ export default function DocChat({ docs: videoDocs, aiMode, ollamaModel, onSeek, 
                     </button>
                   </div>
                 </div>
+              ) : m.partial ? (
+                <div className="text-[14.5px] text-zinc-100 leading-relaxed bg-[#1c1540] border border-white/10 rounded-xl px-3.5 py-3 whitespace-pre-wrap">{m.partial}<span className="animate-pulse"> ▍</span></div>
               ) : (
                 <Progress status={isLast && busy ? (status ?? { label: "Thinking...", pct: null, phase: null }) : { label: "Thinking...", pct: null, phase: null }} />
               )}

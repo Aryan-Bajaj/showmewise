@@ -148,6 +148,7 @@ chrome.runtime.onMessage.addListener((m, from, reply) => {
     // "Test my computer" on the website: free memory and open tabs (a website cannot read these)
     else if (m.type === "need-system-info") systemInfo().then((info) => from.tab?.id && send(from.tab.id, { type: "system-info", id: m.id, ...info })).catch(() => {})
     else if (m.type === "chat-status") chatUpdate(m.id, { label: m.label })
+    else if (m.type === "chat-partial") chatUpdate(m.id, { partial: m.text })
     else if (m.type === "chat-answer" && String(m.id).startsWith("pick-")) showPicks(m.id.slice(5), m)
     else if (m.type === "chat-answer") chatUpdate(m.id, { done: true, answer: m.answer, error: m.error, sources: m.sources, readPages: m.readPages, model: m.model })
     else if (m.type === "chat-need-pages") readLinks(m)

@@ -148,7 +148,9 @@ function showChat(log = []) {
   for (const m of log) {
     box.append(el("div", "q", m.q))
     const a = el("div", "a")
-    if (!m.done) a.append(el("span", null, m.label && m.label !== "Thinking..." ? `Vidi: ${m.label}` : "Vidi is thinking..."))
+    // while Vidi writes: the text so far with a typing cursor
+    if (!m.done && m.partial) a.append(el("span", null, `${m.partial} ▍`))
+    else if (!m.done) a.append(el("span", null, m.label && m.label !== "Thinking..." ? `Vidi: ${m.label}` : "Vidi is thinking..."))
     else {
       a.append(el("span", null, m.error ? `⚠️ ${m.error}` : m.answer))
       if (m.readPages?.length) a.append(el("small", null, "Vidi also read: " + m.readPages.map((p) => p.title || p.url).join(" · ")))

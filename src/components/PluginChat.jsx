@@ -91,6 +91,9 @@ export default function PluginChat() {
     }
     const handle = async (m) => {
       const status = (label) => post("chat-status", { id: m.id, label })
+      // the answer as it is being written, at most every 0,2 s (the plugin shows it word by word)
+      let lastSent = 0
+      const typing = (t) => { const now = Date.now(); if (now - lastSent > 200) { lastSent = now; post("chat-partial", { id: m.id, text: t }) } }
       let built = false
       const indexDocs = async () => {
         built = true
@@ -115,7 +118,7 @@ export default function PluginChat() {
           const [mode, model] = await pickModel()
           status("Looking in the VideoDoc help...")
           const prompt = vidiPrompt(m.question, sections, "the VideoDoc browser plugin")
-          const answer = mode === "ollama" ? await callOllama(prompt, VIDI_SYSTEM, model, { maxTokens: 200, temperature: 0.2 }) : await callWebLLM(prompt, VIDI_SYSTEM, null, { maxTokens: 200, model })
+          const answer = mode === "ollama" ? await callOllama(prompt, VIDI_SYSTEM, model, { maxTokens: 200, temperature: 0.2, onToken: typing }) : await callWebLLM(prompt, VIDI_SYSTEM, null, { maxTokens: 200, model, onToken: typing })
           return post("chat-answer", { id: m.id, answer: answer.trim(), model, sources: sections.slice(0, 1).map((h) => ({ label: h.title, url: `${location.origin}/#/howto` })) })
         }
         if (m.scope === "video") {
@@ -164,7 +167,7 @@ export default function PluginChat() {
         let r = { notFound: true, answer: "" }
         if (!offPage) {
           status(mode === "ollama" ? `Answering with ${model}...` : "Answering with the browser AI...")
-          r = await ask(m.question, mode, model, (l) => l && status(l))
+          r = await ask(m.question, mode, model, (l) => l && status(l), typing)
         }
         // not on this page: maybe behind one of its links
         // the model may say it in words instead ("That isn't covered here")
@@ -175,7 +178,7 @@ export default function PluginChat() {
           if (next.length) return post("chat-need-pages", { id: m.id, links: next.map(({ text, href }) => ({ text, href })) })
         }
         // no link fits after all: answer from the page as it is
-        if (offPage) { status("Answering..."); r = await ask(m.question, mode, model, (l) => l && status(l)) }
+        if (offPage) { status("Answering..."); r = await ask(m.question, mode, model, (l) => l && status(l), typing) }
         post("chat-answer", {
           id: m.id, answer: String(r.answer || "").trim() || "I could not find anything about that in it. Try other words, or the Help tab for questions about VideoDoc.", notFound: !!r.notFound, model,
           sources: (r.sources || []).slice(0, 3).map((s) => ({ label: s.label, title: s.title, timestamp: s.timestamp, url: c.docs.find((d) => d.label === s.label)?.url || null, text: (s.text || "").slice(0, 300) })),

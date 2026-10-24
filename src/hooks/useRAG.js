@@ -62,7 +62,8 @@ export default function useRAG() {
     /summar|overview|\btl;?dr\b|\bgist\b|\boverall\b|in general|main (point|idea|topic)|key (point|takeaway)|explain (this|the|everything|it all)|what(?:'s| is| are)?\b[^?]*\b(this|it|the (doc|document|file|video|recording|dashboard))\b[^?]*\b(about|do|cover|contain)|what is this/i.test(q || "")
 
   // Answer a question: retrieve relevant segments, ground the LLM, return answer + sources.
-  const ask = useCallback(async (question, aiMode, model, onStatus) => {
+  // onToken(textSoFar): the answer as it is being written (shown word by word)
+  const ask = useCallback(async (question, aiMode, model, onStatus, onToken) => {
     if (!indexRef.current.length) throw new Error("Documentation not indexed yet.")
     onStatus?.("Searching the document...", null, "search")
     const qvec = await embed(question, onStatus)
@@ -223,8 +224,8 @@ ${context}`
 
     onStatus?.("Writing the answer...", null, "write")
     const answer = aiMode === "ollama"
-      ? await callOllama(question, system, model, { maxTokens: overview ? 500 : 400 })
-      : await callWebLLM(question, system, onStatus, { maxTokens: overview ? 500 : 400, model })
+      ? await callOllama(question, system, model, { maxTokens: overview ? 500 : 400, onToken })
+      : await callWebLLM(question, system, onStatus, { maxTokens: overview ? 500 : 400, model, onToken })
 
     const sources = picked.map((d) => ({
       label: d.label,
@@ -239,12 +240,12 @@ ${context}`
 
   // Answer from the model's own general knowledge (not the document). Used when
   // the document doesn't cover the question and the user opts in.
-  const askGeneral = useCallback(async (question, aiMode, model, onStatus) => {
+  const askGeneral = useCallback(async (question, aiMode, model, onStatus, onToken) => {
     const system = `You are a helpful technical assistant. Answer the user's question from your own general knowledge. The user's uploaded document does not cover this topic, so do not refer to it or claim it does. Be concise, accurate and practical, with clear steps where useful. If you are genuinely unsure, say so.`
     onStatus?.("Answering from the AI model...", null, "write")
     const answer = aiMode === "ollama"
-      ? await callOllama(question, system, model, { maxTokens: 500 })
-      : await callWebLLM(question, system, onStatus, { maxTokens: 500, model })
+      ? await callOllama(question, system, model, { maxTokens: 500, onToken })
+      : await callWebLLM(question, system, onStatus, { maxTokens: 500, model, onToken })
     return answer
   }, [])
 
