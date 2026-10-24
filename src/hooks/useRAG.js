@@ -76,7 +76,8 @@ export default function useRAG() {
     // part's title counts extra. Plain counting sent "How do I share the
     // dashboard?" to the part that creates it.
     const texts = indexRef.current.map((it) => docText(it.doc).toLowerCase())
-    const titles = indexRef.current.map((it) => String(it.doc.step?.title || "").toLowerCase())
+    // a document piece has no step title: its first line is its heading ("Part C: Edit Widget Title and Share")
+    const titles = indexRef.current.map((it) => String(it.doc.step?.title || (it.doc.text || "").split("\n")[0].slice(0, 120)).toLowerCase())
     const N = texts.length
     // a question word and its usual synonym count as one ("change the title" finds "Edit Widget Title")
     const SAME = { change: "edit", rename: "title", modify: "edit", delete: "remove", remove: "delete", turn: "enable", activate: "enable" }
