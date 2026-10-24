@@ -123,7 +123,7 @@ Version 5 is about making a guide easy to follow. Everything still runs on your 
 * **Markers inside the step clips and GIFs.** The same numbered markers appear in the video clip of each step, and disappear the moment the screen changes, so a marker never points at the wrong screen.
 * **A real process manual in all three formats.** PDF, Word and HTML share one structure: cover with a details table, contents, purpose and a short summary, what you need before you start, the process at a glance, Part A, B, C with numbered actions (A1, A2) and marked screenshots with figure captions, result and tip boxes, a checklist, a quick reference and the FAQ. Headers, footers and page numbers in PDF and Word.
 * **One format per job.** HTML to share as a link (marked screenshots, step clips, a checklist that remembers ticks), PDF to print or email, Word to edit and make your own.
-* **Vid Chat shows the step.** An answer now comes with the marked screenshot of the step it came from and a button that plays that moment, plus an optional web search in a new tab.
+* **Vid Chat shows the step.** An answer now comes with the marked screenshot of each step it names, with only the markers of those actions drawn (up to three pictures, also across two parts), and a button that plays that moment, plus an optional web search in a new tab.
 * **Simple editing.** Click any step to edit it. Plain fields (step title, what to do, what you get, tip) and labelled buttons to move or delete a step.
 * **Short videos, clean steps.** Step length now scales with the recording, so a one-minute how-to becomes several clear parts instead of one.
 * **Whole audio, always.** Fixed a bug where each five-minute window only transcribed its first 30 seconds.

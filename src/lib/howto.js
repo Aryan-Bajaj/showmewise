@@ -230,6 +230,7 @@ export const HOWTO = [
       { n: 4, x: 23.2, y: 98, dir: "up", text: "Type a question in your own words. The answer shows which step it comes from, with its picture and a play button." },
     ],
     body: [
+      "Each answer shows the marked screenshot of the steps it names: only the buttons and fields the answer talks about are marked. Click a picture to make it big.",
       "Vid Chat works when the guide is done, or already when the speech has been written down.",
       "It only answers from your video. If the answer is not in it, it tells you, and offers Want an answer anyway?",
       "Search the web opens the search site Perplexity in a new tab, with only the question you typed. Your video and guide are not sent.",

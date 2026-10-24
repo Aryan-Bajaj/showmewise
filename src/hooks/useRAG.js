@@ -117,6 +117,16 @@ export default function useRAG() {
       }
     }
 
+    // "How do I print the dashboard on paper?": "dashboard" is everywhere, but
+    // the task itself ("print", "paper") is nowhere in the guide. A small model
+    // then listed the first steps of Part A. Everyday verbs do not count
+    // ("How do I make a new board?" is still a real question).
+    const GENERIC = /^(make|need|want|know|work|help|find|look|like|thing|stuff|please|should|could|would|just|also|some|anything)$/
+    const task = keys.filter((k) => weight[k] === 1 && !GENERIC.test(k))
+    if (steps && !overview && task.length && !texts.some((t) => task.some((k) => has(t, k)))) {
+      return { answer: null, notFound: true, sources: [] }
+    }
+
     let picked
     if (overview) {
       // Spread excerpts across the whole document so a summary covers everything:
@@ -159,7 +169,7 @@ export default function useRAG() {
     const acts = only?.step?.steps || []
     if (order !== null && !steps && acts.length) {
       const a = order === 0 ? acts[0] : acts[acts.length - 1]
-      const sources = [{ label: only.label, timestamp: only.timestamp, frame: only.frame || null, title: only.step?.title || "", shots: only.shots || [], text: a }]
+      const sources = [{ label: only.label, timestamp: only.timestamp, frame: only.frame || null, title: only.step?.title || "", shots: only.shots || [], actions: acts, text: a }]
       return { answer: `${order === 0 ? "First" : "The last step"}: ${a.replace(/\.$/, "")}${/^\d+:\d\d/.test(only.label || "") ? ` (at ${only.label})` : ""}.`, sources, notFound: false }
     }
 
@@ -233,6 +243,7 @@ ${context}`
       frame: d.frame || null,
       title: d.step?.title || "",
       shots: d.shots || [],
+      actions: d.step?.steps || [],
       text: (d.text || (typeof d.annotation === "string" ? d.annotation : "") || d.ocrText || "").slice(0, 600),
     }))
     return { answer, sources, notFound: false }

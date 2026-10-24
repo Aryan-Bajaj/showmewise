@@ -44,9 +44,32 @@ const LETTER = (i) => { let s = "", n = i; do { s = String.fromCharCode(65 + (n 
 
 // The step an answer came from, shown the way the guide shows it: its marked
 // screenshot, its part letter and title, and a button that plays that moment.
-function SourceCard({ source, part, onSeek, onZoom }) {
+// The marked screenshots that show what the answer says to do: each action of
+// the guide that the answer names keeps its marker, the others are left off.
+// Worked out once per answer, so the user sees where to click, not only text.
+const COMMON = new Set("click clicks select type the and button field into then with from your this that open".split(" "))
+const words = (t) => (t.toLowerCase().match(/[a-z0-9+]{3,}/g) || []).filter((w) => !COMMON.has(w))
+export function answerShots(sources, answer) {
+  const said = new Set(words(answer || "")), low = (answer || "").toLowerCase()
+  const out = []
+  for (const s of sources || []) {
+    const named = new Set()
+    ;(s.actions || []).forEach((a, i) => {
+      const w = words(a)
+      const label = (a.match(/['"“‘]([^'"”’]{3,})['"”’]/)?.[1] || "").toLowerCase()
+      if ((label && low.includes(label)) || (w.length && w.filter((x) => said.has(x)).length / w.length >= 0.6)) named.add(i + 1)
+    })
+    for (const shot of s.shots || []) {
+      const callouts = shot.callouts.filter((c) => named.has(c.n))
+      if (callouts.length) out.push({ source: s, shot: { ...shot, callouts } })
+    }
+  }
+  return out.slice(0, 3)
+}
+
+function SourceCard({ source, shot: only, part, onSeek, onZoom }) {
   const [img, setImg] = useState(null)
-  const shot = source.shots?.[0]
+  const shot = only || source.shots?.[0]
   useEffect(() => {
     let live = true
     if (shot) renderShot(shot.image, shot.callouts, { maxW: 900 }).then((r) => live && setImg(r.dataUrl)).catch(() => {})
@@ -57,7 +80,7 @@ function SourceCard({ source, part, onSeek, onZoom }) {
   return (
     <div className="rounded-xl overflow-hidden border border-violet-400/25 bg-[#120c2c] max-w-md">
       <button onClick={() => onZoom?.(src)} className="block w-full cursor-zoom-in" title="Click to enlarge">
-        <img src={src} alt={source.title || "Step screenshot"} className="w-full block" />
+        <img src={src} alt={source.title || "Step screenshot"} data-marked={only ? "answer" : undefined} className="w-full block" />
       </button>
       <div className="flex items-center gap-2 px-3 py-2 text-xs">
         {part && <span className="font-bold text-white bg-violet-600 rounded px-1.5 py-0.5 shrink-0">Part {part}</span>}
@@ -179,7 +202,7 @@ export default function DocChat({ docs: videoDocs, aiMode, ollamaModel, onSeek, 
       // the answer shows word by word while it is written
       const typing = (t) => setMessages((m) => m.map((x, i) => (i === m.length - 1 ? { ...x, partial: t } : x)))
       const { answer, sources, notFound } = await ask(q, aiMode || "webllm", chatModel, onStatus, typing)
-      setMessages((m) => m.map((x, i) => i === m.length - 1 ? { ...x, a: answer, sources, notFound: !!notFound, query: q } : x))
+      setMessages((m) => m.map((x, i) => i === m.length - 1 ? { ...x, a: answer, sources, marked: notFound ? [] : answerShots(sources, answer), notFound: !!notFound, query: q } : x))
     } catch (e) {
       setMessages((m) => m.map((x, i) => i === m.length - 1 ? { ...x, a: `⚠️ ${e.message}` } : x))
     } finally {
@@ -273,7 +296,10 @@ export default function DocChat({ docs: videoDocs, aiMode, ollamaModel, onSeek, 
                     </div>
                   )}
                   <div className="text-[14.5px] text-zinc-100 leading-relaxed bg-[#1c1540] border border-white/10 rounded-xl px-3.5 py-3"><ChatText text={m.a} /></div>
-                  {!m.general && m.sources?.[0] && (
+                  {!m.general && m.marked?.length > 0 && m.marked.map((x, k) => (
+                    <SourceCard key={k} source={x.source} shot={x.shot} part={partOf(x.source.timestamp)} onSeek={onSeek} onZoom={setZoom} />
+                  ))}
+                  {!m.general && !m.marked?.length && m.sources?.[0] && !/isn.t covered/i.test(m.a) && (
                     <SourceCard source={m.sources[0]} part={partOf(m.sources[0].timestamp)} onSeek={onSeek} onZoom={setZoom} />
                   )}
                   <button onClick={() => searchWeb(m.query || m.q)}
