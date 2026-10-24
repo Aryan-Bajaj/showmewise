@@ -185,7 +185,7 @@ export default function AISettings({ onConfirm, onClose, suggestedSections, tool
 
           {/* Bundled desktop engine — the ONLY engine in the desktop build */}
           {(hasLocalEngine || DESKTOP) && (
-            <button onClick={() => setMode("local")}
+            <button onClick={() => { autoPicked.current = true; setMode("local") }}
               className={`w-full mb-3 p-4 rounded-xl border-2 flex items-start gap-3 text-left transition-all
                 ${mode === "local" ? "border-emerald-500 bg-emerald-500/10" : "border-zinc-700 hover:border-zinc-500"}`}>
               <Eye className="w-5 h-5 text-emerald-400 mt-0.5 shrink-0" />
@@ -201,7 +201,7 @@ export default function AISettings({ onConfirm, onClose, suggestedSections, tool
 
           {!DESKTOP && (
           <div className="grid grid-cols-2 gap-3">
-            <button onClick={() => setMode("webllm")}
+            <button onClick={() => { autoPicked.current = true; setMode("webllm") }}
               className={`p-4 rounded-xl border-2 flex flex-col gap-2 text-left transition-all
                 ${mode === "webllm" ? "border-emerald-500 bg-emerald-500/10" : "border-zinc-700 hover:border-zinc-500"}`}>
               <Globe className="w-5 h-5 text-emerald-400" />
@@ -210,7 +210,7 @@ export default function AISettings({ onConfirm, onClose, suggestedSections, tool
               <span className="text-xs text-zinc-400">Chrome 113+ · 8 GB+ RAM</span>
             </button>
 
-            <button onClick={() => setMode("ollama")}
+            <button onClick={() => { autoPicked.current = true; setMode("ollama") }}
               className={`p-4 rounded-xl border-2 flex flex-col gap-2 text-left transition-all
                 ${mode === "ollama" ? "border-blue-500 bg-blue-500/10" : "border-zinc-700 hover:border-zinc-500"}`}>
               <Cpu className="w-5 h-5 text-blue-400" />

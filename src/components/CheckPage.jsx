@@ -28,7 +28,8 @@ export default function CheckPage() {
     setSys(await pluginSystem())
     fetch("http://localhost:11434/api/tags", { signal: AbortSignal.timeout(2500) }).then((r) => r.json()).then((d) => setOllama((d.models || []).filter((m) => !/cloud/.test(m.name)).length)).catch(() => setOllama(0))
   }
-  useEffect(() => { look() }, [])
+  // leftovers of an earlier, unfinished test: everything but the saved best goes
+  useEffect(() => { look(); const b = savedBest(); if (b) removeUnused(b.id) }, [])
 
   const next = results.length
   const fits = fitsNow(sys?.freeMB)
@@ -102,6 +103,8 @@ export default function CheckPage() {
               })}
             </div>
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 14 }}>
+              {/* a download that failed can simply be tried again */}
+              {results.at(-1)?.kind && results.at(-1).kind !== "memory" && !busy && <Btn quiet onClick={() => setResults(results.slice(0, -1))}>Try again</Btn>}
               {next < CHECK_MODELS.length && !results.some((r) => !r.ok) && (noRoom
                 ? <span style={{ color: C.warn, lineHeight: 1.6 }}>{SIZE[next][0]} does not fit now: it needs about {gb(fits[next].needMB)} GB free. Close tabs and programs, then press "check again" above.</span>
                 : unsure && !sure
@@ -111,7 +114,7 @@ export default function CheckPage() {
                   </div>
                 : <Btn onClick={run} disabled={!!busy}>{busy ? "Testing..." : next === 0 ? "Start the test" : `Try the next, bigger one (${SIZE[next][0]})`}</Btn>
               )}
-              {next > 0 && !busy && <span style={{ color: C.dim, fontSize: 14, alignSelf: "center" }}>{results.some((r) => !r.ok) ? "That one is too big for this computer right now." : "You can stop here."}</span>}
+              {next > 0 && !busy && <span style={{ color: C.dim, fontSize: 14, alignSelf: "center" }}>{results.some((r) => r.kind === "memory") ? "That one is too big for this computer right now." : results.some((r) => !r.ok) ? "" : "You can stop here."}</span>}
             </div>
           </Card>
         )}

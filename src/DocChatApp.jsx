@@ -15,7 +15,7 @@ export default function DocChatApp() {
 
   // Ollama found → it is chosen once, with a quick model for chatting; the user can still switch.
   const [aiMode, setAiMode] = useState("webllm")
-  const autoPicked = useRef(false)
+  const autoPicked = useRef(false) // the user picked, or Ollama was picked once: no switching after that
   const [webModel, setWebModel] = useState(savedBest()?.id || DEFAULT_WEBLLM_MODEL) // "Test my computer" result first
   const [ollamaStatus, setOllamaStatus] = useState("checking")
   const [ollamaModels, setOllamaModels] = useState([])
@@ -129,13 +129,13 @@ export default function DocChatApp() {
               <div className="border border-zinc-800 rounded-xl p-4 bg-zinc-900 space-y-3">
                 <p className="text-xs text-zinc-500 uppercase tracking-widest">Answer model</p>
                 <div className="grid grid-cols-2 gap-3">
-                  <button onClick={() => setAiMode("webllm")}
+                  <button onClick={() => { autoPicked.current = true; setAiMode("webllm") }}
                     className={`p-3 rounded-xl border-2 flex flex-col gap-1.5 text-left transition-all ${aiMode === "webllm" ? "border-emerald-500 bg-emerald-500/10" : "border-zinc-700 hover:border-zinc-500"}`}>
                     <Globe className="w-4 h-4 text-emerald-400" />
                     <span className="text-sm font-medium">In-browser</span>
                     <span className="text-xs text-zinc-500">No install · runs on WebGPU</span>
                   </button>
-                  <button onClick={() => setAiMode("ollama")}
+                  <button onClick={() => { autoPicked.current = true; setAiMode("ollama") }}
                     className={`p-3 rounded-xl border-2 flex flex-col gap-1.5 text-left transition-all ${aiMode === "ollama" ? "border-blue-500 bg-blue-500/10" : "border-zinc-700 hover:border-zinc-500"}`}>
                     <Cpu className="w-4 h-4 text-blue-400" />
                     <span className="text-sm font-medium">Ollama</span>

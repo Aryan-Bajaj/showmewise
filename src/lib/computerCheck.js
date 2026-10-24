@@ -48,6 +48,14 @@ const TEST = {
   ok: (a) => /share/i.test(a) && !/copy link/i.test(a.split(/[.,]/)[0]),
 }
 
+// why a model did not run, in plain words: no memory, no download, or something else
+function why(e) {
+  const m = String(e?.message || e)
+  if (/fetch|network|download|404|connection|offline/i.test(m)) return { kind: "download", error: "It could not be downloaded. Check your internet and try again." }
+  if (/memory|allocat|device|lost|buffer|oom/i.test(m)) return { kind: "memory", error: "Not enough free memory for this size right now." }
+  return { kind: "other", error: "It did not start. Try again, or use a smaller size." }
+}
+
 // try one model: load it, answer the test task twice (speed), free it again
 export async function tryModel(model, onStatus) {
   const { CreateMLCEngine } = await import("@mlc-ai/web-llm")
@@ -56,7 +64,7 @@ export async function tryModel(model, onStatus) {
   try {
     engine = await CreateMLCEngine(model.id, { initProgressCallback: (p) => onStatus?.(p.text, Math.round((p.progress ?? 0) * 100)) })
   } catch (e) {
-    return { id: model.id, ok: false, error: /memory|allocat|device|lost|buffer/i.test(e.message) ? "Not enough graphics memory for this model." : e.message.slice(0, 160) }
+    return { id: model.id, ok: false, ...why(e) }
   }
   const loadS = (performance.now() - t0) / 1000
   try {
@@ -70,7 +78,7 @@ export async function tryModel(model, onStatus) {
     const tps = r2.usage?.extra?.decode_tokens_per_s || tokens / ((performance.now() - t1) / 1000)
     return { id: model.id, ok: true, loadS: Math.round(loadS), tps: Math.round(tps * 10) / 10, answer, correct: TEST.ok(answer) }
   } catch (e) {
-    return { id: model.id, ok: false, loadS: Math.round(loadS), error: /lost|device/i.test(e.message) ? "The graphics chip stopped (not enough memory)." : e.message.slice(0, 160) }
+    return { id: model.id, ok: false, loadS: Math.round(loadS), ...why(e) }
   } finally {
     try { await engine.unload() } catch { /* already gone */ }
   }
@@ -83,10 +91,19 @@ export function pickBest(results) {
   return best ? CHECK_MODELS.find((m) => m.id === best.id) : null
 }
 
-// the tested models that are not the best are deleted again, so they take no space
-export async function removeUnused(keepId, ids) {
+// Sizes that are not the best are deleted, so they take no space: after each
+// test the ones already tested (never one still to come: that broke the next
+// download), and when the page opens any half download from an earlier test.
+export async function removeUnused(keepId, ids = CHECK_MODELS.map((m) => m.id)) {
+  const gone = ids.filter((id) => id && id !== keepId)
+  if (!gone.length) return
   const { deleteModelAllInfoInCache } = await import("@mlc-ai/web-llm")
-  for (const id of new Set(ids)) if (id !== keepId) await deleteModelAllInfoInCache(id).catch(() => {})
+  for (const id of gone) await deleteModelAllInfoInCache(id).catch(() => {})
+  // the library leaves one small index file per model behind: removed as well
+  for (const name of await caches.keys().catch(() => [])) {
+    const c = await caches.open(name)
+    for (const req of await c.keys()) if (gone.some((id) => req.url.includes(id))) await c.delete(req)
+  }
 }
 
 const KEY = "vd-webllm-best"
