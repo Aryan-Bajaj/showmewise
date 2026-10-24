@@ -107,7 +107,7 @@ export const HOWTO = [
     marks: [
       { n: 1, x: 16.6, y: 21.2, dir: "right", text: "WebLLM: the AI runs inside your browser. Nothing to install. It downloads once and is kept for next time." },
       { n: 2, x: 86, y: 47.8, dir: "right", text: "Test my system: checks your computer and picks the model that fits it." },
-      { n: 3, x: 53, y: 55.2, dir: "right", text: "Browser model: Fast (0.8 GB), Balanced (1.9 GB), Balanced+ (1.9 GB, the usual choice), Quality (2.2 GB), or Vision (3.5 GB, also looks at the pictures)." },
+      { n: 3, x: 53, y: 55.2, dir: "right", text: "Browser model: Small (0,9 GB, only for chat), Medium (1 GB, the usual choice), Large (about 2 GB, needs more free memory) or Vision (3,5 GB). Test my computer picks the size that fits." },
       { n: 4, x: 99, y: 79, dir: "left", text: "How exact and how fast this model is. If the model is too big for your computer, a warning shows here." },
     ],
     body: ["If your browser cannot run it, use Chrome or Edge on a computer, or install Ollama."],
@@ -329,7 +329,7 @@ export const HOWTO = [
     body: [
       "Why it works this way: VideoDoc is free and runs completely on your own computer. No cloud, no account, no cost per video. The AI is an open model on your machine, so the speed and the result depend on your computer and the model you pick.",
       "How accurate is it? We test every release against manuals written by hand for real screen recordings and read each guide step by step. With gemma3 12B on a normal 16 GB laptop (Accurate speech, key words typed in), 60 to 67,5 % of all actions came out fully right in the first draft.",
-      "A bigger model gives a better guide: a small 4B model got about 30 % in our tests. Pick the biggest model your computer can run. The browser AI is quick to start but smaller than Ollama.",
+      "A bigger model gives a better guide: a small 4B model got about 30 % in our tests. Pick the biggest model your computer can run. The browser AI is quick to start but smaller than Ollama. In the browser, on our 1-minute demo video: Medium found 11 of 15 steps (6 fully right) in about 10 minutes; Small found only 2, so it is too weak for guides.",
       "Big paid cloud AIs are usually faster and stronger, but your video would have to leave your computer. VideoDoc keeps it with you.",
       "Your computer sets the speed: with the biggest model a 10 minute video took about 1¾ hours on a normal 16 GB laptop. A stronger computer or a smaller model is faster. Keep the computer awake while it works.",
       "So a guide is a strong first draft that you finish. Read it and fix it with Edit before you share it. Start with the steps that need a quick look.",

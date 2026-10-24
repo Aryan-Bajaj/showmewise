@@ -16,42 +16,45 @@ let webllmModel = null
 //   • NON-reasoning models only. Reasoning models (Qwen3 / Qwen3.5) emit <think>
 //     blocks that, when truncated by the token limit, leak raw chain-of-thought
 //     into the document. Proven instruct models keep the output clean.
+// What each one is good for. Measured = read step by step against our 1-minute
+// demo video (15 actions) on a 16 GB laptop with Intel graphics, 24 Oct 2026.
+// Anything not measured says so: no untested claims.
 export const WEBLLM_MODELS = [
   {
     id: "Llama-3.2-1B-Instruct-q4f16_1-MLC", name: "Llama 3.2 1B",
-    label: "Fast", params: "1B", size: "~0.8 GB", gb: 0.8,
-    accuracy: "Good", speed: "Fastest", time: "10 to 30s",
-    note: "For Intel / integrated graphics and 8 GB RAM. Lightest — runs almost anywhere.",
+    label: "Small", params: "1B", size: "~0.9 GB", gb: 0.9,
+    accuracy: "Weak for guides (2 of 15 steps in our test)", speed: "Fast", time: "10 to 30s",
+    note: "The lightest. Fine for short chat answers, too weak to write guides.",
   },
   {
     id: "Qwen2.5-1.5B-Instruct-q4f16_1-MLC", name: "Qwen2.5 1.5B",
     label: "Medium", params: "1.5B", size: "~1.0 GB", gb: 1.6,
-    accuracy: "Good", speed: "Fast", time: "15 to 40s",
-    note: "Best choice for most laptops with built-in graphics (Test my computer picks it when it fits).",
+    accuracy: "First drafts (11 of 15 steps found, 6 fully right in our test)", speed: "OK", time: "15 to 40s",
+    note: "The best choice for most laptops with built-in graphics. A guide of a short video took 9 minutes in our test.",
   },
   {
     id: "Llama-3.2-3B-Instruct-q4f16_1-MLC", name: "Llama 3.2 3B",
-    label: "Balanced", params: "3B", size: "~1.9 GB", gb: 1.9,
-    accuracy: "Strong", speed: "Medium", time: "30s to 1m",
-    note: "Clean, instruction-following 3B. Fits a 4 GB laptop GPU.",
+    label: "Large", params: "3B", size: "~1.9 GB", gb: 2.3,
+    accuracy: "Not measured yet", speed: "Slower", time: "30s to 1m",
+    note: "Bigger, so probably better answers. Needs about 2,3 GB of graphics memory and more free memory.",
   },
   {
     id: "Qwen2.5-3B-Instruct-q4f16_1-MLC", name: "Qwen2.5 3B",
-    label: "Balanced+", params: "3B", size: "~1.9 GB", gb: 1.9,
-    accuracy: "Strong", speed: "Medium", time: "30s to 1m",
-    note: "Proven, reliable all-rounder. Fits a 4 GB laptop GPU. The safe default.",
+    label: "Large", params: "3B", size: "~1.9 GB", gb: 2.5,
+    accuracy: "Not measured yet (did not fit our test laptop)", speed: "Slower", time: "30s to 1m",
+    note: "Bigger, so probably better answers. Needs about 2,5 GB of graphics memory and more free memory.",
   },
   {
     id: "Phi-3.5-mini-instruct-q4f16_1-MLC", name: "Phi-3.5 mini",
-    label: "Quality", params: "3.8B", size: "~2.2 GB", gb: 2.2,
-    accuracy: "Strong+", speed: "Medium-slow", time: "40s to 1.5m",
-    note: "Excellent reasoning for detailed procedures. Wants a recent / dedicated GPU.",
+    label: "Large", params: "3.8B", size: "~2.2 GB", gb: 2.2,
+    accuracy: "Not measured yet", speed: "Slower", time: "40s to 1.5m",
+    note: "Bigger, needs a newer computer or a graphics card.",
   },
   {
     id: "Phi-3.5-vision-instruct-q4f16_1-MLC", name: "Phi-3.5 Vision",
     label: "Vision", params: "4.2B", size: "~3.5 GB", gb: 3.5, vision: true,
-    accuracy: "Best for screens", speed: "Slow", time: "1 to 3m",
-    note: "SEES the actual screenshots, not just OCR — the most accurate UI steps. The only in-browser vision model. Needs ~4 GB VRAM (RTX 3050+ / dedicated GPU).",
+    accuracy: "Not measured yet", speed: "Slow", time: "1 to 3m",
+    note: "Looks at the screenshots, not only the screen text. Needs about 4 GB of graphics memory (a graphics card).",
   },
 ]
 
@@ -76,7 +79,8 @@ export function modelGB(id) { return WEBLLM_MODELS.find((m) => m.id === id)?.gb 
 // Default to the proven 3B — reliable on a 4 GB laptop GPU and good quality.
 // Power users pick "Quality" (Qwen3.5-4B) or "Vision". ensureWebLLM falls back to
 // a lighter model if a GPU can't load the chosen one.
-export const DEFAULT_WEBLLM_MODEL = "Qwen2.5-3B-Instruct-q4f16_1-MLC"
+// Medium: measured, and it fits most laptops (3B did not fit our 16 GB test laptop)
+export const DEFAULT_WEBLLM_MODEL = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC"
 
 export function webLLMLabel(id) {
   return WEBLLM_MODELS.find((m) => m.id === id)?.label ?? "WebLLM"

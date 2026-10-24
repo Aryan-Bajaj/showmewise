@@ -13,7 +13,7 @@ Status: ✅ passed · ⏳ not tested yet · ❌ failing (being fixed)
 | Recording cut short: "Use it / Delete it" | ⏳ | ⏳ |
 | Key words, language, Fast/Accurate | office runs, plugin K1 | ✅ |
 | AI settings: Ollama | all runs | ✅ |
-| AI settings: browser AI (WebLLM) | ⏳ webgpu_check (watchdog) | ⏳ |
+| AI settings: browser AI (WebLLM) | webgpu_check guide (watchdog) | ⏳ running |
 | Progress list, time left, sleep time not counted | ⏳ sleep part | ⏳ |
 | Resume after a closed tab | resume_chat | ✅ |
 | Review mode, suggestions (+ Add / Hide) | earlier runs | ⏳ again |
@@ -21,7 +21,7 @@ Status: ✅ passed · ⏳ not tested yet · ❌ failing (being fixed)
 | Flow diagram editor | earlier runs | ⏳ again |
 | Export HTML (clips enlarge, checklist), PDF, DOCX | resume_chat (HTML) | ⏳ PDF/DOCX read |
 | Vid Chat (+ Add a document) | resume_chat 4/4 | ✅ (add doc ⏳) |
-| Doc Chat HTML, PDF, DOCX | docchat_check | ✅ (DOCX ⏳) |
+| Doc Chat HTML, PDF, DOCX | docchat_check; browser AI: name right, share 2 of 3 steps | ✅ (DOCX ⏳) |
 | Firefox | firefox_run 6/6 | ✅ |
 | Phone layout of new parts | ⏳ | ⏳ |
 
@@ -29,9 +29,9 @@ Status: ✅ passed · ⏳ not tested yet · ❌ failing (being fixed)
 | Feature | Test | Status |
 |---|---|---|
 | Answers from help (Ollama) | vidi_ollama | ⏳ again |
-| Answers with browser AI | webgpu_check vidi | ⏳ |
+| Answers with browser AI | webgpu_check vidi: right, 41 to 54 s, one small mix-up | ✅ |
 | No AI: shows the matching help part | ⏳ | ⏳ |
-| Ctrl + V screenshot is read | ⏳ | ⏳ |
+| Ctrl + V screenshot is read | vidi_full V3 | ⏳ next |
 | Error bubble "Do you need help?" Yes / No | ⏳ | ⏳ |
 | Knows the page you are on | ⏳ | ⏳ |
 
@@ -48,6 +48,6 @@ Status: ✅ passed · ⏳ not tested yet · ❌ failing (being fixed)
 ## New
 | Feature | Test | Status |
 |---|---|---|
-| "Test my computer" (best browser model) | ⏳ | ⏳ |
-| Architecture flow chart on the website | ⏳ read | ⏳ |
+| "Test my computer" (best browser model) | webgpu_check check: Small 3 s fast right, Medium OK right, Large asks first, unused sizes deleted; with plugin: free memory + tabs | ✅ |
+| Architecture flow chart on the website | built, ⏳ look on laptop + phone | ⏳ |
 | Browser AI numbers on the website | ⏳ measured | ⏳ |

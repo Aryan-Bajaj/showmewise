@@ -3,7 +3,12 @@
 import { useEffect, useState } from "react"
 import { CHECK_MODELS, SAFETY_MB, gpuInfo, pluginSystem, fitsNow, tryModel, pickBest, savedBest, saveBest, removeUnused } from "../lib/computerCheck"
 
-const SIZE = { 0: ["Small", "quick, but the answers are often weak"], 1: ["Medium", "good answers, the best choice for most computers"], 2: ["Large", "the best answers, needs a lot of free memory"] }
+// what each size is good for, from our tests (read step by step, 1-minute demo video)
+const SIZE = {
+  0: ["Small", "only for short chat answers; too weak to write guides (2 of 15 steps in our test)"],
+  1: ["Medium", "good for chat; writes a usable first draft of a guide (11 of 15 steps found, 6 fully right in our test)"],
+  2: ["Large", "better answers, needs a lot of free memory (did not fit our 16 GB test laptop with other programs open)"],
+}
 const gb = (mb) => (mb / 1024).toFixed(1).replace(".", ",")
 const speed = (tps) => (tps >= 10 ? "fast" : tps >= 4 ? "OK" : "slow")
 
@@ -123,6 +128,9 @@ export default function CheckPage() {
           <Card style={{ borderColor: "rgba(52,211,153,.45)" }}>
             <h2 style={{ margin: "0 0 6px", fontSize: 17 }}>Best for your computer: {SIZE[CHECK_MODELS.findIndex((m) => m.id === best.id)]?.[0] || ""} ({best.name})</h2>
             <p style={{ margin: 0, color: C.dim, lineHeight: 1.6 }}>VideoDoc uses it from now on for the browser AI. {ollama ? "Ollama is still the better choice when it is running." : ""}</p>
+            {best.id === CHECK_MODELS[0].id && (
+              <p style={{ margin: "10px 0 0", color: C.warn, lineHeight: 1.6 }}>Small is fine for questions in the chats, but too weak to write guides. To write guides, install the free Ollama app, or close programs and test again: Medium may fit then.</p>
+            )}
           </Card>
         )}
         <p style={{ margin: 0, color: C.dim, fontSize: 13 }}>Everything runs on your computer. Nothing is uploaded. The test always leaves {gb(SAFETY_MB)} GB free for your other programs.</p>

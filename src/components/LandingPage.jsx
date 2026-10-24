@@ -4,6 +4,7 @@ import { MAX_VIDEO_MB, MAX_VIDEO_MIN } from '../lib/limits'
 import ProductDemo from './ProductDemo'
 import LimitBanner from './LimitBanner'
 import { PLUGIN_URL } from '../lib/links'
+import HowItRuns from './HowItRuns'
 import BeforeAfter from './BeforeAfter'
 import DocChatDemo from './DocChatDemo'
 
@@ -850,9 +851,9 @@ export default function LandingPage() {
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {[
-                    { label: 'Output quality', val: 92, color: '#3f62ff', note: 'best here' },
+                    { label: 'Steps fully right (gemma3 12B, real work videos)', val: 64, color: '#3f62ff', note: '60 to 67,5 %' },
                     { label: 'Privacy',         val: 100, color: '#22c55e' },
-                    { label: 'Speed',           val: 70, color: '#fbbf24', note: 'depends on your computer' },
+                    { label: 'Time (16 GB laptop, no graphics card)', val: 35, color: '#fbbf24', note: '10 min video: about 1¾ h' },
                   ].map((bar, i) => (
                     <div key={i}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
@@ -896,15 +897,15 @@ export default function LandingPage() {
                   }}>NO INSTALL</span>
                 </div>
                 <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.66)', lineHeight: 1.6, marginBottom: 14 }}>
-                  No Ollama? VideoDoc runs the model right in your browser via WebGPU, including a Vision model that reads the screen. You pick the model yourself, with accuracy and speed shown up front, so nothing changes behind your back. Needs a WebGPU browser (Chrome 113+).
+                  No Ollama? VideoDoc runs the model right in your browser via WebGPU, including a Vision model that reads the screen. Test my computer picks the size that fits, and you can change it; nothing changes behind your back. Needs a WebGPU browser (Chrome 113+).
                 </p>
                 {/* In-browser model picker — user chooses speed vs accuracy */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginBottom: 14 }}>
                   {[
-                    { label: 'Fast · 1B',     size: '~0.8 GB', acc: 'Good',   eta: '10 to 30s' },
-                    { label: 'Balanced+ · 3B', size: '~1.9 GB', acc: 'Strong', eta: '30s to 1m', tag: 'Usual choice' },
-                    { label: 'Quality · 3.8B', size: '~2.2 GB', acc: 'Best text', eta: '1 to 3m' },
-                    { label: 'Vision · 4.2B', size: '~3.5 GB', acc: 'Sees screen', eta: '1 to 3m', tag: 'New' },
+                    { label: 'Small · 1B',  size: '~0,9 GB', acc: 'chat only, too weak for guides' },
+                    { label: 'Medium · 1.5B', size: '~1 GB', acc: 'first drafts of guides', tag: 'Usual choice' },
+                    { label: 'Large · 3B',  size: '~1,9 GB', acc: 'not measured yet, needs more memory' },
+                    { label: 'Vision · 4.2B', size: '~3,5 GB', acc: 'looks at the screen, not measured yet' },
                   ].map((m, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(167,139,250,0.18)' }}>
                       <span style={{ fontSize: 11, fontWeight: 700, color: '#fff' }}>{m.label}</span>
@@ -915,9 +916,9 @@ export default function LandingPage() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {[
-                    { label: 'Output quality', val: 82, color: '#a78bfa', note: 'you pick' },
+                    { label: 'Steps fully right (Medium, 1-minute demo)', val: 40, color: '#a78bfa', note: '6 of 15 (11 found)' },
                     { label: 'Privacy',         val: 100, color: '#22c55e' },
-                    { label: 'Speed',           val: 55, color: '#fbbf24', note: 'needs a good graphics card' },
+                    { label: 'Time (1-minute demo, Medium)', val: 70, color: '#fbbf24', note: 'about 10 min' },
                   ].map((bar, i) => (
                     <div key={i}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
@@ -1008,7 +1009,7 @@ export default function LandingPage() {
             {[
               { icon: '🎙', name: 'Whisper Small (speech to text)', size: '~970 MB', when: 'On your first video. The standard speech model, good for clear speech.', color: '#06b6d4' },
               { icon: '🎧', name: 'Accurate speech (optional)', size: '~1.6 GB', when: 'Only when you choose Accurate. Whisper large v3 turbo: hears names, codes and mixed languages better, slower without a fast graphics card.', color: '#0ea5e9' },
-              { icon: '🧠', name: 'WebLLM (writes the steps)', size: '~0.8 to 2.2 GB', when: 'First annotation in browser mode. Pick Fast (Llama 3.2 1B), Balanced+ (Qwen2.5 3B, the usual choice) or Quality (Phi-3.5 mini)', color: '#a78bfa' },
+              { icon: '🧠', name: 'WebLLM (writes the steps)', size: '~0.8 to 2.2 GB', when: 'First guide with the browser AI. Small (Llama 3.2 1B), Medium (Qwen2.5 1.5B, the usual choice) or Large (Qwen2.5 3B); Test my computer picks one', color: '#a78bfa' },
               { icon: '👁', name: 'Vision model (optional)', size: '~3.5 GB', when: 'Browser Vision mode, where the AI sees the screen (Phi-3.5-Vision). With Ollama, gemma3 does this, no download.', color: '#7b96ff' },
               { icon: '💬', name: 'Embeddings (doc chat)', size: '~90 MB', when: 'First time you ask your documentation a question', color: '#34d399' },
               { icon: '🔤', name: 'OCR (reads the screen)', size: '~12 MB', when: 'Reads on-screen text from frames (used when not in Vision mode)', color: '#22d3ee' },
@@ -1125,6 +1126,8 @@ export default function LandingPage() {
           </p>
         </section>
 
+        <HowItRuns />
+
         {/* ── The browser plugin ───────────────────────────────── */}
         <section id="lp-plugin" className="lp-section" style={{ padding: '40px 24px 60px', maxWidth: 940, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 30 }}>
@@ -1173,7 +1176,7 @@ export default function LandingPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14 }}>
             {[
               ['Your computer sets the speed', 'Everything runs on your own computer, for free. On a normal 16 GB laptop, a 10 minute video took about 1¾ hours with the biggest model. A stronger computer or a smaller model is faster.'],
-              ['A bigger model gives a better guide', 'In our tests a small 4B model got about 30 % of the actions fully right, gemma3 12B 60 to 67,5 %. Pick the biggest model your computer can run. The browser AI is quick to start but smaller than Ollama.'],
+              ['A bigger model gives a better guide', 'In our tests a small 4B model got about 30 % of the actions fully right, gemma3 12B 60 to 67,5 %. Pick the biggest model your computer can run. In the browser (no install): Medium found 11 of 15 steps of our 1-minute demo, 6 of them fully right; Small only 2. Test my computer picks the size that fits.'],
               ['A strong first draft that you finish', 'Read the guide and fix it with Edit before you share it. The review mode shows which steps to look at first. A click where nothing visible changes, or a button with only an icon, is often not named.'],
               ['Help it with key words', 'Type the names and codes of your app into the key words box. In our tests this helped the most: codes were spelled right and missing steps came back.'],
               ['Each run is a little different', 'An AI never writes the same text twice. In our tests the same video scored up to 10 points higher or lower from run to run.'],

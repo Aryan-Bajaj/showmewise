@@ -271,7 +271,7 @@ export default function AISettings({ onConfirm, onClose, suggestedSections, tool
                 </div>
                 {isWebLLMVision(webModel) && (
                   <div className="flex items-center gap-1.5 mt-2 text-xs text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 rounded-lg px-2.5 py-1.5">
-                    <Eye className="w-3.5 h-3.5 shrink-0" /> Reads the actual screen (not just OCR) — most accurate steps.
+                    <Eye className="w-3.5 h-3.5 shrink-0" /> Looks at the screenshots, not only the screen text. Not measured yet.
                   </div>
                 )}
                 {heavyWarning && (

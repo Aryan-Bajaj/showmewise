@@ -88,7 +88,7 @@ VideoDoc is free and runs completely on your own computer: no cloud, no account,
 Every release is tested against manuals written by hand for real screen recordings, and each guide is read step by step against them. With gemma3 12B on a normal 16 GB laptop (Accurate speech, key words typed in), **60 to 67,5 %** of all actions came out fully right in the first draft. A guide is a strong first draft that you finish: read it and fix it before you share it.
 
 * **Your computer sets the speed.** With the biggest model a 10 minute video took about 1¾ hours on a 16 GB laptop. A stronger computer or a smaller model is faster. The computer must stay awake; if it stops, the same video picks up where it stopped.
-* **A bigger model gives a better guide.** A 4B model got about 30 %. The browser AI is quick to start but smaller than Ollama.
+* **A bigger model gives a better guide.** A 4B model (Ollama) got about 30 %. In the browser, on our 1-minute demo: Medium (Qwen2.5 1.5B) found 11 of 15 steps, 6 fully right, in about 10 minutes; Small (Llama 3.2 1B) found 2. Test my computer (`#/check`) picks the size that fits.
 * **Often missed:** a click where nothing visible changes, and a button with only an icon. Small clicks that were seen go to the checklist.
 * **Key words help the most.** Names and codes typed in are spelled right.
 * **Each run is a little different.** The same video scored up to 10 points higher or lower.
@@ -360,13 +360,13 @@ Context-aware: the LLM knows what came before and after each segment, so annotat
 
 No Ollama? No problem. VideoDoc runs the model directly in your browser via WebGPU using `@mlc-ai/web-llm`. **🆕 New in v2:** instead of silently choosing for you, the app now shows a model picker with the accuracy and per-segment time of each option, so you choose the speed/quality trade-off yourself. It never auto-switches.
 
-| Model | Size | Accuracy | Speed | Per-segment ETA |
-|---|---|---|---|---|
-| **Fast · Llama 3.2 1B** (default) | ~0.9 GB | Good | Fastest | 10 to 30s |
-| **Balanced · Qwen 2.5 1.5B** | ~1.3 GB | Better | Medium | 20 to 50s |
-| **Quality · Llama 3.2 3B** | ~2.2 GB | Best | Slow | 40s to 2m |
+| Size | Model | Download | Measured on our 1-minute demo (15 actions) |
+|---|---|---|---|
+| **Small** | Llama 3.2 1B | ~0,9 GB | 2 of 15 steps: chat only, too weak for guides |
+| **Medium** (default) | Qwen2.5 1.5B | ~1 GB | 11 of 15 found, 6 fully right, about 10 minutes |
+| **Large** | Qwen2.5 3B | ~1,9 GB | not measured (did not fit our 16 GB test laptop) |
 
-The default is the 1B model so laptops with Intel / integrated graphics stay responsive; a dedicated GPU can comfortably run the 3B. The chosen model downloads once, then is cached in your browser. While it loads, the pipeline shows distinct live steps (download → load into GPU → compile shaders → ready) instead of one frozen line. Requires Chrome 113+ / Edge 113+.
+Test my computer tries the sizes from small to big and keeps the best one that fits; on built-in graphics the AI uses the normal memory, so free memory decides. The chosen model downloads once, then is cached in your browser. While it loads, the pipeline shows distinct live steps (download → load into GPU → compile shaders → ready) instead of one frozen line. Requires Chrome 113+ / Edge 113+.
 
 ---
 
