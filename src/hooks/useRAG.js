@@ -78,8 +78,11 @@ export default function useRAG() {
     const texts = indexRef.current.map((it) => docText(it.doc).toLowerCase())
     const titles = indexRef.current.map((it) => String(it.doc.step?.title || "").toLowerCase())
     const N = texts.length
-    const weight = Object.fromEntries(keys.map((k) => [k, N > 1 && texts.every((t) => t.includes(k)) ? 0.25 : 1]))
-    const lexical = (i) => keys.reduce((sum, k) => sum + (texts[i].includes(k) ? weight[k] * (titles[i].includes(k) ? 1.5 : 1) : 0), 0)
+    // a question word and its usual synonym count as one ("change the title" finds "Edit Widget Title")
+    const SAME = { change: "edit", rename: "title", modify: "edit", delete: "remove", remove: "delete", turn: "enable", activate: "enable" }
+    const has = (t, k) => t.includes(k) || (SAME[k] && t.includes(SAME[k]))
+    const weight = Object.fromEntries(keys.map((k) => [k, N > 1 && texts.every((t) => has(t, k)) ? 0.25 : 1]))
+    const lexical = (i) => keys.reduce((sum, k) => sum + (has(texts[i], k) ? weight[k] * (has(titles[i], k) ? 1.5 : 1) : 0), 0)
     const scored = indexRef.current
       .map((it, i) => { const lex = lexical(i); return { ...it, lex, score: cosine(qvec, it.vec) + Math.min(0.3, 0.1 * lex) } })
       .sort((a, b) => b.score - a.score)
@@ -168,7 +171,6 @@ export default function useRAG() {
     // the question's words (and the one just before each, usually the click that
     // opens it) are pointed out first. Words found in every part do not count.
     if (steps && !overview) {
-      const SAME = { change: "edit", rename: "title", modify: "edit", delete: "remove", remove: "delete", turn: "enable", activate: "enable" }
       // each question word is one group with its synonym; an action scores the groups it holds
       const groups = keys.filter((k) => weight[k] === 1).map((k) => [k, SAME[k]].filter(Boolean))
       const score = (a) => groups.filter((g) => g.some((k) => a.toLowerCase().includes(k))).length
