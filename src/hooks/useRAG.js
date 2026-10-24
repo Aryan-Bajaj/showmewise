@@ -175,14 +175,24 @@ export default function useRAG() {
       // each question word is one group with its synonym; an action scores the groups it holds
       const groups = keys.filter((k) => weight[k] === 1).map((k) => [k, SAME[k]].filter(Boolean))
       const score = (a) => groups.filter((g) => g.some((k) => a.toLowerCase().includes(k))).length
-      // the action just before counts only when it matches too ("Click 'edit'" before "Edit title"; not "Click Save" before "Share")
-      const all = picked.flatMap((d) => (d.step?.steps || []).map((a, i, acts) => ({ a, prev: acts[i - 1] && score(acts[i - 1]) > 0 ? acts[i - 1] : null, s: score(a) })))
+      // All actions of the whole guide, in order: a task can cross two parts
+      // ("Click Edit" ends Part B, "Type ... in the Edit title field" starts Part C).
+      // The action just before counts only when it matches too ("Click Edit"
+      // before "Edit title"; not "Click Save" before "Share").
+      const flat = indexRef.current.flatMap((it) => (it.doc.step?.steps || []).map((a) => ({ a, d: it.doc })))
+      const all = flat.map((x, i) => ({ ...x, prev: flat[i - 1] && score(flat[i - 1].a) > 0 ? flat[i - 1] : null, s: score(x.a) }))
       const best = Math.max(0, ...all.map((x) => x.s))
       const hits = []
       // only the best-matching actions: "chart" alone must not point at "Select 'Bar chart'"
-      for (const x of all) if (best > 0 && x.s === best) for (const y of [x.prev, x.a]) if (y && !hits.includes(y)) hits.push(y)
+      for (const x of all) if (best > 0 && x.s === best) for (const y of [x.prev, x]) if (y && !hits.includes(y)) hits.push(y)
       hits.splice(4)
-      if (hits.length) context = `ACTIONS THAT MATCH THE QUESTION (start from these, in this order):\n${hits.map((h) => `- ${h}`).join("\n")}\n\n${context}`
+      // the parts holding them come along, in guide order
+      const add = hits.map((h) => h.d).filter((d, i, a) => !picked.includes(d) && a.indexOf(d) === i)
+      if (add.length) {
+        picked = [...picked, ...add].slice(0, 3).sort((x, y) => (x.timestamp ?? 0) - (y.timestamp ?? 0))
+        context = picked.map((d, i) => `Excerpt ${i + 1} (at ${d.label}):\n${docText(d).slice(0, cap)}`).join("\n\n")
+      }
+      if (hits.length) context = `ACTIONS THAT MATCH THE QUESTION (start from these, in this order):\n${hits.map((h) => `- ${h.a}`).join("\n")}\n\n${context}`
     }
 
     const system = overview
