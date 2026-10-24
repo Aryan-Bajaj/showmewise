@@ -13,6 +13,7 @@ export default function HowItRuns() {
       <style>{`
         .hir-flow{display:flex;align-items:stretch;gap:10px}
         .hir-flow>.hir-step{flex:1}
+        .hir-flow>.hir-wide{flex:2.4}
         .hir-arrow{display:flex;align-items:center;justify-content:center;color:#7c5cff;font-size:22px;flex:none}
         .hir-ai{display:grid;grid-template-columns:1fr 1fr;gap:10px}
         @media (max-width: 820px){
@@ -38,7 +39,7 @@ export default function HowItRuns() {
       </div>
       <div style={{ display: 'flex', justifyContent: 'center', gap: 40, color: dim, fontSize: '0.82rem', marginBottom: 10 }}>
         <span><span style={{ color: '#34d399', fontSize: 18 }}>⬇</span> the AI, once</span>
-        <span><span style={{ color: '#f87171', fontSize: 18 }}>⬆̸</span> your video: never</span>
+        <span><span style={{ color: '#f87171', fontSize: 16, fontWeight: 700 }}>✖</span> your video: never uploaded</span>
       </div>
 
       {/* your computer */}
@@ -55,16 +56,16 @@ export default function HowItRuns() {
             <Text>Takes pictures of the screen, writes down what you say and reads the words on the screen.</Text>
           </div>
           <Arrow />
-          <div className="hir-step" style={{ flex: 1.6 }}>
+          <div className="hir-step hir-wide">
             <div style={{ color: dim, fontSize: '0.8rem', marginBottom: 6, textAlign: 'center' }}>The AI writes the steps: you pick one</div>
             <div className="hir-ai">
               <div style={box('rgba(34,211,238,0.5)')}>
                 <Title icon="🧠">Browser AI</Title>
-                <Text>Runs inside your browser. Nothing to install. Best on a newer computer; <a href="/#/check" style={{ color: '#a5f3fc' }}>Test my computer</a> picks the size.</Text>
+                <Text>Runs inside your browser, nothing to install. Quick first drafts. <a href="/#/check" style={{ color: '#a5f3fc' }}>Test my computer</a> picks the size.</Text>
               </div>
               <div style={box('rgba(52,211,153,0.5)')}>
                 <Title icon="🦙">Ollama</Title>
-                <Text>A free app on your computer. Bigger AI, more exact guides. The page talks to it on your computer only.</Text>
+                <Text>A free app on your computer. A bigger AI: more exact guides. Works with the page on your computer only.</Text>
               </div>
             </div>
           </div>
