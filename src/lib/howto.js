@@ -409,3 +409,25 @@ export function findHelp(question, top = 2) {
 }
 
 export const sectionText = (s) => [s.title, ...(s.marks || []).map((m) => `(${m.n}) ${m.text}`), ...(s.body || [])].join("\n")
+
+// A known error message, looked up in the help text without any AI: the line
+// that quotes it says exactly what to do. (The AI used to answer "This file
+// could not be read as a video" with the general start help.)
+export function errorHelp(message) {
+  const norm = (t) => String(t || "").toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim()
+  const msg = norm(message)
+  if (msg.length < 8) return null
+  const lines = HOWTO.filter((s) => s.id === "errors" || s.id === "trouble").flatMap((s) => s.body || [])
+  let best = null, bestLen = 0
+  for (const line of lines) {
+    // the quoted messages in the line ("...")
+    for (const q of line.match(/"([^"]{6,})"/g) || []) {
+      // "..." inside a quote stands for any text: compare the parts around it
+      const parts = norm(q).split(/\s*\.\.\.\s*|\s{2,}/).filter((p) => p.length >= 6)
+      const hit = parts.length && parts.every((p) => msg.includes(p))
+      const len = parts.join("").length
+      if (hit && len > bestLen) { best = line; bestLen = len }
+    }
+  }
+  return best
+}

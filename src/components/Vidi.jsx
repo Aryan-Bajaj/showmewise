@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { MessageCircle, X, Send } from 'lucide-react'
 import MarkedShot from './MarkedShot'
 import ChatText from './ChatText'
-import { HOWTO, LIMIT_TEXT, findHelp, sectionText } from '../lib/howto'
+import { HOWTO, LIMIT_TEXT, findHelp, sectionText, errorHelp } from '../lib/howto'
 import { callOllama, callWebLLM } from '../lib/llm'
 
 // Vidi (Latin for "I saw"): the help chat at the bottom right of every page. It only talks about
@@ -36,7 +36,9 @@ export function vidiPrompt(q, sections, page, seen = []) {
   return `HELP:\n${help}\n\nLimit: ${LIMIT_TEXT}\n\n${where}\n\nQuestion: ${q}`
 }
 
-const PAGES = { '/': 'the home page', '/app': 'the app (video to guide)', '/howto': 'the How to use page', '/docchat': 'Doc Chat', '/policy': 'the privacy and terms page' }
+const PAGES = { '/': 'the home page', '/app': 'the app (video to guide)', '/howto': 'the How to use page', '/docchat': 'Doc Chat', '/policy': 'the privacy and terms page', '/check': 'Test my computer' }
+// the help part that belongs to each page, for "what can I do here?"
+const PAGE_HELP = { '/': 'what', '/app': 'upload', '/howto': 'what', '/docchat': 'docchat', '/policy': 'privacy', '/check': 'check' }
 // error and warning boxes the user can see right now (outside this chat)
 const screenAlerts = () => [...document.querySelectorAll('[role=alert]')]
   .filter((e) => !e.closest('[aria-label="Vidi, VideoDoc help"]') && e.offsetParent !== null)
@@ -73,7 +75,8 @@ export default function Vidi() {
   const [loadMsg, setLoadMsg] = useState('')
   const end = useRef(null)
   const offered = useRef('')
-  const page = PAGES[useLocation().pathname] || 'VideoDoc'
+  const path = useLocation().pathname
+  const page = PAGES[path] || 'VideoDoc'
 
   // An error appears anywhere on the page: Vidi notices it by itself and asks,
   // in a small bubble, whether the user wants help (Yes / No)
@@ -91,6 +94,8 @@ export default function Vidi() {
     watch.observe(document.body, { childList: true, subtree: true, characterData: true })
     return () => { watch.disconnect(); clearTimeout(t) }
   }, [page])
+  const ollamaRef = useRef(null)
+  useEffect(() => { ollamaRef.current = ollama }, [ollama])
   const helpWith = (a) => {
     setSpotted('')
     setOpen(true)
@@ -117,13 +122,30 @@ export default function Vidi() {
     q = q.trim()
     if (!q || busy) return
     setInput('')
-    const { onTopic, sections } = findHelp(q)
+    // A known error message: the help text says exactly what to do, no AI needed
+    // (answered at once, and always right)
+    const said = q.match(/^(?:I see this message on my screen, what does it mean and what do I do: |Message from my screenshot: )([\s\S]+)/)
+    const known = said ? errorHelp(said[1]) : null
+    if (known) {
+      setMsgs((m) => [...m, (intro ? { who: 'vidi', text: intro } : { who: 'you', text: q }), { who: 'vidi', text: known.replace(/^("[^"]+"(?: \([^)]*\))?(?: or "[^"]+")*): /, '').replace(/^./, (c) => c.toUpperCase()), section: HOWTO.find((x) => x.id === 'errors') }])
+      return
+    }
+    // Ollama is still being looked for (Vidi was just opened by the error bubble): wait a moment
+    for (let i = 0; i < 12 && engine === 'ollama' && ollamaRef.current === null; i++) await new Promise((r) => setTimeout(r, 250))
+    // the answer appears word by word while the AI writes it, with a typing cursor
+    const typing = (t) => setMsgs((m) => m.map((x) => (x.pending ? { ...x, text: t.trim() ? `${t} ▍` : '…' } : x)))
+    const found = findHelp(q)
+    // "what can I do on this page?" is about VideoDoc: answered with this page's help
+    const aboutHere = /\b(this|the current) (page|screen)\b|\bhere\b|what (can|do) i do\b/i.test(q)
+    const here = aboutHere ? HOWTO.find((x) => x.id === PAGE_HELP[path]) : null
+    const onTopic = found.onTopic || !!here
+    const sections = here ? [here, ...found.sections.filter((x) => x !== here)] : found.sections
     const card = sections[0] // the best match, with its picture when it has one
     if (!onTopic) {
       setMsgs((m) => [...m, (intro ? { who: 'vidi', text: intro } : { who: 'you', text: q }), { who: 'vidi', text: "Sorry, I can only help with VideoDoc: recording, uploading, settings, the guide, exports and the chats." }])
       return
     }
-    const useAI = engine === 'ollama' ? !!ollama : engine === 'webllm'
+    const useAI = engine === 'ollama' ? !!(ollama || ollamaRef.current) : engine === 'webllm'
     if (!useAI) {
       setMsgs((m) => [...m, (intro ? { who: 'vidi', text: intro } : { who: 'you', text: q }), { who: 'vidi', text: card ? 'This part of the guide should help:' : "I could not find that in the guide. Have a look at How to use.", section: card, bullets: bestLines(card, q) }])
       return
@@ -133,8 +155,8 @@ export default function Vidi() {
     try {
       const prompt = vidiPrompt(q, sections, page, screenAlerts())
       const text = engine === 'ollama'
-        ? await callOllama(prompt, SYSTEM, ollama, { maxTokens: 160, temperature: 0.2 })
-        : await callWebLLM(prompt, SYSTEM, (label, pct) => setLoadMsg(pct != null && pct < 100 ? `${label} ${pct}%` : ''), { model: WEB_MODEL.id, maxTokens: 160 })
+        ? await callOllama(prompt, SYSTEM, ollama || ollamaRef.current, { maxTokens: 160, temperature: 0.2, onToken: typing })
+        : await callWebLLM(prompt, SYSTEM, (label, pct) => setLoadMsg(pct != null && pct < 100 ? `${label} ${pct}%` : ''), { model: WEB_MODEL.id, maxTokens: 160, onToken: typing })
       setMsgs((m) => m.map((x) => x.pending ? { who: 'vidi', text: text.trim() || 'Sorry, I have no answer for that. See How to use.', section: card } : x))
     } catch (e) {
       setMsgs((m) => m.map((x) => x.pending ? { who: 'vidi', text: `I could not reach the AI (${e.message.slice(0, 80)}). Here is the matching part of the guide:`, section: card, bullets: bestLines(card, q) } : x))

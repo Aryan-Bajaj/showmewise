@@ -188,7 +188,8 @@ export async function callOllama(userMsg, systemPrompt, model = "llama3.2", opts
   const body = {
     model,
     prompt: `${systemPrompt}\n\n${userMsg}`,
-    stream: false,
+    // opts.onToken: the answer arrives word by word (Vidi types it out as it is written)
+    stream: !!opts.onToken,
     // Ollama's default window (4096 tokens) is too small for 3 screenshots plus
     // the screen text and a completeness rewrite: a real run had those refused
     // (400, "exceeds the available context size"). One fixed size for every
@@ -210,6 +211,20 @@ export async function callOllama(userMsg, systemPrompt, model = "llama3.2", opts
     const why = await res.text().catch(() => "")
     console.info(`[VideoDoc] AI server refused the request (${res.status}): ${why.slice(0, 200)}`)
     throw new Error(res.status === 400 ? `Ollama refused the request: ${why.slice(0, 200)}` : "Ollama not reachable — is it running on localhost:11434?")
+  }
+  if (opts.onToken && res.body) {
+    // one JSON object per line, each with the next piece of the answer
+    const reader = res.body.getReader(), dec = new TextDecoder()
+    let buf = "", text = ""
+    for (;;) {
+      const { value, done } = await reader.read()
+      if (done) break
+      buf += dec.decode(value, { stream: true })
+      const lines = buf.split("\n"); buf = lines.pop()
+      for (const l of lines) { if (!l.trim()) continue; try { text += JSON.parse(l).response || "" } catch { /* half a line */ } }
+      opts.onToken(text)
+    }
+    return cleanLLMOutput(text)
   }
   const data = await res.json()
   return cleanLLMOutput(data.response || "")
@@ -346,6 +361,15 @@ export async function callWebLLM(userMsg, systemPrompt, onStatus, opts = {}) {
   // model config supports it — on failure retry unconstrained; the JSON-first
   // parser falls back to text parsing, so nothing is lost.
   if (opts.schema) req.response_format = { type: "json_object", schema: JSON.stringify(opts.schema) }
+  // opts.onToken: the answer arrives word by word
+  if (opts.onToken && !opts.schema) {
+    let text = ""
+    for await (const chunk of await engine.chat.completions.create({ ...req, stream: true })) {
+      text += chunk.choices?.[0]?.delta?.content || ""
+      opts.onToken(text)
+    }
+    return cleanLLMOutput(text)
+  }
   let result
   try {
     result = await engine.chat.completions.create(req)
