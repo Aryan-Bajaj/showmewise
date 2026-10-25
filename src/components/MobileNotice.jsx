@@ -23,14 +23,14 @@ export default function MobileNotice() {
         </p>
         <ul className="mb-3 space-y-1.5">
           <li>• <b className="text-white">Video to guide:</b> at least about <b className="text-white">2 GB</b> (speech model ~970 MB and the usual writing model ~1 GB)</li>
-          <li>• <b className="text-white">Doc Chat:</b> at least about <b className="text-white">1,1 GB</b></li>
+          <li>• <b className="text-white">Doc Chat:</b> at least about <b className="text-white">1.1 GB</b></li>
         </ul>
         <p className="mb-3 leading-relaxed text-zinc-300">
           On a phone this can fill your storage and drain your battery, and most phone browsers cannot run these models.
         </p>
         <div className="mb-4 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-2.5 leading-relaxed">
           <b className="text-emerald-300">Recommended:</b> a laptop or desktop with <b className="text-white">Ollama</b> and the gemma3 model:
-          12B (~8,1 GB) for the most exact guides.
+          12B (~8.1 GB) for the most exact guides.
         </div>
         <p className="mb-4 text-xs text-zinc-400">Nothing is downloaded just by looking around this site.</p>
         <button onClick={close} autoFocus

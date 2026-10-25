@@ -203,6 +203,9 @@ The user's name is ${me.name}. You may use it now and then, in a friendly way.` 
 
   const btn = { border: '1px solid rgba(167,139,250,0.4)', background: 'rgba(109,74,255,0.15)', color: '#ece9ff', borderRadius: 10, padding: '7px 10px', fontSize: 12.5, cursor: 'pointer', textAlign: 'left' }
 
+  // the pet training page belongs to the plugin's pet (two Vidis on one page would confuse)
+  if (path === '/pet-training') return null
+
   return (
     <div style={{ position: 'fixed', right: 18, bottom: 18, zIndex: 9000, fontFamily: "system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" }}>
       {open && (

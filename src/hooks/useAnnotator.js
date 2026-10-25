@@ -400,7 +400,8 @@ ${seen}`, userTerms) })
       const screen = (win.seen || "").toLowerCase()
       const shown = (a) => /\d/.test(a) || (a.toLowerCase().match(/[a-z]{4,}/g) || []).some((w) => !/^(this|that|then|here|there|with|from|have|will|just|what|when|your)$/.test(w) && screen.includes(w))
       const acts = missingActions(step, win.actions).filter(shown).map((a) => tidyLine(a.replace(/\.$/, "")) + ".")
-      const words = missingTerms(step, win.userTerms || []).map((t) => `Use '${t}'.`)
+      // a key word only when it was SAID here (a button merely visible, like "Add widget" in the toolbar of every part, is no hint)
+      const words = missingTerms(step, termsIn(win.text || "", userTerms)).map((t) => `Use '${t}'.`)
       return [...new Set([...words, ...acts])].filter((x) => x.length > 4).slice(0, 3)
     }
 

@@ -313,6 +313,7 @@ export default function LandingPage() {
 
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <a href="/#/howto" className="lp-nav-howto" style={{ color: 'rgba(236,233,255,0.75)', fontSize: 13, textDecoration: 'none', padding: '9px 8px' }}>How to use</a>
+            <a href="/#/pet-training" className="lp-nav-howto" style={{ color: 'rgba(236,233,255,0.75)', fontSize: 13, textDecoration: 'none', padding: '9px 8px' }}>Pet training</a>
             <button onClick={handleDocChat} className="lp-nav-btn" style={{
               padding: '9px 18px', borderRadius: 100,
               background: 'transparent', border: '1px solid rgba(52,211,153,0.4)',
@@ -851,7 +852,7 @@ export default function LandingPage() {
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {[
-                    { label: 'Steps fully right (gemma3 12B, real work videos)', val: 64, color: '#3f62ff', note: '60 to 67,5 %' },
+                    { label: 'Steps fully right (gemma3 12B, real work videos)', val: 64, color: '#3f62ff', note: '60 to 67.5 %' },
                     { label: 'Privacy',         val: 100, color: '#22c55e' },
                     { label: 'Time (16 GB laptop, no graphics card)', val: 35, color: '#fbbf24', note: '10 min video: about 1¾ h' },
                   ].map((bar, i) => (
@@ -902,10 +903,10 @@ export default function LandingPage() {
                 {/* In-browser model picker — user chooses speed vs accuracy */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginBottom: 14 }}>
                   {[
-                    { label: 'Small · 1B',  size: '~0,9 GB', acc: 'chat only, too weak for guides' },
+                    { label: 'Small · 1B',  size: '~0.9 GB', acc: 'chat only, too weak for guides' },
                     { label: 'Medium · 1.5B', size: '~1 GB', acc: 'first drafts of guides', tag: 'Usual choice' },
-                    { label: 'Large · 3B',  size: '~1,9 GB', acc: 'not measured yet, needs more memory' },
-                    { label: 'Vision · 4.2B', size: '~3,5 GB', acc: 'looks at the screen, not measured yet' },
+                    { label: 'Large · 3B',  size: '~1.9 GB', acc: 'not measured yet, needs more memory' },
+                    { label: 'Vision · 4.2B', size: '~3.5 GB', acc: 'looks at the screen, not measured yet' },
                   ].map((m, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(167,139,250,0.18)' }}>
                       <span style={{ fontSize: 11, fontWeight: 700, color: '#fff' }}>{m.label}</span>
@@ -1166,7 +1167,7 @@ export default function LandingPage() {
             <p style={{ maxWidth: 640, margin: '14px auto 0', fontSize: '0.98rem', lineHeight: 1.7, color: 'rgba(255,255,255,0.64)' }}>
               VideoDoc is free and runs completely on your own computer: no cloud, no account, no cost per video. The AI is an open model
               that works on your machine, so the speed and the result depend on your computer and the model you pick. With gemma3 12B on a
-              normal 16 GB laptop, <b style={{ color: '#fff' }}>60 to 67,5 %</b> of all actions came out fully right in the first draft, in our tests against manuals written by hand.
+              normal 16 GB laptop, <b style={{ color: '#fff' }}>60 to 67.5 %</b> of all actions came out fully right in the first draft, in our tests against manuals written by hand.
               Big paid cloud AIs are usually faster and stronger, but your video would have to leave your computer. VideoDoc keeps it with you.
             </p>
             <a href="/#/check" style={{ display: 'inline-block', marginTop: 18, padding: '11px 22px', borderRadius: 100, border: '1px solid rgba(52,211,153,0.5)', color: '#a7f3d0', textDecoration: 'none', fontWeight: 600 }}>
@@ -1176,7 +1177,7 @@ export default function LandingPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14 }}>
             {[
               ['Your computer sets the speed', 'Everything runs on your own computer, for free. On a normal 16 GB laptop, a 10 minute video took about 1¾ hours with the biggest model. A stronger computer or a smaller model is faster.'],
-              ['A bigger model gives a better guide', 'In our tests a small 4B model got about 30 % of the actions fully right, gemma3 12B 60 to 67,5 %. Pick the biggest model your computer can run. In the browser (no install): Medium found 11 of 15 steps of our 1-minute demo, 6 of them fully right; Small only 2. Test my computer picks the size that fits.'],
+              ['A bigger model gives a better guide', 'In our tests a small 4B model got about 30 % of the actions fully right, gemma3 12B 60 to 67.5 %. Pick the biggest model your computer can run. In the browser (no install): Medium found 11 of 15 steps of our 1-minute demo, 6 of them fully right; Small only 2. Test my computer picks the size that fits.'],
               ['A strong first draft that you finish', 'Read the guide and fix it with Edit before you share it. The review mode shows which steps to look at first. A click where nothing visible changes, or a button with only an icon, is often not named.'],
               ['Help it with key words', 'Type the names and codes of your app into the key words box. In our tests this helped the most: codes were spelled right and missing steps came back.'],
               ['Each run is a little different', 'An AI never writes the same text twice. In our tests the same video scored up to 10 points higher or lower from run to run.'],

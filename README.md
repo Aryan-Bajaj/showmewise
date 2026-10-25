@@ -66,7 +66,7 @@ It works for:
 * 📋 **Operations and PMs** recording workflows → SOPs ready to share
 * 🎨 **Designers and Creators** recording process videos → polished case studies
 
-And the best part? **Everything runs in your browser.** No API keys. No cloud. No privacy trade-offs.
+And the best part? **Everything runs in your browser.** No API keys. No cloud unless you turn it on yourself. No privacy trade-offs.
 
 P.S. Version 5 is here: the clicks marked on the screen, in a document that reads like a real manual.
 ---
@@ -83,9 +83,9 @@ P.S. Version 5 is here: the clicks marked on the screen, in a document that read
 
 ## 📏 Limits and Accuracy
 
-VideoDoc is free and runs completely on your own computer: no cloud, no account, no cost per video. The AI is an open model on your machine, so the speed and the result depend on your computer and the model you pick. Big paid cloud AIs are usually faster and stronger, but the video would have to leave your computer; VideoDoc keeps it with you.
+VideoDoc is free and runs completely on your own computer: no cloud, no account, no cost per video. The AI is an open model on your machine, so the speed and the result depend on your computer and the model you pick. Big cloud AIs are usually faster and stronger, but the video would have to leave your computer; VideoDoc keeps it with you. If you want that power anyway, Ollama's cloud models can be turned on in the AI settings, after a notice: then what the model reads goes to Ollama's servers.
 
-Every release is tested against manuals written by hand for real screen recordings, and each guide is read step by step against them. With gemma3 12B on a normal 16 GB laptop (Accurate speech, key words typed in), **60 to 67,5 %** of all actions came out fully right in the first draft. A guide is a strong first draft that you finish: read it and fix it before you share it.
+Every release is tested against manuals written by hand for real screen recordings, and each guide is read step by step against them. With gemma3 12B on a normal 16 GB laptop (Accurate speech, key words typed in), **60 to 67.5 %** of all actions came out fully right in the first draft. A guide is a strong first draft that you finish: read it and fix it before you share it.
 
 * **Your computer sets the speed.** With the biggest model a 10 minute video took about 1¾ hours on a 16 GB laptop. A stronger computer or a smaller model is faster. The computer must stay awake; if it stops, the same video picks up where it stopped.
 * **A bigger model gives a better guide.** A 4B model (Ollama) got about 30 %. In the browser, on our 1-minute demo: Medium (Qwen2.5 1.5B) found 11 of 15 steps, 6 fully right, in about 10 minutes; Small (Llama 3.2 1B) found 2. Test my computer (`#/check`) picks the size that fits.
@@ -108,7 +108,12 @@ The `extension/` folder holds the VideoDoc plugin for Chrome and Edge (Manifest 
 * **Looks behind links.** If the answer is not on the page, Vidi reads up to 3 matching links of the same site and says which.
 * **Show me on the page.** On request, Vidi marks the right buttons on the real page (a numbered tag beside each, never on top) and adds a screenshot to the chat. It never clicks for you.
 * **One engine.** The plugin drives the VideoDoc website in a tab of its own (`content.js` and `src/lib/bridge.js`), so models are downloaded once, an unfinished guide picks up where it stopped, and the website shows the same progress.
-* **Privacy.** Reading other pages is an optional permission asked for on first use. Nothing is uploaded. Page text is always shown as plain text.
+* **Your pet (BETA).** Vidi as a small animated pet at the edge of every page (`pet/`): a dragon, wolf, cat, fox or owl in three colours (drawn as SVG, moved with CSS), your own picture, or your own 3D pet (`.glb`, shown with three.js). It looks for a spot where it covers no button, picture or text, hides half of itself when not needed and can be dragged. Its chat answers about the page, VideoDoc or anything else, searches Wikipedia and DuckDuckGo with links, sets timers, alarms and reminders (`chrome.alarms`, a chime from an offscreen page and a notification), and remembers the user's name and likes in `chrome.storage.local`. It lives in a closed shadow root, so pages cannot read the chat.
+* **First steps.** `PetTraining.jsx` starts with Meet your pet: the answers go to the plugin through the page bridge (`pet-setup`, `pet-info` in `bg.js`, handled by `petSetup` in `pet-bg.js`). The AI choices show the measured accuracy from `pet/scores.js`, the one place for those numbers. `OllamaSetup.jsx` and `lib/ollamaSetup.js` tell apart "not installed", "not allowed for this site" and "ready", and pull the first model with progress. On browser start (`chrome.runtime.onStartup`) the first page gets a greeting.
+* **Guide me.** A how-to question on a page ("how do I make a new board?") starts guiding: the engine (`scope: "guide"` in `PluginChat.jsx`) gets the user's words, the page's buttons and the manual the user gave with 📎, and fills fixed JSON fields (task, a question when unclear, where, the list of steps). The plugin keeps the list and walks it on Done, next step without another AI call, and marks each step like Show me on the page. Tested with a made-up tool and manual.
+* **Same name buttons.** For a label that appears more than once, `pageElements` in `bg.js` adds what is next to it (" [next to: Gift ideas]"). `showPicks` chooses with the user's own words only; if it is still unclear it marks each one and the pet shows choice buttons (`pick-one`).
+* **Suggestions.** The pet's chat always shows one tap ideas (guide, manual, explain the page, fill the page, timer, search).
+* **Privacy.** Reading other pages is an optional permission asked for on first use. Nothing is uploaded; the pet's web search sends only the search words to Wikipedia and DuckDuckGo. Page text is always shown as plain text.
 
 Load it for testing: `chrome://extensions`, Developer mode, Load unpacked, pick `extension/`. The test list is in `extension/TESTING.md`.
 
@@ -362,9 +367,9 @@ No Ollama? No problem. VideoDoc runs the model directly in your browser via WebG
 
 | Size | Model | Download | Measured on our 1-minute demo (15 actions) |
 |---|---|---|---|
-| **Small** | Llama 3.2 1B | ~0,9 GB | 2 of 15 steps: chat only, too weak for guides |
+| **Small** | Llama 3.2 1B | ~0.9 GB | 2 of 15 steps: chat only, too weak for guides |
 | **Medium** (default) | Qwen2.5 1.5B | ~1 GB | 11 of 15 found, 6 fully right, about 10 minutes |
-| **Large** | Qwen2.5 3B | ~1,9 GB | not measured (did not fit our 16 GB test laptop) |
+| **Large** | Qwen2.5 3B | ~1.9 GB | not measured (did not fit our 16 GB test laptop) |
 
 Test my computer tries the sizes from small to big and keeps the best one that fits; on built-in graphics the AI uses the normal memory, so free memory decides. The chosen model downloads once, then is cached in your browser. While it loads, the pipeline shows distinct live steps (download → load into GPU → compile shaders → ready) instead of one frozen line. Requires Chrome 113+ / Edge 113+.
 
@@ -648,7 +653,7 @@ The hosted build enforces a per-video size and length limit (default 1000 MB / 3
 | Extracted frames | Browser RAM. Embedded in export file. |
 | Transcript text | Sent to Ollama (localhost) or WebLLM (browser). Never to any server. |
 | Exported document | Generated in your browser. Saved to your Downloads folder. |
-| **Your content leaving the machine** | **Never.** No video, audio, frame, transcript or document is uploaded anywhere. |
+| **Your content leaving the machine** | **Never by default.** No video, audio, frame, transcript or document is uploaded anywhere. The only exception is your own choice: an Ollama cloud model, turned on in the AI settings after a notice. |
 
 **What does leave the machine, and when.** VideoDoc downloads things, it never uploads them. The list is short and complete:
 
@@ -657,6 +662,8 @@ The hosted build enforces a per-video size and length limit (default 1000 MB / 3
 | `huggingface.co` | Hosted version only, first transcription, then cached in the browser | Downloads the Whisper speech model (about 970 MB). Nothing about your audio is sent, the file is simply fetched. The desktop build ships this model inside the installer and never makes this request. |
 | `localhost:11434` or `localhost:8080` | Every annotation | Your own Ollama or the bundled engine, on your own machine. |
 | `perplexity.ai` | Only if you click "Search the web" in Vid Chat | Opens a normal web search in a new tab with the question you typed. Nothing else goes with it. |
+| `ollama.com` (through your Ollama) | Only with an Ollama cloud model you turned on and picked | The model runs on Ollama's servers, so what it reads (the video's words and screenshots, a document, a question) goes there. Off by default, behind a notice. |
+| `wikipedia.org`, `api.duckduckgo.com` | Only when you ask the plugin's pet to search the web | The search words only, to get short answers with their links. |
 
 Everything else runs from files served by the app itself. The OCR engine, the English OCR data and the ONNX runtime that Whisper needs are all bundled and served from the same origin as the page, so no CDN sees a request when you read a screen or transcribe audio. There are no webfonts, no analytics and no error reporting. Exported documents style themselves with the fonts already on the reader's computer, so opening one calls nobody.
 

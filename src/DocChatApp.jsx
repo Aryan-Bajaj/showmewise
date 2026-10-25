@@ -4,6 +4,7 @@ import DocChat from "./components/DocChat"
 import { extractText, chunkText } from "./hooks/useDocParser"
 import { WEBLLM_MODELS, DEFAULT_WEBLLM_MODEL } from "./lib/llm"
 import { savedBest } from "./lib/computerCheck"
+import { isCloud, cloudOn } from "./lib/cloud"
 
 export default function DocChatApp() {
   const fileRef = useRef()
@@ -26,10 +27,11 @@ export default function DocChatApp() {
     fetch("http://localhost:11434/api/tags", { signal: AbortSignal.timeout(3000) })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
-        // ":cloud" models would send the document to another server: never offered
-        const local = (data?.models || []).filter((m) => !/cloud/.test(m.name))
+        // cloud models send the document to Ollama's servers: offered only when
+        // the user turned them on (AI settings, with a notice), never picked by itself
+        const local = (data?.models || []).filter((m) => !isCloud(m.name))
         if (local.length) {
-          const names = local.map((m) => m.name)
+          const names = [...local.map((m) => m.name), ...(cloudOn() ? (data.models || []).filter((m) => isCloud(m.name)).map((m) => m.name) : [])]
           setOllamaModels(names)
           // chat wants quick answers: gemma3 4B first, else the smallest model
           const size = (m) => parseFloat(m.details?.parameter_size) || 99
@@ -177,7 +179,7 @@ export default function DocChatApp() {
                   <div className="relative">
                     <select value={ollamaModel} onChange={(e) => setOllamaModel(e.target.value)}
                       className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 appearance-none focus:outline-none focus:border-blue-500 cursor-pointer">
-                      {ollamaModels.map((m) => <option key={m} value={m}>{m}</option>)}
+                      {ollamaModels.map((m) => <option key={m} value={m}>{isCloud(m) ? `☁ ${m} (cloud: the document goes to Ollama's servers)` : m}</option>)}
                     </select>
                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
                   </div>

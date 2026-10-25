@@ -9,7 +9,7 @@ const SIZE = {
   1: ["Medium", "good for chat; writes a usable first draft of a guide (11 of 15 steps found, 6 fully right in our test)"],
   2: ["Large", "better answers, needs a lot of free memory (did not fit our 16 GB test laptop with other programs open)"],
 }
-const gb = (mb) => (mb / 1024).toFixed(1).replace(".", ",")
+const gb = (mb) => (mb / 1024).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) // the viewer's own number format
 const speed = (tps) => (tps >= 10 ? "fast" : tps >= 4 ? "OK" : "slow")
 
 const C = { bg: "#0f0b24", card: "#17113a", line: "rgba(255,255,255,.1)", ink: "#f1eeff", dim: "#b9b3d8", ok: "#34d399", warn: "#fbbf24", bad: "#f87171", acc: "#7c5cff" }
@@ -69,7 +69,7 @@ export default function CheckPage() {
         <Card>
           <h2 style={{ margin: "0 0 10px", fontSize: 17 }}>Your computer</h2>
           {!gpu ? <p style={{ margin: 0, color: C.dim }}>Looking...</p> : (
-            <ul style={{ margin: 0, paddingLeft: 20, lineHeight: 1.9 }}>
+            <ul style={{ margin: 0, paddingLeft: 20, lineHeight: 1.9, listStyle: "disc" }}>
               <li>{gpu.webgpu ? <>The browser AI <b style={{ color: C.ok }}>works</b> in this browser.</> : <>The browser AI <b style={{ color: C.bad }}>does not work</b> in this browser. Use Chrome or Edge on a computer{ollama ? "" : ", or install Ollama"}.</>}</li>
               {gpu.webgpu && <li>{gpu.builtIn ? "Your computer has built-in graphics. The AI then uses your normal memory, so free memory matters." : "Your computer has a graphics card for the AI."}</li>}
               {sys === undefined ? <li style={{ color: C.dim }}>Checking free memory...</li>

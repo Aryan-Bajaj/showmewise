@@ -34,7 +34,10 @@
     "power",
     "scripting",
     "activeTab",
-    "system.memory"
+    "system.memory",
+    "alarms",
+    "offscreen",
+    "search"
   ],
   "host_permissions": [
     "https://videodoc.netlify.app/*",
@@ -57,5 +60,18 @@
   ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "pet/pet3d.html",
+        "pet/pet3d.js",
+        "pet/three/*"
+      ],
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ]
+    }
+  ]
 }

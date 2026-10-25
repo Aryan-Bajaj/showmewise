@@ -167,7 +167,7 @@ function showChat(log = []) {
         if (s.url) { const sm = el("small", null, "From: "); const link = el("a", null, s.label || s.url); link.href = s.url; link.target = "_blank"; link.rel = "noopener"; sm.append(link); a.append(sm) }
         else if (s.timestamp != null) a.append(el("small", null, `From the video at ${mmss(s.timestamp * 1000)}${s.title ? `: ${s.title}` : ""}`))
       }
-      if (m.model) a.append(el("small", null, `Vidi answered on your computer (${m.model})`))
+      if (m.model) a.append(el("small", null, /cloud$/.test(m.model) ? `☁ Vidi answered in the cloud (${m.model}, on Ollama's servers)` : `Vidi answered on your computer (${m.model})`))
       // text not enough? Vidi offers to mark it on the page (only when pressed)
       if (!m.error && (m.scope === "page" || m.scope === "help")) {
         if (m.showing) a.append(el("small", null, m.showing))

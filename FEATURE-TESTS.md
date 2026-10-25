@@ -52,3 +52,9 @@ Status: ✅ passed · ⏳ not tested yet · ❌ failing (being fixed)
 | "Test my computer" (best browser model) | webgpu_check check: Small 3 s fast right, Medium OK right, Large asks first, unused sizes deleted; with plugin: free memory + tabs | ✅ |
 | Architecture flow chart on the website | looked at on laptop and phone | ✅ |
 | Browser AI numbers on the website | from the judged guides; untested claims removed | ✅ |
+| Pet guide with a manual | pet_guide 18/18 local (one field gives no "which one?"), 17/17 cloud | ✅ |
+| Meet your pet, Ollama steps, greeting, suggestions | pet_setup 25/25 | ✅ |
+| Fresh questions, same name buttons | pet_fresh 26/26 local (help mid task goes on at step 3), 26/26 cloud | ✅ |
+| Fill a form from a CV | pet_fill 7 of 7 fields right, local and cloud; the pet walks back to its spot | ✅ |
+| Pet AI answers (crazy user) | pet_ai local 0 failed, cloud 0 failed; browser AI 1 failed: a Hinglish joke comes back in English (the 1.5B model's limit) | ✅ local, cloud · ❌ browser AI Hinglish |
+| Pet on real sites, chat size, New chat | pet_check 0 failed (quick clicks keep a real chat size) | ✅ |

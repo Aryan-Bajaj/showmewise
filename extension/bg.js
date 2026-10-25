@@ -147,8 +147,13 @@ chrome.tabs.onRemoved.addListener(async (id) => {
 chrome.runtime.onMessage.addListener((m, from, reply) => {
   if (m?.from === "page") {
     if (!isSite(from.url || from.tab?.url)) return
+    // answers for Vidi the pet (pet/pet-bg.js)
+    if (String(m.id || "").startsWith("pet-")) return void petFromEngine(m)
     if (m.type === "status") onStatus(m, from.tab?.id)
     // "Test my computer" on the website: free memory and open tabs (a website cannot read these)
+    // the pet intro on the Pet training page reads and sets the pet (pet/pet-bg.js)
+    else if (m.type === "pet-info") petInfo().then((info) => from.tab?.id && send(from.tab.id, { type: "pet-info", id: m.id, ...info })).catch(() => {})
+    else if (m.type === "pet-setup") petSetup(m.setup).then((info) => from.tab?.id && send(from.tab.id, { type: "pet-info", id: m.id, ...info })).catch(() => {})
     else if (m.type === "need-system-info") systemInfo().then((info) => from.tab?.id && send(from.tab.id, { type: "system-info", id: m.id, ...info })).catch(() => {})
     else if (m.type === "chat-status") chatUpdate(m.id, { label: m.label })
     else if (m.type === "chat-partial") chatUpdate(m.id, { partial: m.text })
@@ -246,6 +251,42 @@ async function readLinks(m) {
 // (a numbered tag beside each, with a small arrow; never on top of it) and puts
 // a screenshot of the marked page into the chat. It never clicks for the user.
 const showing = new Map() // chat id -> { tabId }
+// the last marking of each pet answer, so "which one?" can mark the one the user tapped (the 5 newest)
+const lastShown = new Map()
+
+// what can be seen and used on a page, each with a number (data-vidi-idx); used by
+// Show me on the page in the panel and by the pet
+async function pageElements(tabId) {
+  const [{ result }] = await chrome.scripting.executeScript({
+    target: { tabId },
+    func: () => {
+      document.querySelectorAll("[data-vidi-idx]").forEach((e) => e.removeAttribute("data-vidi-idx"))
+      const out = [], els = []
+      for (const e of document.querySelectorAll("a[href],button,input,select,textarea,[role=button],[role=tab],[role=menuitem],summary,label,h1,h2,h3")) {
+        const r = e.getBoundingClientRect(), st = getComputedStyle(e)
+        if (r.width < 4 || r.height < 4 || st.visibility === "hidden" || st.display === "none") continue
+        const t = (e.innerText || e.getAttribute("aria-label") || e.placeholder || e.title || e.value || "").replace(/\s+/g, " ").trim().slice(0, 80)
+        if (!t) continue
+        e.setAttribute("data-vidi-idx", String(out.length))
+        out.push(`${t} (${e.tagName.toLowerCase()})`)
+        els.push([e, t])
+        if (out.length >= 150) break
+      }
+      // the same button many times ("Add to cart" on every product, "Delete" on every note):
+      // each gets what is written next to it, so the right one can be told apart
+      const count = {}
+      for (const [, t] of els) count[t.toLowerCase()] = (count[t.toLowerCase()] || 0) + 1
+      els.forEach(([e, t], i) => {
+        if (count[t.toLowerCase()] < 2) return
+        let p = e.parentElement, near = ""
+        for (let k = 0; k < 5 && p && !near; k++, p = p.parentElement) near = (p.innerText || "").replace(t, " ").replace(/\s+/g, " ").trim().slice(0, 60)
+        if (near) out[i] += ` [next to: ${near}]`
+      })
+      return out
+    },
+  })
+  return result
+}
 
 async function showMe(id) {
   const entry = (await getChat()).find((x) => x.id === id)
@@ -256,39 +297,48 @@ async function showMe(id) {
   if (!tab) throw new Error("This page cannot be marked. Browser pages and the web store are protected.")
   await chrome.tabs.update(tab.id, { active: true }); await chrome.windows.update(tab.windowId, { focused: true })
   await chatUpdate(id, { showing: "Vidi is looking at the page..." })
-  // what can be seen and used on the page, each with a number
-  const [{ result: elements }] = await chrome.scripting.executeScript({
-    target: { tabId: tab.id },
-    func: () => {
-      document.querySelectorAll("[data-vidi-idx]").forEach((e) => e.removeAttribute("data-vidi-idx"))
-      const out = []
-      for (const e of document.querySelectorAll("a[href],button,input,select,textarea,[role=button],[role=tab],[role=menuitem],summary,label,h1,h2,h3")) {
-        const r = e.getBoundingClientRect(), st = getComputedStyle(e)
-        if (r.width < 4 || r.height < 4 || st.visibility === "hidden" || st.display === "none") continue
-        const t = (e.innerText || e.getAttribute("aria-label") || e.placeholder || e.title || e.value || "").replace(/\s+/g, " ").trim().slice(0, 80)
-        if (!t) continue
-        e.setAttribute("data-vidi-idx", String(out.length))
-        out.push(`${t} (${e.tagName.toLowerCase()})`)
-        if (out.length >= 150) break
-      }
-      return out
-    },
-  })
+  const elements = await pageElements(tab.id)
   if (!elements?.length) return chatUpdate(id, { showing: "", shotNote: "I could not find buttons or fields on this page to mark." })
-  showing.set(id, { tabId: tab.id, windowId: tab.windowId, elements })
+  showing.set(id, { tabId: tab.id, windowId: tab.windowId, elements, answer: entry.answer })
   await send(await ensureEngine(), { type: "chat", id: "pick-" + id, scope: "pick", question: entry.q, answer: entry.answer, elements })
 }
 
 async function showPicks(id, m) {
   const s = showing.get(id); showing.delete(id)
   if (!s) return
-  if (m.error || !m.picks?.length) return chatUpdate(id, { showing: "", shotNote: "I could not tell which part of this page the answer is about." })
+  // asked by the pet: its own chat gets the picture (pet/pet-bg.js)
+  const update = s.pet ? (patch) => petUpdate(id, patch) : (patch) => chatUpdate(id, patch)
+  if (m.error || !m.picks?.length) return update({ showing: "", shotNote: "I could not tell which part of this page the answer is about." })
   await chrome.tabs.update(s.tabId, { active: true }).catch(() => {})
-  // the same button twice (two toolbars with "Share"): marked once, the first one
+  lastShown.set(id, s); while (lastShown.size > 5) lastShown.delete(lastShown.keys().next().value)
+  // "Delete (button) [next to: Gift ideas]": the button's name, and what is written next to it
+  const parse = (e) => { const g = String(e).match(/^(.*?) \([a-z0-9]+\)(?: \[next to: (.*)\])?$/) || []; return { label: g[1] || String(e), near: g[2] || "" } }
   const seenLabel = new Set()
-  const picks = m.picks.map((idx) => ({ idx, label: s.elements[idx].replace(/ \([a-z0-9]+\)$/, "") }))
+  let picks = m.picks.map((idx) => ({ idx, ...parse(s.elements[idx]) }))
     .filter((p) => !seenLabel.has(p.label.toLowerCase()) && seenLabel.add(p.label.toLowerCase()))
-    .map((p, i) => ({ ...p, n: i + 1 }))
+  // only what the answer names ("Click New board" marked Share too): the AI's first pick when none is named
+  const said = String(s.answer || "").toLowerCase()
+  if (picks.some((p) => said.includes(p.label.toLowerCase()))) picks = picks.filter((p) => said.includes(p.label.toLowerCase()))
+  else picks = picks.slice(0, 1)
+  // a button that is on the page many times: the one next to what the user named; when they named
+  // none, all of them are marked and the pet asks which one (it never guesses)
+  let choose = null
+  if (s.pet && picks.length === 1 && !m.one) {
+    // (the same name with the same text next to it is one thing listed twice, like a field and its
+    // label: "Board name" asked "which one?" with two identical choices)
+    const nears = new Set()
+    const same = s.elements.map((e, idx) => ({ idx, ...parse(e) })).filter((x) => x.label.toLowerCase() === picks[0].label.toLowerCase() && x.near)
+      .filter((x) => !nears.has(x.near.toLowerCase()) && nears.add(x.near.toLowerCase()))
+    if (same.length > 1) {
+      // only the user's own words count: the AI guessed "next to Running shoes" when no product was named
+      const asked = String(s.question || "").toLowerCase()
+      const w = (t) => (t.toLowerCase().match(/[a-zà-ÿ0-9]{3,}/g) || [])
+      const named = same.map((x) => ({ x, n: w(x.near).filter((v) => asked.includes(v)).length })).sort((a, b) => b.n - a.n)
+      if (named[0].n > 0 && named[0].n > (named[1]?.n || 0)) picks = [{ ...named[0].x }]
+      else { picks = same.slice(0, 6); choose = picks.map((x, i) => ({ idx: x.idx, n: i + 1, near: x.near })) }
+    }
+  }
+  picks = picks.map((p, i) => ({ ...p, n: i + 1, label: choose ? `${p.label} · ${p.near}` : p.label }))
   await chrome.scripting.executeScript({
     target: { tabId: s.tabId },
     args: [picks],
@@ -398,20 +448,25 @@ async function showPicks(id, m) {
         }
       }
       document.documentElement.append(root)
-      // gone after 20 seconds, or at the first click or key
+      // gone after 10 seconds, or at the first click or key (the screenshot in the chat keeps them)
       const off = () => root.remove()
-      setTimeout(off, 20000); addEventListener("pointerdown", off, { once: true }); addEventListener("keydown", off, { once: true })
+      setTimeout(off, 10000); addEventListener("pointerdown", off, { once: true }); addEventListener("keydown", off, { once: true })
     },
   })
-  await new Promise((r) => setTimeout(r, 250))
+  // the pet steps out of the picture for a moment
+  if (s.pet) await chrome.storage.local.set({ petHideUntil: Date.now() + 1500 })
+  await new Promise((r) => setTimeout(r, s.pet ? 350 : 250))
   let shot = null
   try { shot = await chrome.tabs.captureVisibleTab(s.windowId, { format: "jpeg", quality: 70 }) } catch { /* the window is hidden */ }
+  const note = `I marked ${picks.length} place${picks.length > 1 ? "s" : ""} on the page: ${picks.map((p) => `${p.n}. ${p.label}`).join(", ")}. The marks go away after 10 seconds or when you click (the picture keeps them).`
+  if (s.pet && choose) { await petShot(id, shot, tr("whichOne", { list: choose.map((c) => `${c.n}. ${c.near}`).join(" · ") })); return petUpdate(id, { choose }) }
+  if (s.pet) return petShot(id, shot, note)
   // only the newest pictures are kept (session storage is small)
   await edit((log) => {
     let kept = 0
     for (let i = log.length - 1; i >= 0; i--) if (log[i].shot && ++kept >= 3) delete log[i].shot
     const e = log.find((x) => x.id === id)
-    if (e) Object.assign(e, { showing: "", shot, shotNote: `I marked ${picks.length} place${picks.length > 1 ? "s" : ""} on the page: ${picks.map((p) => `${p.n}. ${p.label}`).join(", ")}. The marks go away after 20 seconds or when you click.` })
+    if (e) Object.assign(e, { showing: "", shot, shotNote: note })
   })
 }
 
@@ -421,3 +476,6 @@ async function systemInfo() {
   const tabs = (await chrome.tabs.query({})).length
   return { freeMB: Math.round(mem.availableCapacity / 1048576), totalMB: Math.round(mem.capacity / 1048576), tabs }
 }
+
+// Vidi the pet (BETA): timers, reminders, search and the pet on every page
+importScripts("pet/i18n.js", "pet/scores.js", "pet/pet-bg.js")

@@ -113,6 +113,14 @@ export function spokenActions(text) {
 export const actionKey = (a) => a.toLowerCase().replace(/[^a-z0-9 ]/g, " ").split(/\s+/)
   .filter((w) => w.length >= 3 && !FILLER.has(w) && !ACT.test(w))
 
+// A suggestion that another part's step already has is not missing from the
+// guide: an action said at the edge of a part ("Finally, click Share" just
+// before the Share part) or a key word used where it belongs.
+export function inOtherPart(suggestion, docs, i) {
+  const term = suggestion.match(/^Use '(.+)'\.$/)?.[1]
+  return docs.some((o, j) => j !== i && o.step && (term ? !missingTerms(o.step, [term]).length : !missingActions(o.step, [suggestion.replace(/\.$/, "")]).length))
+}
+
 export function missingActions(step, actions) {
   const have = stepText(step).toLowerCase()
   return (actions || []).filter((a) => { const k = actionKey(a); return k.length && !k.some((w) => have.includes(w.slice(0, 5))) })

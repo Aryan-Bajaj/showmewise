@@ -98,7 +98,9 @@ export const HOWTO = [
       { n: 2, x: 15.4, y: 68.5, dir: "right", text: "Select model: the best one is already picked. You can choose a smaller one to go faster." },
     ],
     body: [
-      "Models with \"cloud\" in the name are never shown, because they would send your data to another computer.",
+      "Models with \"cloud\" in the name are hidden unless you turn on Use Ollama cloud models (more powerful) under the model list. You must first read a short notice and tick I understand.",
+      "A cloud model is bigger and better at reasoning, but it runs on Ollama's servers: the words and screenshots of your video go there. Do not use it for private or work videos. It needs internet, an Ollama sign-in (run ollama signin), and free use has limits.",
+      "To add a cloud model: in a terminal, run ollama pull with the name of a cloud model (the names end in cloud, listed on ollama.com). VideoDoc never picks a cloud model by itself. While cloud models are on and you picked one, the plugin's chats and your pet use it too, and say ☁ answered in the cloud.",
       "Some models can also look at the pictures of your screen (for example gemma3). They give the most exact steps.",
     ],
   },
@@ -107,7 +109,7 @@ export const HOWTO = [
     marks: [
       { n: 1, x: 16.6, y: 21.2, dir: "right", text: "WebLLM: the AI runs inside your browser. Nothing to install. It downloads once and is kept for next time." },
       { n: 2, x: 86, y: 47.8, dir: "right", text: "Test my system: checks your computer and picks the model that fits it." },
-      { n: 3, x: 53, y: 55.2, dir: "right", text: "Browser model: Small (0,9 GB, only for chat), Medium (1 GB, the usual choice), Large (about 2 GB, needs more free memory) or Vision (3,5 GB). Test my computer picks the size that fits." },
+      { n: 3, x: 53, y: 55.2, dir: "right", text: "Browser model: Small (0.9 GB, only for chat), Medium (1 GB, the usual choice), Large (about 2 GB, needs more free memory) or Vision (3.5 GB). Test my computer picks the size that fits." },
       { n: 4, x: 99, y: 79, dir: "left", text: "How exact and how fast this model is. If the model is too big for your computer, a warning shows here." },
     ],
     body: ["If your browser cannot run it, use Chrome or Edge on a computer, or install Ollama."],
@@ -271,6 +273,26 @@ export const HOWTO = [
     ],
   },
   {
+    id: "pet", title: "Your pet in the plugin (BETA): a little helper on every page",
+    body: [
+      "Your pet is a small animal at the edge of your web pages: a dragon, wolf, cat, fox or owl, or your own picture or 3D pet. Its name is Vidi, and you can rename it.",
+      "Turn it on in the plugin under Your pet. It needs the same OK as reading pages. Turn it off there, or press Hide on this site in its chat.",
+      "Click the pet to chat. Ask about the page you are on, about VideoDoc, or anything else. Say search the web for ... and it answers from Wikipedia and DuckDuckGo with links you can open.",
+      "Timers, alarms and reminders: say timer 10 minutes, alarm at 7:30 or remind me at 17:00 to call Mum. It rings with a sound and a notification, but only while the browser is open. Say show my timers or cancel the alarm.",
+      "It remembers you: say my name is ... or I love .... Say your name is ... to rename it. Forget what my pet knows about me in the plugin clears it.",
+      "It moves away from buttons and text by itself, hides half of itself when nobody needs it, and sleeps after two quiet minutes. Drag it anywhere: that becomes its fixed spot (Let my pet find its own spot, in the plugin, undoes it).",
+      "Your own pet: choose My picture and pick a photo, or My 3D pet and pick a .glb file. The plugin shows a text you can give a 3D maker to create one.",
+      "Fill a form from your CV: give it the file with 📎, say fill this page, check the list (type what is missing), press Fill the page. It never presses Submit and never fills passwords, PINs or card numbers.",
+      "Show me on the page: under an answer about a page, it marks the buttons beside them for 10 seconds and puts a screenshot in the chat.",
+      "First steps: on the Pet training page, Meet your pet asks your name, which pet and colour, its name, the language and which AI should answer (each with how often it was right in our tests). If you pick Ollama and do not have it, it shows how to install it, step by step, and gets the model for you. When the browser opens, your pet says hello for the time of day.",
+      "Guide me through a tool: give it the tool's manual with 📎, then ask in your own words, like how do I make a new board?. It says where you are and the first step, marked on the page. Do it yourself and press Done, next step. When it cannot tell what you want, it asks. It never clicks for you.",
+      "Focus mode: say hide the ads, and show everything to undo. It only hides them on that page.",
+      "Choose the AI: say change the AI. A cloud model is used only after you said your work is not confidential.",
+      "Learn every skill on the Pet training page (#/pet-training), with made-up practice material.",
+      "It is a test feature: answers can be wrong. Do not rely on its reminders for anything important.",
+    ],
+  },
+  {
     id: "docchat", title: "Step 8. Ask questions about a document (Doc Chat)", img: "docchat",
     marks: [{ n: 1, x: 65.2, y: 46.9, dir: "right", text: "Choose a document (PDF, Word, web page, text, Markdown, CSV or JSON) and ask questions about it." }],
     body: ["Doc Chat needs no video. Open it with Doc Chat in the top bar.", "If Ollama runs on your computer, it is picked for you with a quick model for chatting. You can switch to the browser AI.", "Ask anything about the document: what it is about, how to do a step, a name or a number in it."],
@@ -330,7 +352,7 @@ export const HOWTO = [
     id: "limits", title: "Limits, limitations and accuracy: how accurate is it, mistakes, why it works this way (free and private)",
     body: [
       "Why it works this way: VideoDoc is free and runs completely on your own computer. No cloud, no account, no cost per video. The AI is an open model on your machine, so the speed and the result depend on your computer and the model you pick.",
-      "How accurate is it? We test every release against manuals written by hand for real screen recordings and read each guide step by step. With gemma3 12B on a normal 16 GB laptop (Accurate speech, key words typed in), 60 to 67,5 % of all actions came out fully right in the first draft.",
+      "How accurate is it? We test every release against manuals written by hand for real screen recordings and read each guide step by step. With gemma3 12B on a normal 16 GB laptop (Accurate speech, key words typed in), 60 to 67.5 % of all actions came out fully right in the first draft.",
       "A bigger model gives a better guide: a small 4B model got about 30 % in our tests. Pick the biggest model your computer can run. The browser AI is quick to start but smaller than Ollama. In the browser, on our 1-minute demo video: Medium found 11 of 15 steps (6 fully right) in about 10 minutes; Small found only 2, so it is too weak for guides.",
       "Big paid cloud AIs are usually faster and stronger, but your video would have to leave your computer. VideoDoc keeps it with you.",
       "Your computer sets the speed: with the biggest model a 10 minute video took about 1¾ hours on a normal 16 GB laptop. A stronger computer or a smaller model is faster. Keep the computer awake while it works.",
@@ -390,7 +412,7 @@ export const HOWTO = [
 ]
 
 // Words that mean the question is about VideoDoc at all (anything else is off topic)
-const TOPIC = /video|record|guide|step|upload|file|mp4|mov|webm|ollama|model|ai\b|llm|webllm|speech|language|transcri|screen|export|save|pdf|docx|word|html|chat|limit|size|mb|gb|minute|long|slow|fast|time|error|fail|stuck|sleep|install|download|browser|chrome|edge|privacy|free|account|edit|title|company|start|use|how|help|work|gpu|graphics|memory|ram|computer|laptop|lid|phone|mobile|sound|audio|desktop|accurate|cancel|new|vidi|videodoc|setting|option|verify|consolidat|accura|ocr|annotat|procedure|frame|clip|gif|checklist|faq|summary|flow|tip|result|marker|picture|screenshot|button|click|tab|ctrl|error|message|wrong|missing|skip|kept|resum|progress|segment|entr|annotat/i
+const TOPIC = /video|record|guide|step|upload|file|mp4|mov|webm|ollama|model|ai\b|llm|webllm|speech|language|transcri|screen|export|save|pdf|docx|word|html|chat|limit|size|mb|gb|minute|long|slow|fast|time|error|fail|stuck|sleep|install|download|browser|chrome|edge|privacy|free|account|edit|title|company|start|use|how|help|work|gpu|graphics|memory|ram|computer|laptop|lid|phone|mobile|sound|audio|desktop|accurate|cancel|new|vidi|videodoc|setting|option|verify|consolidat|accura|ocr|annotat|procedure|frame|clip|gif|checklist|faq|summary|flow|tip|result|marker|picture|screenshot|button|click|tab|ctrl|error|message|wrong|missing|skip|kept|resum|progress|segment|entr|annotat|pet\b|dragon|wolf|alarm|remind|timer|cloud|plugin|extension/i
 
 const STOP = new Set("the and for you your can how what which does with this that are not from into when then there here will have use using about its just get got want need".split(" "))
 const words = (t) => ((t || "").toLowerCase().match(/[a-z0-9]{3,}/g) || []).filter((w) => !STOP.has(w)).map((w) => w.replace(/(ing|ed|es|s)$/, ""))

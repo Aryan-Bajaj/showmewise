@@ -26,7 +26,7 @@ import { userSpelling } from "./lib/terms"
 import { runKey, loadRun, saveRun } from "./lib/resume"
 import { post, compactSteps, setVideoDocs } from "./lib/bridge"
 import { discardSavedRecording } from "./lib/recorder"
-import { screenCounts, screenSpelling, screenNames, tidyActions, tidyNote, dropRepeatedParts } from "./lib/coverage"
+import { screenCounts, screenSpelling, screenNames, tidyActions, tidyNote, dropRepeatedParts, inOtherPart } from "./lib/coverage"
 import { buildStepShots } from "./lib/stepShots"
 
 const INITIAL_STEPS = [
@@ -476,6 +476,7 @@ export default function App() {
       const votes = screenCounts(ocrFrameTexts)
       finalDocs = finalDocs.map((d) => d.step ? { ...d, suggest: (d.suggest || []).filter((s) => { const m = s.match(/^Use '(.+)'\.$/); return !m || !JSON.stringify(d.step).toLowerCase().replace(/[^a-z0-9]/g, '').includes(m[1].toLowerCase().replace(/[^a-z0-9]/g, '')) }), step: { ...d.step, title: userSpelling(d.step.title, termsRef.current), steps: screenNames(screenSpelling(tidyActions((d.step.steps || []).map(tidyLine), d.ocrText || "", d.text || ""), votes), d.ocrText || "").map((x) => userSpelling(x, termsRef.current)), note: tidyNote(d.step.note) } } : d)
       finalDocs = dropRepeatedParts(finalDocs) // a part that only repeats the one before it
+      finalDocs = finalDocs.map((d, i) => d.suggest?.length ? { ...d, suggest: d.suggest.filter((s) => !inOtherPart(s, finalDocs, i)) } : d)
       trace("final", finalDocs)
 
       setAnnotatedDocs(finalDocs)
@@ -641,6 +642,7 @@ export default function App() {
         </span>
         <a href="/#/docchat" className="text-xs text-zinc-400 hover:text-violet-300 transition-colors">Doc Chat</a>
         <a href="/#/howto" className="text-xs text-zinc-400 hover:text-violet-300 transition-colors">How to use</a>
+        <a href="/#/pet-training" className="text-xs text-zinc-400 hover:text-violet-300 transition-colors">Pet training</a>
         <a href="/#/policy" className="text-xs text-zinc-400 hover:text-violet-300 transition-colors">Privacy</a>
 
         {videoFile && !showAISettings && !isAnnotating && frames.length > 0 && !busy && (

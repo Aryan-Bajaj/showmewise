@@ -10,6 +10,7 @@ import ErrorBoundary from './components/ErrorBoundary.jsx'
 import MobileNotice from './components/MobileNotice.jsx'
 import HowToPage from './components/HowToPage.jsx'
 import CheckPage from './components/CheckPage.jsx'
+import PetTraining from './components/PetTraining.jsx'
 import Vidi from './components/Vidi.jsx'
 import { listen } from './lib/bridge'
 import PluginChat from './components/PluginChat.jsx'
@@ -27,6 +28,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/policy" element={<PolicyPage />} />
         <Route path="/howto" element={<HowToPage />} />
         <Route path="/check" element={<CheckPage />} />
+        <Route path="/pet-training" element={<PetTraining />} />
       </Routes>
       <ErrorBoundary name="Vidi"><Vidi /></ErrorBoundary>
       <PluginChat />

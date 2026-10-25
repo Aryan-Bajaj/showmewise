@@ -7,9 +7,9 @@
 
 export const CHECK_MODELS = [
   // mb: graphics memory the model needs (from the WebLLM model list)
-  { id: "Llama-3.2-1B-Instruct-q4f16_1-MLC", name: "Llama 3.2 1B", mb: 879, download: "0,9 GB" },
-  { id: "Qwen2.5-1.5B-Instruct-q4f16_1-MLC", name: "Qwen2.5 1.5B", mb: 1630, download: "1,0 GB" },
-  { id: "Qwen2.5-3B-Instruct-q4f16_1-MLC", name: "Qwen2.5 3B", mb: 2505, download: "1,9 GB" },
+  { id: "Llama-3.2-1B-Instruct-q4f16_1-MLC", name: "Llama 3.2 1B", mb: 879, download: "0.9 GB" },
+  { id: "Qwen2.5-1.5B-Instruct-q4f16_1-MLC", name: "Qwen2.5 1.5B", mb: 1630, download: "1.0 GB" },
+  { id: "Qwen2.5-3B-Instruct-q4f16_1-MLC", name: "Qwen2.5 3B", mb: 2505, download: "1.9 GB" },
 ]
 // room the browser and Windows need on top of the model, so nothing freezes
 export const SAFETY_MB = 1200

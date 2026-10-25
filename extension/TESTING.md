@@ -56,6 +56,27 @@ Each line says what a user does and what must happen.
 - Text from pages and answers is shown as plain text (textContent), never as HTML.
 - Nothing is uploaded; the chat and the guide run on the computer.
 
+## Your pet (BETA), automatic test: `pet_check.mjs`
+
+- Shows on a normal page after the OK for pages; not on the VideoDoc website.
+- Covers no button, link, picture or text, also on a page whose right edge is full of buttons.
+- Click opens the chat, Escape closes it, typing in it does not trigger the page's shortcuts.
+- Timer, reminder (with its text), alarm (24-hour time), list and cancel; "timer" alone and an impossible time ask again; ringing shows Stop, a notification and plays the chime; "stop" ends it.
+- The time, renaming the pet, my name and what I like are remembered.
+- Crazy inputs: empty message, HTML in a message (shown as text), a huge message (cut to 2000 letters), five messages at once.
+- AI: knows my name, general question, "this page", web search with links and "More results", a VideoDoc question goes to Help, the feedback buttons.
+- Drag to the left (kept after reload), Hide on this site, off and on in all tabs, hidden in full screen.
+- All five pets, a pet from a picture, a 3D pet (.glb), choosing and renaming in the panel.
+- A reminder missed while the browser was closed is told on start; it falls asleep after two quiet minutes and wakes up happy.
+- After many quick clicks the chat keeps a real size (never 0), so New chat and Close stay on the screen; New chat and Earlier chats work.
+
+## Pet guide, intro and fresh questions: `pet_guide.mjs`, `pet_setup.mjs`, `pet_fresh.mjs`
+
+- Guide with a made-up tool and manual (18 checks): asks when unclear, one step at a time, Done, next step, stop, off topic questions answered normally, and a single field never asks "which one?".
+- Intro and setup (25 checks): greeting on browser start, suggestion buttons, Meet your pet questions, Ollama missing, blocked and ready, cloud with a local backup, phone width.
+- Fresh questions (26 checks): new facts, typos, empty message, Hinglish, a huge request, explain a page without copying it, same name buttons on a shop page, and help in the middle of a task goes on from the step the user is at.
+- All of them run with the local and the cloud AI in `regress.sh`, one after the other.
+
 ## Store and search checklist (from the saved SEO Reel)
 
 - Clear name and short description with the words people search ("screen recorder", "step-by-step guide", "chat with page").

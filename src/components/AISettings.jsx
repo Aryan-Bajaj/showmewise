@@ -4,17 +4,26 @@ import { DEFAULT_SECTIONS } from "../hooks/useDocParser"
 import { WEBLLM_MODELS, DEFAULT_WEBLLM_MODEL, isWebLLMVision, ollamaModelHasVision, recommendModel, modelGB, localEngineStatus } from "../lib/llm"
 import { probeSystem } from "../lib/systemCheck"
 import { savedBest } from "../lib/computerCheck"
+import { isCloud, cloudOn, setCloud, setCloudModel } from "../lib/cloud"
+import OllamaSetup from "./OllamaSetup"
 
 // Desktop build ships ONE engine (bundled llama.cpp + gemma3 vision) so a
 // non-technical user on an office laptop never has to choose or install
 // anything. WebLLM/Ollama choices exist only in the web build.
 const DESKTOP = import.meta.env.VITE_BUILD_TARGET === "desktop"
+// guide steps right in our own test videos (judged by reading, Oct 2026); others not tested yet
+const TESTED = { "gemma3:12b": "✓ 60% in tests" }
 
 export default function AISettings({ onConfirm, onClose, suggestedSections, toolsUsed = [], videoDuration = 0 }) {
   const [mode, setMode] = useState(DESKTOP ? "local" : "webllm") // browser-first on web: works for everyone, no install
   const [ollamaStatus, setOllamaStatus] = useState("checking")
   const autoPicked = useRef(false) // switch to Ollama once; a later choice by the user stays
   const [ollamaModels, setOllamaModels] = useState([])
+  // Ollama cloud models: listed only after the user turned them on, with a notice
+  const [cloudModels, setCloudModels] = useState([])
+  const [cloud, setCloudState] = useState(cloudOn())
+  const [cloudAsk, setCloudAsk] = useState(false)
+  const [cloudOk, setCloudOk] = useState(false)
   const [selectedModel, setSelectedModel] = useState("")
   const [webModel, setWebModel] = useState(savedBest()?.id || DEFAULT_WEBLLM_MODEL) // "Test my computer" result first
   const [selected, setSelected] = useState([])
@@ -86,8 +95,9 @@ export default function AISettings({ onConfirm, onClose, suggestedSections, tool
     fetch("http://localhost:11434/api/tags", { signal: AbortSignal.timeout(3000) })
       .then(r => r.ok ? r.json() : null)
       .then(data => {
-        // ":cloud" models run on someone else's server: never offered, the video stays here
-        const local = (data?.models || []).filter(m => !/:cloud$|-cloud$/.test(m.name))
+        // cloud models run on Ollama's servers: offered only when turned on, never picked by itself
+        const local = (data?.models || []).filter(m => !isCloud(m.name))
+        setCloudModels((data?.models || []).filter(m => isCloud(m.name)).map(m => m.name))
         if (local.length) {
           const names = local.map(m => m.name)
           setOllamaModels(names)
@@ -96,7 +106,7 @@ export default function AISettings({ onConfirm, onClose, suggestedSections, tool
           const size = (m) => parseFloat(m.details?.parameter_size) || 0
           const best = [...local].sort((a, b) => (/gemma3/.test(b.name) - /gemma3/.test(a.name)) || size(b) - size(a))[0]
           if (!autoPicked.current) { autoPicked.current = true; setSelectedModel(best.name); if (!DESKTOP) setMode("ollama") }
-          else setSelectedModel((cur) => names.includes(cur) ? cur : best.name)
+          else setSelectedModel((cur) => names.includes(cur) || (isCloud(cur) && cloudOn()) ? cur : best.name)
           setOllamaStatus("ok")
         } else {
           setOllamaStatus("down")
@@ -123,6 +133,13 @@ export default function AISettings({ onConfirm, onClose, suggestedSections, tool
     ollamaModelHasVision(selectedModel).then((v) => { if (alive) setOllamaVision(v) })
     return () => { alive = false }
   }, [mode, selectedModel])
+
+  const turnCloud = (on) => {
+    setCloud(on); setCloudState(on); setCloudAsk(false); setCloudOk(false)
+    // turned off while a cloud model was chosen: back to the best one on this computer
+    if (!on && isCloud(selectedModel)) setSelectedModel(ollamaModels[0] || "")
+    if (!on) setCloudModel(null)
+  }
 
   const toggle = (s) =>
     setSelected(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s])
@@ -294,15 +311,42 @@ export default function AISettings({ onConfirm, onClose, suggestedSections, tool
               <div className="relative">
                 <select
                   value={selectedModel}
-                  onChange={e => setSelectedModel(e.target.value)}
+                  onChange={e => { setSelectedModel(e.target.value); setCloudModel(e.target.value) }}
                   className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 appearance-none focus:outline-none focus:border-blue-500 cursor-pointer"
                 >
                   {ollamaModels.map(m => (
-                    <option key={m} value={m}>{m}</option>
+                    <option key={m} value={m}>{m}{TESTED[m] ? ` · ${TESTED[m]}` : ""}</option>
+                  ))}
+                  {cloud && cloudModels.map(m => (
+                    <option key={m} value={m}>☁ {m} (cloud){TESTED[m] ? ` · ${TESTED[m]}` : ""}</option>
                   ))}
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
               </div>
+              <p className="text-xs text-zinc-500 mt-1.5">✓ % = guide steps that came out right in our own test videos. Your videos can give a different result. Models without a % are not tested yet.</p>
+              <label className="flex items-center gap-2 mt-3 text-xs text-zinc-300 cursor-pointer">
+                <input type="checkbox" id="vd-cloud" checked={cloud || cloudAsk} onChange={(e) => e.target.checked ? setCloudAsk(true) : turnCloud(false)} />
+                Use Ollama cloud models (more powerful)
+              </label>
+              {cloudAsk && (
+                <div role="dialog" aria-label="About cloud models" className="mt-2 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-100">
+                  <p className="font-semibold text-amber-200 mb-1">Before you turn this on</p>
+                  <p>A cloud model is bigger and better at reasoning, but it runs on Ollama's servers. What it reads goes there: the words and screenshots of your video, your documents and your questions. Do not use it for private or work videos. It needs internet, and free use has limits.</p>
+                  <label className="flex items-center gap-2 mt-2 cursor-pointer"><input type="checkbox" id="vd-cloud-ok" checked={cloudOk} onChange={(e) => setCloudOk(e.target.checked)} /> I understand</label>
+                  <div className="flex gap-2 mt-2">
+                    <button type="button" disabled={!cloudOk} onClick={() => turnCloud(true)} className="px-3 py-1.5 rounded-md bg-amber-500 text-black font-semibold disabled:opacity-40">Turn on</button>
+                    <button type="button" onClick={() => { setCloudAsk(false); setCloudOk(false) }} className="px-3 py-1.5 rounded-md border border-zinc-600 text-zinc-200">Cancel</button>
+                  </div>
+                </div>
+              )}
+              {cloud && !cloudModels.length && (
+                <p className="mt-2 text-xs text-zinc-400">No cloud model added yet. In a terminal, run “ollama signin”, then “ollama pull” with the name of a cloud model (their names end in “cloud”, listed on ollama.com). Then close this window and open it again.</p>
+              )}
+              {isCloud(selectedModel) && (
+                <div className="flex items-center gap-1.5 mt-2 text-xs text-amber-200 bg-amber-500/10 border border-amber-500/30 rounded-lg px-2.5 py-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0" /> Cloud model: what it reads leaves your computer and goes to Ollama's servers.
+                </div>
+              )}
               {ollamaVision && (
                 <div className="flex items-center gap-1.5 mt-2 text-xs text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 rounded-lg px-2.5 py-1.5">
                   <Eye className="w-3.5 h-3.5 shrink-0" /> This model sees the screen — screenshots are sent for the most accurate steps.
@@ -311,44 +355,7 @@ export default function AISettings({ onConfirm, onClose, suggestedSections, tool
             </div>
           )}
 
-          {mode === "ollama" && ollamaStatus === "down" && (
-            <div className="bg-zinc-800 rounded-lg p-3.5 text-xs text-zinc-400 mt-3">
-              {/* Already installed → unblock with CORS */}
-              <p className="text-zinc-200 font-semibold text-sm mb-2">Already have Ollama? Connect it in 4 steps:</p>
-              <ol className="space-y-2.5">
-                <li>
-                  <span className="text-zinc-300 font-medium">1. Open PowerShell.</span>
-                  <span className="block text-zinc-500 mt-0.5">Press the Windows key, type <span className="text-zinc-300">PowerShell</span>, hit Enter.</span>
-                </li>
-                <li>
-                  <span className="text-zinc-300 font-medium">2. Allow this site to reach Ollama.</span>
-                  <span className="block text-zinc-500 mt-0.5">Paste this and press Enter:</span>
-                  <code className="block text-emerald-300 font-mono bg-black/40 rounded px-2 py-1.5 mt-1 whitespace-pre-wrap break-all">setx OLLAMA_ORIGINS "*"</code>
-                </li>
-                <li>
-                  <span className="text-zinc-300 font-medium">3. Fully restart Ollama.</span>
-                  <span className="block text-zinc-500 mt-0.5">Find the Ollama icon in your system tray (bottom-right of the taskbar), right-click it → <span className="text-zinc-300">Quit</span>. Then open Ollama again from the Start menu. <span className="text-violet-400">This step is required</span> — the setting only applies after a restart.</span>
-                </li>
-                <li>
-                  <span className="text-zinc-300 font-medium">4. Load a model (if you haven't).</span>
-                  <span className="block text-zinc-500 mt-0.5">Back in PowerShell, run:</span>
-                  <code className="block text-emerald-300 font-mono bg-black/40 rounded px-2 py-1.5 mt-1 whitespace-pre-wrap break-all">ollama run gemma3</code>
-                </li>
-              </ol>
-
-              <p className="text-zinc-500 mt-3">That's it — this page reconnects on its own within a few seconds. No need to refresh.</p>
-
-              <div className="border-t border-zinc-700 my-3" />
-
-              <p className="text-zinc-400">New to Ollama? Download it free from <a href="https://ollama.com" target="_blank" rel="noreferrer" className="text-blue-400 hover:underline">ollama.com</a>, install, then follow step 4 above.</p>
-
-              <button
-                onClick={() => checkOllama()}
-                className="mt-3 w-full py-2 border border-blue-500/50 hover:border-blue-400 hover:bg-blue-500/10 text-blue-300 rounded-lg transition-all font-medium">
-                ↻ Retry detection now
-              </button>
-            </div>
-          )}
+          {mode === "ollama" && ollamaStatus === "down" && <OllamaSetup onReady={() => checkOllama()} />}
         </div>
 
         <div className="border-t border-zinc-800" />

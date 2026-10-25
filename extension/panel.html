@@ -57,6 +57,16 @@ label.chk{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--ink
 .fld{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink2);margin-top:8px}
 .fld input,.fld select{background:#0f0b24;border:1px solid var(--line);border-radius:8px;color:#fff;padding:6px 8px;font:inherit;font-size:12.5px}
 .fld small{color:var(--ink3);font-size:11px}
+.pets{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+.pets button{padding:4px 2px 3px;display:flex;flex-direction:column;align-items:center;gap:1px;font-size:11px;color:var(--ink2)}
+.pets button.on{border-color:var(--acc);background:#2b2063;color:#fff}
+.pets .mini{width:44px;height:44px}
+.me-pet{display:flex;gap:10px;align-items:center}
+.me-pet .big-pet{width:72px;height:72px;flex:none}
+.me-pet .fld{flex:1;margin:0}
+.prompt{font-size:11.5px;background:#0f0b24;border:1px solid var(--line);border-radius:8px;padding:6px 8px;color:var(--ink2);margin-top:6px;user-select:all}
+.list{font-size:12px;color:var(--ink2);margin:6px 0 0;padding-left:16px}
+.list button{padding:1px 7px;font-size:11px;margin-left:6px}
 footer{padding:4px 14px 14px;font-size:11.5px;color:var(--ink3)}
 footer a{color:var(--ink2)}
 </style>
@@ -116,12 +126,42 @@ footer a{color:var(--ink2)}
     <div class="msgs" id="msgs" aria-live="polite"></div>
     <form class="ask" id="askForm"><input id="q" placeholder="Ask Vidi about your video, this page or a document..." autocomplete="off"><button id="send">Ask</button></form>
   </section>
+  <details class="card" id="petCard">
+    <summary style="cursor:pointer;font-weight:600"><span id="petIcon">🐉</span> Your pet <span id="petTitle">Vidi</span> <span style="color:var(--ink3);font-weight:400;font-size:11.5px">BETA</span></summary>
+    <p class="note">A little friend at the edge of your web pages. Click it to chat, ask about the page, fill forms from your CV, set timers and reminders, or search the web. It moves away from buttons and text by itself; drag it anywhere to give it a fixed spot.</p>
+    <p class="note"><a id="petTraining" href="https://videodoc.netlify.app/#/pet-training" target="_blank" rel="noopener" style="color:#c4b5fd">🎓 Pet training: learn and try every skill ↗</a></p>
+    <div class="me-pet" style="margin-top:8px">
+      <div class="big-pet vp" id="petBig" data-mood="happy"></div>
+      <label class="fld">Name<input id="petName" maxlength="20" autocomplete="off"></label>
+      <label class="fld">Language<select id="petLang"></select></label>
+    </div>
+    <label class="chk"><input type="checkbox" id="petOn"> Show my pet on web pages</label>
+    <button id="petAllow" hidden style="margin-top:6px;width:100%">Allow the pet on web pages</button>
+    <div class="pets" id="petKinds"></div>
+    <label class="fld" id="petColourWrap">Colour<select id="petColour"></select></label>
+    <input type="file" id="petPic" accept="image/png,image/jpeg,image/webp" hidden>
+    <input type="file" id="pet3d" accept=".glb" hidden>
+    <details style="margin-top:8px"><summary style="cursor:pointer;font-size:12.5px;color:var(--ink2)">Make your own pet</summary>
+      <p class="note"><b>From a picture:</b> choose “My picture” above and pick a photo or drawing (PNG or JPEG). It bounces, nods and reacts like the others.</p>
+      <p class="note"><b>A 3D pet:</b> make a .glb file with any 3D tool, then choose “My 3D pet”. Animations named Idle, Happy, Think, Sleep or Sad are used when they exist. A text to start from (put in your favourite animal):</p>
+      <div class="prompt" id="petPrompt">A cute low-poly [your favourite animal] pet, sitting, big friendly eyes, soft simple colours, no text, full body, with looping animations named Idle, Happy, Think, Sleep and Sad, exported as one .glb file under 5 MB.</div>
+    </details>
+    <p class="note" id="petAlarms"></p>
+    <p class="note" id="petHidden"></p>
+    <p class="note" id="petSaved"></p>
+    <div class="row"><button id="petForget">Forget what my pet knows about me</button><button id="petForgetForm">Forget my saved form details</button><button id="petForgetFile">Forget the file I gave</button><button id="petFree" hidden>Let my pet find its own spot</button></div>
+    <p class="note">The chat, the name and what your pet remembers stay in this browser. Searching the web asks Wikipedia and DuckDuckGo. Timers ring only while the browser is open.</p>
+  </details>
 </main>
 <footer>
   <label class="chk"><input type="checkbox" id="auto" checked> Start writing the guide by itself after a recording (with the AI used last time)</label>
   <p><a href="https://videodoc.netlify.app/#/check" target="_blank" rel="noopener" id="check">🖥 Test my computer</a>: which AI size runs best on it.</p>
-  <p>Everything runs on your computer through the VideoDoc website. Nothing is uploaded. <a href="https://videodoc.netlify.app/#/policy" target="_blank" rel="noopener" id="privacy">Privacy</a></p>
+  <p>Everything runs on your computer through the VideoDoc website. Nothing is uploaded, unless you turn on Ollama cloud models in the website's AI settings. <a href="https://videodoc.netlify.app/#/policy" target="_blank" rel="noopener" id="privacy">Privacy</a></p>
 </footer>
+<script src="pet/i18n.js"></script>
+<script src="pet/pets.js"></script>
+<script src="pet/pet-css.js"></script>
 <script src="panel.js"></script>
+<script src="pet/pet-panel.js"></script>
 </body>
 </html>

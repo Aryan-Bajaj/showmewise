@@ -1,5 +1,7 @@
 // Shared local-LLM calls (Ollama + WebLLM) used by both annotation and RAG chat.
-// Everything runs locally / in-browser — no servers, no API keys.
+// Everything runs locally / in-browser — no servers, no API keys (except an
+// Ollama cloud model, which the user turns on themselves: lib/cloud.js).
+import { isCloud, cloudError } from "./cloud"
 
 let webllmEngine = null
 let webllmModel = null
@@ -36,13 +38,13 @@ export const WEBLLM_MODELS = [
     id: "Llama-3.2-3B-Instruct-q4f16_1-MLC", name: "Llama 3.2 3B",
     label: "Large", params: "3B", size: "~1.9 GB", gb: 2.3,
     accuracy: "Not measured yet", speed: "Slower", time: "30s to 1m",
-    note: "Bigger, so probably better answers. Needs about 2,3 GB of graphics memory and more free memory.",
+    note: "Bigger, so probably better answers. Needs about 2.3 GB of graphics memory and more free memory.",
   },
   {
     id: "Qwen2.5-3B-Instruct-q4f16_1-MLC", name: "Qwen2.5 3B",
     label: "Large", params: "3B", size: "~1.9 GB", gb: 2.5,
     accuracy: "Not measured yet (did not fit our test laptop)", speed: "Slower", time: "30s to 1m",
-    note: "Bigger, so probably better answers. Needs about 2,5 GB of graphics memory and more free memory.",
+    note: "Bigger, so probably better answers. Needs about 2.5 GB of graphics memory and more free memory.",
   },
   {
     id: "Phi-3.5-mini-instruct-q4f16_1-MLC", name: "Phi-3.5 mini",
@@ -210,6 +212,7 @@ export async function callOllama(userMsg, systemPrompt, model = "llama3.2", opts
   if (!res.ok) {
     const why = await res.text().catch(() => "")
     console.info(`[VideoDoc] AI server refused the request (${res.status}): ${why.slice(0, 200)}`)
+    if (isCloud(model) && res.status !== 400) throw new Error(cloudError(res.status, why))
     throw new Error(res.status === 400 ? `Ollama refused the request: ${why.slice(0, 200)}` : "Ollama not reachable — is it running on localhost:11434?")
   }
   if (opts.onToken && res.body) {

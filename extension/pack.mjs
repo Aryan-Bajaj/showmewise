@@ -21,6 +21,10 @@ fs.writeFileSync(path.join(TMP, "manifest.json"), JSON.stringify(man, null, 2) +
 // the background worker lists the test address too; the store copy only knows the real site
 const bg = path.join(TMP, "bg.js")
 fs.writeFileSync(bg, fs.readFileSync(bg, "utf8").replace(', "http://127.0.0.1:8899"]', "]"))
+// the pet knows the test address too, and its developer check is not for the store
+const petJs = path.join(TMP, "pet", "pet.js")
+fs.writeFileSync(petJs, fs.readFileSync(petJs, "utf8").replace(', "http://127.0.0.1:8899"]', "]"))
+for (const f of fs.readdirSync(path.join(TMP, "pet"))) if (/\.check\.mjs$/.test(f)) fs.rmSync(path.join(TMP, "pet", f))
 
 const zip = path.join(OUT, `videodoc-plugin-${man.version}.zip`)
 fs.rmSync(zip, { force: true })

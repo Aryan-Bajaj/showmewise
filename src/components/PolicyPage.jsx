@@ -4,7 +4,7 @@ import { MAX_VIDEO_MB, MAX_VIDEO_MIN } from '../lib/limits'
 
 // Privacy, terms and credits in plain English. Everything here describes what
 // the app really does (checked against the code): keep it true when the app changes.
-const UPDATED = '23 October 2026'
+const UPDATED = '24 October 2026'
 const REPO = 'https://github.com/Aryan-Bajaj/video-docs'
 
 const C = { bg: '#0f0b24', card: 'rgba(28,18,55,0.7)', line: 'rgba(167,139,250,0.18)', ink: '#ece9ff', body: 'rgba(236,233,255,0.78)', dim: 'rgba(236,233,255,0.55)', acc: '#a78bfa' }
@@ -71,7 +71,7 @@ export default function PolicyPage() {
 
         <Section id="privacy" n="1" title="Privacy">
           <H>Your recordings</H>
-          <p style={{ margin: 0 }}>Everything VideoDoc does with a recording (frames, speech to text, reading the screen, writing the guide, clips and exports) happens inside your browser on your own computer. Your video, its transcript and the guide are not uploaded to us or to anyone else. We cannot see them.</p>
+          <p style={{ margin: 0 }}>Everything VideoDoc does with a recording (frames, speech to text, reading the screen, writing the guide, clips and exports) happens inside your browser on your own computer. Your video, its transcript and the guide are not uploaded to us or to anyone else. We cannot see them. The one exception is your own choice: if you turn on Ollama cloud models and pick one, what that model reads goes to Ollama's servers (see Optional features).</p>
           <H>What we do not collect</H>
           <UL items={['No account and no sign-up.', 'No analytics, no ads and no tracking cookies.', 'We do not sell or share any data, because we do not collect any.']} />
           <H>What your browser downloads, and from where</H>
@@ -82,6 +82,7 @@ export default function PolicyPage() {
           <H>Optional features</H>
           <UL items={[
             <><b>Ollama</b> runs on your own computer. When you choose it, the page talks to it at <code>localhost</code>, and Chrome may ask you to allow local network access. This traffic stays on your machine.</>,
+            <><b>Ollama cloud models</b> are off unless you turn them on in the AI settings, after a notice you must confirm. A cloud model runs on Ollama's servers, not on your computer: the words and screenshots of your video, a document or your question go there to be answered. Use them only for videos and documents that are not private. Ollama's own terms and privacy policy apply (<A href="https://ollama.com/privacy">Ollama privacy</A>). VideoDoc never picks a cloud model by itself. The plugin's chats and your pet use a cloud model only while cloud models are on and you picked one in the AI settings; those answers are marked ☁.</>,
             <><b>Search the web</b> in Vid Chat only runs when you click it. It opens a new tab on <b>Perplexity</b> with the question you typed, nothing else. Your video and your guide are not sent. Perplexity's own privacy policy applies there.</>,
             <><b>Vidi</b>, the help chat, answers from the help text of this website. It reads error messages shown on the page, and screenshots you paste, on your computer only. For written answers it uses Ollama on your computer or a small AI in your browser (downloaded once), never a server.</>,
           ]} />
@@ -92,7 +93,11 @@ export default function PolicyPage() {
             <>The VideoDoc plugin (Chrome and Edge) uses this website, in a tab of its own, to do the work. Everything stays on your computer, like on the website.</>,
             <><b>Ask Vidi about this page</b> reads the page you are on only when you ask, after you allowed it once. If the answer is not there, Vidi may read up to 3 linked pages of the same site; it tells you which.</>,
             <><b>Show me on the page</b> runs only when you press it: Vidi marks buttons on the page and takes a screenshot of the visible part for the chat. It never clicks or types for you.</>,
+            <><b>Meet your pet</b> on the Pet training page sends your answers (your name, the pet, its name, the language, what you like and the AI you chose) to the plugin in this browser, nowhere else. Getting a model through the Ollama helper downloads it from Ollama to your computer, only when you press the button.</>,
+            <><b>Guiding you through a tool</b> (the pet) reads the page you are on and the manual you gave it, each time you ask or press Done, next step, to find your next step. It marks that step like Show me on the page and never clicks or types for you.</>,
             <>Chats and screenshots are kept only until you close the browser. A document you pick is read on your computer and not kept.</>,
+            <><b>Your pet (BETA)</b> appears on web pages only after you allowed Vidi to read pages, and you can turn it off or hide it on any site. It reads a page only when you ask about it. Its chat, its name, your name and the things you told it you like are kept in this browser until you clear them (“Forget what my pet knows about me”). Timers, alarms and reminders are kept in this browser too.</>,
+            <><b>Search the web</b> with your pet sends only your search words to <b>Wikipedia</b> and <b>DuckDuckGo</b>, to get short answers with their links. See <A href="https://foundation.wikimedia.org/wiki/Policy:Privacy_policy">Wikimedia's privacy policy</A> and <A href="https://duckduckgo.com/privacy">DuckDuckGo's privacy policy</A>. “More results” opens your own search engine in a new tab.</>,
           ]} />
           <H>What stays on your device</H>
           <p style={{ margin: 0 }}>Downloaded model files stay in your browser's storage so the next run starts faster. An exported HTML guide can remember your checklist ticks in that browser. Vidi remembers how you want it to answer (Ollama, browser AI or no AI) in this browser. To pick up where a run stopped (a crash, a closed tab, the computer going to sleep), the transcript and the screen text of the last video, and the parts already written, are kept in this browser's storage. The written parts are cleared when the guide is finished; the transcript and screen text stay, so the same video starts faster next time, until you choose another video, which replaces them. While a video is processed, the page asks the browser to keep the screen on, so the computer does not go to sleep halfway; this ends when processing ends or when you leave the tab. You can remove all of this at any time by clearing the site data in your browser settings. If you tell Vidi your name, it keeps your name and the topic you asked about last in this browser, to greet you next time; Forget me in the chat clears it.</p>
@@ -106,6 +111,8 @@ export default function PolicyPage() {
             'AI output can be wrong or incomplete. Always check a guide before you share it or rely on it. You are responsible for the documents you create and share.',
             'Only use recordings you are allowed to use, and remove personal or confidential information before you share a guide.',
             'Do not use VideoDoc for anything illegal or to harm others.',
+            "If you turn on Ollama cloud models, you choose to send what that model reads to Ollama, under Ollama's own terms. Do not send work, customer or other confidential material that you are not allowed to share.",
+            'Your pet (BETA) is a test feature. Its answers can be wrong, and its timers, alarms and reminders ring only while the browser is open. Do not rely on them for anything important, such as medicine or safety.',
             limit ? `The online version accepts videos up to ${limit}, to protect your browser from running out of memory. The desktop app has no limit.` : 'Very long videos can use a lot of memory in the browser. The desktop app is better for those.',
             'Turning a video into a guide works your computer hard for a long time (memory, processor and, with some models, the graphics card). Keep the laptop plugged in, close programs you do not need and save your other work first.',
             'To the extent the law allows, there is no liability for any loss or damage from using VideoDoc. This does not limit liability that cannot be limited by law.',
