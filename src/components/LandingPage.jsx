@@ -1142,7 +1142,7 @@ export default function LandingPage() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14 }}>
             {[
-              ['⏺', 'Record any app', 'The whole screen, one window or a tab, with your voice. Press Stop and the guide writes itself.'],
+              ['⏺', 'Record any app', 'The whole screen, one window or a tab, with your voice. Press Stop, check the recording, then make the guide.'],
               ['🔔', 'Small and quiet', 'The steps and the time left in a small window, and a notification when your guide is ready.'],
               ['💬', 'Ask Vidi anything', 'About your video, the page you are on, a PDF or Word file, or ShowMeWise itself.'],
               ['🔗', 'Looks behind links', 'Not on the page? Vidi reads the links that match your question (same site) and tells you which.'],

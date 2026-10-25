@@ -253,7 +253,7 @@ export const HOWTO = [
   {
     id: "record", title: "Record your screen (recorder)",
     body: [
-      "No recording yet? Press Record your screen on the upload page. Choose the whole screen, one app window or a browser tab, then do the task and explain it out loud. Press Stop when you are done, or Stop sharing in the browser bar.",
+      "No recording yet? Press Record your screen on the upload page. Choose the whole screen, one app window or a browser tab, then do the task and explain it out loud. Press Stop when you are done, or Stop sharing in the browser bar. Then watch the recording, save it if you want, and press Make a guide.",
       "The guide starts by itself after you stop. The recording stays on your computer.",
       "Allow the microphone when the browser asks, so your voice is recorded. If it is blocked, the video has no voice and the guide is written from the screen only.",
       "On this website a recording stops by itself at the size limit. If the tab closes while recording, the next visit offers the recording again (Use it or Delete it).",

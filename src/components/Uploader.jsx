@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Video, ShieldCheck, Sparkles, CloudUpload, Circle, Square } from "lucide-react"
 import { post } from "../lib/bridge"
 import { savedBest } from "../lib/computerCheck"
@@ -39,6 +39,9 @@ export default function Uploader({ onVideoSelect }) {
   const [rec, setRec] = useState(null)        // { stop, ms } while recording
   const [recNote, setRecNote] = useState("")
   const [saved, setSaved] = useState(null)    // "cut" | "unfinished" | null
+  const [review, setReview] = useState(null)  // the recording just stopped, before its guide
+  const reviewUrl = useMemo(() => review && URL.createObjectURL(review), [review])
+  useEffect(() => () => reviewUrl && URL.revokeObjectURL(reviewUrl), [reviewUrl])
   useEffect(() => { savedRecording().then(setSaved) }, [])
   const record = async (streamId = null, o = null) => {
     setLimitError(""); setRecNote("")
@@ -52,7 +55,9 @@ export default function Uploader({ onVideoSelect }) {
           // the website takes up to MAX_VIDEO_MIN minutes: stop there, not after
           if (MAX_VIDEO_MIN && ms >= MAX_VIDEO_MIN * 60000) r.stop()
         },
-        onEnd: (file) => { setRec(null); post("status", { state: "upload", steps: [] }); if (file) handleVideo(file, o); else setLimitError("The recording is empty. Try again and share a screen, window or tab.") },
+        // a recording made here is shown first (watch, save, then make the guide);
+        // a plugin recording goes straight on, its user is in the plugin, not on this page
+        onEnd: (file) => { setRec(null); post("status", { state: "upload", steps: [] }); if (!file) setLimitError("The recording is empty. Try again and share a screen, window or tab."); else if (streamId) handleVideo(file, o); else setReview(file) },
       })
       setRec({ stop: r.stop, ms: 0 })
       if (r.micNote) setRecNote(r.micNote)
@@ -127,7 +132,19 @@ export default function Uploader({ onVideoSelect }) {
       )}
 
       {/* Or record the screen right here */}
-      {canRecord() && (rec ? (
+      {review ? (
+        <div className="w-full max-w-2xl rounded-xl border border-violet-400/40 bg-[#120c2c]/90 p-4 space-y-3">
+          <p className="text-sm text-zinc-200">Your recording is ready ({Math.round(review.size / 1048576)} MB). Watch it, save it, then make the guide.</p>
+          <video src={reviewUrl} controls className="w-full rounded-lg bg-black" />
+          <div className="flex flex-wrap items-center gap-2">
+            <button onClick={() => { const f = review; setReview(null); handleVideo(f) }} className="inline-flex items-center gap-2 text-sm font-semibold text-white rounded-lg px-4 py-2" style={{ background: "linear-gradient(135deg,#6d4aff,#3f62ff)" }}>
+              <Sparkles className="w-4 h-4" /> Make a guide
+            </button>
+            <a href={reviewUrl} download={review.name} className="text-sm text-violet-200 border border-violet-400/40 hover:bg-violet-500/10 rounded-lg px-4 py-2">⬇ Save recording</a>
+            <button onClick={() => { setReview(null); discardSavedRecording() }} className="ml-auto text-sm text-zinc-400 hover:text-white underline">Delete and record again</button>
+          </div>
+        </div>
+      ) : canRecord() && (rec ? (
         <div role="status" className="w-full max-w-2xl flex items-center gap-3 rounded-xl border border-red-400/40 bg-red-500/10 px-4 py-3">
           <span className="w-3 h-3 rounded-full bg-red-500 animate-pulse shrink-0" />
           <span className="text-sm text-red-100">Recording <b className="tabular-nums">{mmss(rec.ms)}</b>{MAX_VIDEO_MIN ? <span className="text-red-200/70"> · stops by itself at {MAX_VIDEO_MIN} min</span> : null}. Do the task and explain it out loud.</span>

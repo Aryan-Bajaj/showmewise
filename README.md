@@ -173,7 +173,7 @@ Version 5 is about making a guide easy to follow. Everything still runs on your 
 * **Clicks nobody says.** When a window opens, the mouse pointer in the frame just before shows what was clicked (the word under it, or the toolbar icon that opened the window), and that click is always in the guide. No pointer found, nothing added. Works on dark and light screens.
 * **The whole transcript first.** The AI lists every action of the full recording with its time; the tools check each one against what was said then and give it to its part as a must-cover item.
 * **Key words box, suggestions and review mode.** Type the names or codes of your video once; see what was said but not written under each step (+ Add); jump to only the steps that need a look.
-* **Sharper recordings.** The built-in recorder keeps the screen size up to 2560 x 1440 at a higher quality, so small text in the screenshots stays readable. "Save recording" under the video downloads the full recording as a file.
+* **Sharper recordings.** The built-in recorder keeps the screen size up to 2560 x 1440 at a higher quality, so small text in the screenshots stays readable. After Stop you watch the recording first, can save it as a video file, and then press Make a guide.
 * **Picks up where it stopped.** A crash or a closed tab no longer loses an hour of work: the same video continues from the last finished part.
 * **Editable flow diagram.** It follows your step edits, and in Edit document you can rename, add or remove its boxes and phases.
 * **Content-Security-Policy.** The website runs only its own scripts and talks only to Ollama and the desktop engine on your computer, the AI model hosts and the two search sites. Text from a video, a document or a web page can never run as code.
