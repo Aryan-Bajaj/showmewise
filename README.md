@@ -8,8 +8,6 @@
 
 > **Now on Version 5, the manual release.** Each action in a guide now points at the exact spot on the screen with a numbered marker, on the screenshot and inside the step clip, and the PDF, Word and HTML exports read like a real process manual: cover, contents, what you need, the process at a glance, Part A, B, C with numbered actions, a checklist and a quick reference. See [New in v5](#-new-in-v5).
 
-> **New name.** This project was called VideoDoc until 25 Oct 2026. Same tool, new name.
-
 <p align="center"><img src="public/landing/guide-html.jpg" alt="A guide made by ShowMeWise: Part A with numbered actions and marked screenshots, and the step clip beside it" width="820"></p>
 <p align="center"><sub>A guide written by ShowMeWise from a one-minute recording: numbered actions, the click marked on each screenshot, the step clip beside it.</sub></p>
 
