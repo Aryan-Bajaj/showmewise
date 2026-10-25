@@ -844,4 +844,6 @@ ShowMeWise is a browser-based productivity tool. Transcription accuracy depends 
 
 Attribution Assurance License (AAL). See [LICENSE](LICENSE). Free to use for yourself; when you share or publish it, show the credit to Aryan Bajaj where your app starts.
 
+The LICENSE file is signed with my GPG key. The public key is in [public-key.asc](public-key.asc), so anyone can check it with `gpg --import public-key.asc` and then `gpg --verify LICENSE`.
+
 ---

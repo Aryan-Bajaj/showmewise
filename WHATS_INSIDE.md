@@ -1,6 +1,7 @@
 # ShowMeWise Desktop — What's inside, how it works, what it downloads
 
 A transparency / "software bill of materials" sheet for IT & security review.
+ShowMeWise itself is under the Attribution Assurance License (AAL), see LICENSE. The parts below keep their own licenses.
 **Summary:** everything runs on the user's machine. The only data that ever crosses
 the network is software/models coming *to* the user — never the user's content.
 
