@@ -50,6 +50,8 @@
     .pt.err { background: #3d1f2e; }
     .wait { color: #a99fd6; font-style: italic; }
     .cloud { margin-top: 5px; font-size: 11px; color: #fcd34d; }
+    .pbar { margin-top: 8px; height: 8px; border-radius: 9px; background: rgba(255,255,255,.12); overflow: hidden; }
+    .pbar i { display: block; height: 100%; border-radius: 9px; background: linear-gradient(90deg,#7c5cff,#22d3ee); transition: width .4s; }
     .shot { display: block; width: 100%; margin-top: 8px; border-radius: 8px; border: 1px solid rgba(167,139,250,.35); cursor: zoom-in; }
     .shot.big { position: fixed; inset: 5vh 5vw; width: 90vw; height: 90vh; object-fit: contain; background: #0f0d1f; z-index: 2; cursor: zoom-out; }
     .note { margin-top: 6px; font-size: 12px; color: #c9c2ee; }
@@ -313,6 +315,11 @@
         for (const src of x.sources.filter((y) => /^https?:\/\//i.test(y.url || "") && !seenUrl.has(y.url) && seenUrl.add(y.url))) { const a = document.createElement("a"); a.href = src.url; a.target = "_blank"; a.rel = "noopener noreferrer"; a.textContent = "↗ " + String(src.label || src.url).replace(/ \(\d+\)$/, ""); s.append(a) }
         d.append(s)
       }
+      // a download in progress: a bar that fills up (the % is in the text too)
+      if (x.progress != null) {
+        const bar = document.createElement("div"); bar.className = "pbar"; bar.setAttribute("role", "progressbar"); bar.setAttribute("aria-valuenow", String(x.progress))
+        bar.append(Object.assign(document.createElement("i"), { style: `width:${Math.max(2, Math.min(100, x.progress))}%` })); d.append(bar)
+      }
       if (x.state === "done" && /cloud$/.test(x.model || "")) d.append(Object.assign(document.createElement("div"), { className: "cloud", textContent: tr("cloud", { model: x.model }) }))
       const row = document.createElement("div"); row.className = "row"
       if (x.ring && ring?.id === x.ring) row.append(btn(tr("stop"), () => tell({ type: "stop-ring" }), true), btn(tr("snooze"), () => tell({ type: "stop-ring", snooze: x.snooze })))
@@ -355,6 +362,7 @@
         btn(tr("confNo"), () => tell({ type: "confidential", id: x.id, answer: "no", model: x.confQuestion })))
       if (x.choose?.length) for (const c of x.choose) row.append(btn(`${c.n}. ${c.near}`, () => tell({ type: "pick-one", id: x.id, idx: c.idx }), true))
       if (x.guideStep && x.state === "done") row.append(btn(tr("guideNext"), () => tell({ type: "guide-next", id: x.id }), true), btn(tr("guideStop"), () => tell({ type: "guide-stop", id: x.id })))
+      if (x.openFile && x.state === "done") row.append(btn(tr("openFile", { file: x.openFile.length > 28 ? x.openFile.slice(0, 26) + "…" : x.openFile }), () => tell({ type: "open-file" })))
       if (x.trainingLink && x.state === "done") row.append(btn(tr("chipLearn"), () => tell({ type: "open-training" })))
       if (x.askFeedback) row.append(btn(tr("helpful"), () => tell({ type: "feedback", id: x.id, good: true })), btn(tr("notReally"), () => tell({ type: "feedback", id: x.id, good: false })))
       if (row.childNodes.length) d.append(row)
@@ -461,7 +469,11 @@
     const h = new Date().getHours(), part = h >= 5 && h < 12 ? "morning" : h < 17 ? "afternoon" : h < 22 ? "evening" : "night"
     const lines = (GREET[window.VidiI18n?.lang] || GREET.en)[part]
     const user = String(petMem?.user || "").slice(0, 20)
-    speak(lines[Math.floor(Math.random() * lines.length)].replace("{u}", user ? `, ${user}` : "").replace("{p}", pet.name || "Vidi"), 9000)
+    // every greeting says how to start: a new user does not know the pet opens a chat when clicked
+    const CLICK = { en: "Just click me", de: "Klick mich einfach an", hi: "Bas mujhe click karo", es: "Haz clic en mí", fr: "Clique sur moi" }
+    let line = lines[Math.floor(Math.random() * lines.length)].replace("{u}", user ? `, ${user}` : "").replace("{p}", pet.name || "Vidi")
+    if (!/click|klick|clic/i.test(line)) line = line.replace(/\s*💬$/, "") + ` ${CLICK[window.VidiI18n?.lang] || CLICK.en} 💬`
+    speak(line, 9000)
     feel("happy", 2500)
   }
   setTimeout(greet, 1200)
@@ -523,6 +535,8 @@
     return n
   }
   chrome.runtime.onMessage.addListener((m, _from, reply) => {
+    // "▶ Try it" on the Pet training page: the chat opens, the sentence is said for the user
+    if (m?.to === "pet-page" && m.type === "open") { if (!open) toggle(true); reply({ ok: true }); return }
     if (m?.to !== "pet-page" || m.type !== "fill") return
     walkFill(m.fills || [], m.file).then((n) => reply({ done: true, n }), () => reply({ done: false }))
     return true

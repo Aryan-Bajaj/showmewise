@@ -1,5 +1,5 @@
-// Key words the user types before a run ("ME21N, Weekly Overview").
-// They fix how speech recognition heard them (ME211N → ME21N), are spelled
+// Key words the user types before a run ("QX21N, Weekly Overview").
+// They fix how speech recognition heard them (QX211N → QX21N), are spelled
 // exactly like this in the guide, and a part where one is said or shown must
 // mention it. Everything else in the guide still comes from the video.
 import { fixWithVocab } from "./screenVocab.js"

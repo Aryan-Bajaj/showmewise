@@ -153,6 +153,8 @@ chrome.runtime.onMessage.addListener((m, from, reply) => {
     // "Test my computer" on the website: free memory and open tabs (a website cannot read these)
     // the pet intro on the Pet training page reads and sets the pet (pet/pet-bg.js)
     else if (m.type === "pet-info") petInfo().then((info) => from.tab?.id && send(from.tab.id, { type: "pet-info", id: m.id, ...info })).catch(() => {})
+    // "▶ Try it" on the Pet training page: the pet hears the sentence as if the user typed it
+    else if (m.type === "pet-try" && from.tab?.id != null && /#\/pet-training/.test(from.tab.url || from.url || "")) chrome.tabs.sendMessage(from.tab.id, { to: "pet-page", type: "open" }).catch(() => {}).then(() => petHear(String(m.text || "").slice(0, 300), from.tab.id))
     else if (m.type === "pet-setup") petSetup(m.setup).then((info) => from.tab?.id && send(from.tab.id, { type: "pet-info", id: m.id, ...info })).catch(() => {})
     else if (m.type === "need-system-info") systemInfo().then((info) => from.tab?.id && send(from.tab.id, { type: "system-info", id: m.id, ...info })).catch(() => {})
     else if (m.type === "chat-status") chatUpdate(m.id, { label: m.label })
@@ -265,6 +267,8 @@ async function pageElements(tabId) {
       for (const e of document.querySelectorAll("a[href],button,input,select,textarea,[role=button],[role=tab],[role=menuitem],summary,label,h1,h2,h3")) {
         const r = e.getBoundingClientRect(), st = getComputedStyle(e)
         if (r.width < 4 || r.height < 4 || st.visibility === "hidden" || st.display === "none") continue
+        // the Pet training's own "▶ Try" buttons are not part of the practice page (one was marked as the step)
+        if (e.closest("[data-vidi-skip]")) continue
         const t = (e.innerText || e.getAttribute("aria-label") || e.placeholder || e.title || e.value || "").replace(/\s+/g, " ").trim().slice(0, 80)
         if (!t) continue
         e.setAttribute("data-vidi-idx", String(out.length))
@@ -319,7 +323,13 @@ async function showPicks(id, m) {
   // only what the answer names ("Click New board" marked Share too): the AI's first pick when none is named
   const said = String(s.answer || "").toLowerCase()
   if (picks.some((p) => said.includes(p.label.toLowerCase()))) picks = picks.filter((p) => said.includes(p.label.toLowerCase()))
-  else picks = picks.slice(0, 1)
+  else {
+    // none named: the AI's first pick only when half of its words are in the answer ("Type a name in the
+    // Board name field" before the form is open marked "What is your name?", which shares only "name")
+    const w = (t) => (String(t).toLowerCase().match(/[a-zà-ÿ0-9]{4,}/g) || [])
+    picks = picks.slice(0, 1).filter((p) => { const lw = w(p.label); return lw.length && lw.filter((x) => said.includes(x)).length * 2 >= lw.length })
+    if (!picks.length) return update({ showing: "", shotNote: "I could not find that on the page yet. It may appear after the step before." })
+  }
   // a button that is on the page many times: the one next to what the user named; when they named
   // none, all of them are marked and the pet asks which one (it never guesses)
   let choose = null
@@ -334,7 +344,8 @@ async function showPicks(id, m) {
       const asked = String(s.question || "").toLowerCase()
       const w = (t) => (t.toLowerCase().match(/[a-zà-ÿ0-9]{3,}/g) || [])
       const named = same.map((x) => ({ x, n: w(x.near).filter((v) => asked.includes(v)).length })).sort((a, b) => b.n - a.n)
-      if (named[0].n > 0 && named[0].n > (named[1]?.n || 0)) picks = [{ ...named[0].x }]
+      // (the mark names what it is next to: "Add to cart · Tea kettle", so the user sees it is the right one)
+      if (named[0].n > 0 && named[0].n > (named[1]?.n || 0)) picks = [{ ...named[0].x, label: `${named[0].x.label} · ${named[0].x.near.slice(0, 40)}` }]
       else { picks = same.slice(0, 6); choose = picks.map((x, i) => ({ idx: x.idx, n: i + 1, near: x.near })) }
     }
   }

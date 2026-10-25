@@ -31,7 +31,7 @@ SHOW ME ON THE PAGE
 Lost on a page? Vidi marks the right button on the real page, with a numbered tag beside it, and puts a screenshot in the chat. It never clicks for you.
 
 YOUR PET VIDI (BETA)
-Vidi can sit at the edge of your web pages as a small animated pet: a dragon, wolf, cat, fox or owl, your own picture or your own 3D pet. It moves out of the way of buttons and text by itself. Click it to ask about the page, about VideoDoc or anything else, to search the web (with links to the sources), or to set timers, alarms and reminders. Rename it, and it remembers your name. Turn it off or hide it on any site with one click.
+Vidi can sit at the edge of your web pages as a small animated pet: a dragon, wolf, cat, fox or owl, your own picture or your own 3D pet. It moves out of the way of buttons and text by itself. Click it to ask about the page, about VideoDoc or anything else, to search the web (with links to the sources), or to set timers, alarms and reminders. Rename it, and it remembers your name. Give it your CV and it fills forms for you (it says which CV it uses, and never touches passwords or presses Submit). Ask "what do you know about me?" to see everything it keeps, and open the file it has. Turn it off or hide it on any site with one click.
 
 GUIDE ME (BETA)
 Give the pet the manual of a tool and ask how to do something. It asks when the task is unclear, then shows one step at a time, marked on the real page with a picture. It never clicks for you. When a page has the same button twice, it marks the one you asked about.
@@ -46,7 +46,7 @@ An assistant for learning and documenting how software is used: it turns screen 
 - desktopCapture: to record the screen, a window or a tab when the user presses Record.
 - sidePanel: to show VideoDoc next to the page when the user chooses "Open on the side".
 - notifications: to say when a guide is ready.
-- storage: to keep the user's settings and the current chat until the browser closes, and the pet's chat, name and memory until the user clears them.
+- storage: to keep the user's settings and the current chat until the browser closes, and the pet's chat, name and memory (including the one file the user gave it and form details the user chose to save) until the user clears them. Nothing is sent anywhere.
 - alarms: for the timers, alarms and reminders the user sets with the pet.
 - offscreen: to play the short chime of a timer or alarm (a background worker cannot play sound).
 - search: "More results" opens the user's own search engine with the words they searched for.

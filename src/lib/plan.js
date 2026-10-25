@@ -50,6 +50,15 @@ export function parsePlan(raw) {
   }
   return list
     .map((a) => ({ t: secs(a?.t), do: String(a?.do || "").replace(/\s+/g, " ").trim().slice(0, 120) }))
+    // "Click Share, switch on anyone with the link, and copy the link": three clicks said in one
+    // sentence are three actions. As one, "Click Share" alone counted as the whole sentence, and the
+    // switch and the copy were never asked for (seen on real runs: the Share part kept one step).
+    .flatMap((a) => {
+      const parts = a.do.replace(/\.$/, "").split(/,\s*(?:and\s+|then\s+)?|\s+(?:and|then)\s+/i).map((s) => s.trim()).filter(Boolean)
+      const VERB = /^(click|tap|press|select|choose|pick|type|enter|open|switch|turn|copy|paste|save|drag|check|tick|untick|add|remove|delete|close|scroll|go to|fill|upload|download|sign|log)\b/i
+      if (parts.length < 2 || !parts.every((p) => VERB.test(p))) return [a]
+      return parts.map((p) => ({ t: a.t, do: p[0].toUpperCase() + p.slice(1) + "." }))
+    })
     // a thin item ("Click", "login") says nothing a reader can do
     .filter((a) => a.t != null && a.do.length >= 4 && !/^(click|copy|paste|select|open|go|type|enter|press|choose|tap)\W*$/i.test(a.do))
     // only points, names nothing ("go to this tab here", "click here"): a reader cannot follow it
@@ -90,7 +99,14 @@ export function addPlanToWindows(windows, plan, max = 12) {
     const names = k.length ? k : [it.do.toLowerCase().split(" ")[0].replace(/\W/g, "")]
     if (!/\d/.test(it.do) && !names.some((x) => x.length >= 4 && screen.includes(x.slice(0, 5)))) continue
     const list = w.actions || (w.actions = [])
-    const have = list.some((a) => { const ka = actionKey(a); return k.length ? k.every((x) => ka.some((y) => y.slice(0, 5) === x.slice(0, 5))) : a.toLowerCase() === it.do.toLowerCase() })
+    // (a different verb is a different action: "Copy the link" is not "Switch on anyone with the link",
+    // although both name the link; it was dropped as a repeat, seen on a real run)
+    const verb = (s) => (s.toLowerCase().match(/\b(click|tap|press|select|choose|pick|type|enter|open|switch|turn|copy|paste|save|drag|check|tick|untick|add|remove|delete|close|scroll|fill|upload|download)\b/) || [])[1] || ""
+    const have = list.some((a) => {
+      const va = verb(a), vb = verb(it.do)
+      if (va && vb && va !== vb) return false
+      const ka = actionKey(a); return k.length ? k.every((x) => ka.some((y) => y.slice(0, 5) === x.slice(0, 5))) : a.toLowerCase() === it.do.toLowerCase()
+    })
     if (have || list.length >= max) continue
     // put it where it falls in time inside the part (the list is in order)
     // and after the listed action added before it (the plan is in time order)

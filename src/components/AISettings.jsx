@@ -105,7 +105,9 @@ export default function AISettings({ onConfirm, onClose, suggestedSections, tool
           // gemma3 first (it reads screens without inventing), then the biggest.
           const size = (m) => parseFloat(m.details?.parameter_size) || 0
           const best = [...local].sort((a, b) => (/gemma3/.test(b.name) - /gemma3/.test(a.name)) || size(b) - size(a))[0]
-          if (!autoPicked.current) { autoPicked.current = true; setSelectedModel(best.name); if (!DESKTOP) setMode("ollama") }
+          // (a model the user picked with Vidi's "Use" button comes first, when it is installed)
+          let picked = ""; try { picked = localStorage.getItem("vd-model-pick") || "" } catch { /* private window */ }
+          if (!autoPicked.current) { autoPicked.current = true; setSelectedModel(names.includes(picked) ? picked : best.name); if (!DESKTOP) setMode("ollama") }
           else setSelectedModel((cur) => names.includes(cur) || (isCloud(cur) && cloudOn()) ? cur : best.name)
           setOllamaStatus("ok")
         } else {

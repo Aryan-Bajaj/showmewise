@@ -57,7 +57,7 @@ export const HOWTO = [
     body: [
       "First pick the language and the speech option. Then choose the video. VideoDoc starts at once.",
       "No sound in your video? That is fine. The guide is then made from the screen only.",
-      "Key words (optional): type names or codes from the video, separated by commas, for example ME21N, Weekly Overview. The guide spells them exactly like this, and a part where one is said or shown uses it.",
+      "Key words (optional): type names or codes from the video, separated by commas, for example QX21N, Weekly Overview. The guide spells them exactly like this, and a part where one is said or shown uses it.",
     ],
   },
   {
@@ -308,6 +308,7 @@ export const HOWTO = [
     body: [
       "Vidi (Latin for \"I saw\") is the helper of VideoDoc. Ask it anything about using VideoDoc, in your own words.",
       "It knows which page you are on, so its answers fit what you see.",
+      "Not sure which AI to use? Ask \"Which model should I pick?\" or \"test my system\". Vidi checks this computer and lists the AIs as buttons: ✅ Suggested (runs well here) first, with the most accurate on top, ⚠️ Not suggested after. Each shows its size, how big or quick it is and how often it was right in our own tests (yours can differ). Use picks it for Vidi and the app; Download gets it through Ollama with a progress bar. Without Ollama, Vidi shows how to install it, step by step.",
       "It watches for error messages. When one appears, a small bubble asks: \"I can see an error on your screen. Do you need help with it?\" Press Yes and Vidi explains the error and what to do. Press No to close the bubble. You can then keep asking.",
       "Do not understand a message? Copy it into the chat, or take a screenshot (Windows key + Shift + S) and paste it with Ctrl + V. Vidi reads the text in the picture on your computer.",
       "How Vidi answers: without any AI it shows the right part of this page at once. For written answers it uses Ollama if you have it, or a small browser AI (about 1 GB, downloaded once). Change how Vidi answers is at the bottom of the chat.",

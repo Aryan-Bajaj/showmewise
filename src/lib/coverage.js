@@ -1,6 +1,6 @@
 // Completeness check: the facts a step must not lose. Taken from the part's own
 // evidence (what was said and what the screen showed), never invented:
-//   • codes that were SAID: transaction / screen codes like ME21N, VA01, MM03
+//   • codes that were SAID: transaction / screen codes like QX21N, QV01, QM03
 //   • numbers of 3+ digits that were SAID: account numbers, company codes
 //   (the screen gives the right spelling of what was said)
 //   • "period 3", "step 2" style values
@@ -33,7 +33,7 @@ export function keyTerms(spoken = "", screen = "") {
   const out = new Map() // squashed → shown form
   const add = (t) => { const k = squash(t); if (k.length >= 3 && !out.has(k)) out.set(k, t.trim()) }
   // codes: the screen's spelling first; a spoken code one letter away from a
-  // screen code is the same code misheard ("MN21N" said, "ME21N" shown)
+  // screen code is the same code misheard ("QN21N" said, "QX21N" shown)
   // only codes that were SAID count; the screen gives their right spelling
   const shownCodes = [...new Set([...(screen || "").matchAll(CODE)].map((m) => m[0].toUpperCase()))]
   for (const m of (spoken || "").matchAll(CODE)) {
@@ -43,7 +43,7 @@ export function keyTerms(spoken = "", screen = "") {
     else if (!out.has(squash(twin))) out.set(squash(twin), `${twin}|${c}`)
   }
   // a number heard and the same number read off the screen often differ by a
-  // digit (7731520 / 7731320): one fact, either form counts
+  // digit (4502188 / 4502168): one fact, either form counts
   // only numbers that were SAID count: a number only on screen is table data,
   // not a step (a line-item list put 40 amounts into one part's "missing" list
   // in a real test)
@@ -127,7 +127,7 @@ export function missingActions(step, actions) {
 }
 
 // One step, cleaned: two actions that differ only by a number heard vs read
-// ("enter 7731520" / "enter 7731320") keep the one the screen shows. A remark
+// ("enter 4502188" / "enter 4502168") keep the one the screen shows. A remark
 // like "the error message is displayed" STAYS: it can be the check a user needs.
 const bag = (a) => [...new Set(a.toLowerCase().match(/[a-z]{3,}/g) || [])].filter((w) => !["the", "and", "then", "into"].includes(w)).sort().join(" ")
 
@@ -335,8 +335,8 @@ export function screenNames(steps, screen = "") {
 }
 
 // ── The screen's spelling of numbers ──
-// A number written in an action ("4" heard as a digit, "7731520" heard for the
-// "7731320" on screen) takes the form the screen shows most often across all
+// A number written in an action ("4" heard as a digit, "4502188" heard for the
+// "4502168" on screen) takes the form the screen shows most often across all
 // frames: one OCR slip on one frame is outvoted by the frames that read it right.
 // A 4-digit value that has a real year among its look-alikes is that year
 // (OCR reads 2024 as 2624 or 2824 on dark screens).

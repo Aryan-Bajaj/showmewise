@@ -58,3 +58,10 @@ Status: ✅ passed · ⏳ not tested yet · ❌ failing (being fixed)
 | Fill a form from a CV | pet_fill 7 of 7 fields right, local and cloud; the pet walks back to its spot | ✅ |
 | Pet AI answers (crazy user) | pet_ai local 0 failed, cloud 0 failed; browser AI 1 failed: a Hinglish joke comes back in English (the 1.5B model's limit) | ✅ local, cloud · ❌ browser AI Hinglish |
 | Pet on real sites, chat size, New chat | pet_check 0 failed (quick clicks keep a real chat size) | ✅ |
+| Every pet look (5 pets × 3 colours, picture, 3D) | pet_looks 0 failed | ✅ |
+| Pet training: setup wizard (with 🧪 Test it), course cards, every lesson, ▶ Try buttons, usage questions, test my system, Reset, phone | pet_training local 0 failed | ✅ |
+| Twelve more real websites | pet_sites 0 failed | ✅ |
+| Security: keys, headers, CSP, attack text, page to plugin, hidden orders | security_check 0 failed | ✅ |
+| Vid Chat crazy questions | vidchat_crazy: German and Spanish answered in their language; Hinglish still in English with the small local AI | ✅ · ❌ Hinglish |
+| Vidi's AI picker on the website | vidi_models 0 failed | ✅ |
+| Not covered: the AI's own knowledge, Search the web (and Search the web for more) | chat_fallback 0 failed (the question goes to the search, nothing from the document) | ✅ |

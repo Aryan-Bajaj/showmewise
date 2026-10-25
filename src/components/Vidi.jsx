@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { MessageCircle, X, Send } from 'lucide-react'
 import MarkedShot from './MarkedShot'
 import ChatText from './ChatText'
+import ModelPicker from './ModelPicker'
 import { HOWTO, LIMIT_TEXT, findHelp, sectionText, errorHelp } from '../lib/howto'
 import { callOllama, callWebLLM } from '../lib/llm'
 
@@ -148,6 +149,12 @@ export default function Vidi() {
       setMsgs((m) => [...m, (intro ? { who: 'vidi', text: intro } : { who: 'you', text: q }), { who: 'vidi', text: known.replace(/^("[^"]+"(?: \([^)]*\))?(?: or "[^"]+")*): /, '').replace(/^./, (c) => c.toUpperCase()), section: HOWTO.find((x) => x.id === 'errors') }])
       return
     }
+    // "which model should I pick?", "Ollama is not detected", "test my system": the AIs for this computer
+    // as buttons (ready to use, or to download with a progress bar), Ollama's setup steps when it is missing
+    if (/\b(ollama|which model|what model|best model|pick (a |the )?model|choose (a |an |the )?(model|ai)|download (a |the |an )?(model|ai)|install (an? )?(model|ai)|test my (system|computer|pc|laptop)|system check|llm|change the ai)\b/i.test(q)) {
+      setMsgs((m) => [...m, (intro ? { who: 'vidi', text: intro } : { who: 'you', text: q }), { who: 'vidi', text: "Here are the AIs for this computer. Tap one to use it, or download one: the ✅ ones run well here.", models: true }])
+      return
+    }
     // Ollama is still being looked for (Vidi was just opened by the error bubble): wait a moment
     for (let i = 0; i < 12 && engine === 'ollama' && ollamaRef.current === null; i++) await new Promise((r) => setTimeout(r, 250))
     // the answer appears word by word while the AI writes it, with a typing cursor
@@ -233,6 +240,7 @@ The user's name is ${me.name}. You may use it now and then, in a friendly way.` 
                     <button onClick={() => keepName(true)} style={{ background: 'none', border: 0, color: 'rgba(236,233,255,0.6)', fontSize: 12, marginTop: 6, cursor: 'pointer', padding: 0 }}>No thanks</button>
                   </div>
                 ) : m.who === 'vidi' && !m.pending ? <ChatText text={m.text} /> : <div style={{ whiteSpace: 'pre-wrap' }}>{m.text}</div>}
+                {m.models && <div style={{ marginTop: 8 }}><ModelPicker onUse={(n) => { if (n === 'webllm') choose('webllm'); else { setOllama(n); choose('ollama') } setMsgs((x) => [...x, { who: 'vidi', text: n === 'webllm' ? 'Done: I answer with the browser AI now. 🎉' : `Done: I answer with ${n} now, and the app picks it too. 🎉` }]) }} /></div>}
                 {m.section && m.bullets && <ul style={{ margin: '6px 0 0', paddingLeft: 18, listStyle: 'disc' }}>{m.bullets.slice(0, 4).map((b, j) => <li key={j}>{b}</li>)}</ul>}
                 {m.section?.img && <MarkedShot section={m.section} compact />}
                 {m.offer && <button style={{ ...btn, marginTop: 8 }} onClick={() => ask(`What does this message mean and what do I do: ${m.offer.slice(0, 300)}`)}>Yes, explain it</button>}

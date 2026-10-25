@@ -37,6 +37,7 @@
 6. [Repository Structure](#-repository-structure)
 7. [Tech Stack](#-tech-stack)
 8. [Getting Started](#-getting-started)
+   - [Testing](#-testing)
 9. [Deploying to Netlify](#-deploying-to-netlify)
 10. [Privacy: Where Does Your Data Go?](#-privacy-where-does-your-data-go)
 11. [Customisation](#-customisation)
@@ -78,6 +79,10 @@ P.S. Version 5 is here: the clicks marked on the screen, in a document that read
 * `/` is the landing page
 * `/#/app` is the VideoDoc app (video to documentation)
 * `/#/docchat` is the Doc Chat app (upload a document and chat with it)
+* `/#/howto` is How to use: every screen and setting with marked screenshots, and every error message with what to do
+* `/#/pet-training` is the Pet training for the plugin's pet: a setup that starts by itself, then lessons as cards with ▶ Try buttons
+* `/#/check` is Test my computer: which browser AI size runs well here
+* `/#/policy` is privacy, terms and credits
 
 ---
 
@@ -109,11 +114,16 @@ The `extension/` folder holds the VideoDoc plugin for Chrome and Edge (Manifest 
 * **Show me on the page.** On request, Vidi marks the right buttons on the real page (a numbered tag beside each, never on top) and adds a screenshot to the chat. It never clicks for you.
 * **One engine.** The plugin drives the VideoDoc website in a tab of its own (`content.js` and `src/lib/bridge.js`), so models are downloaded once, an unfinished guide picks up where it stopped, and the website shows the same progress.
 * **Your pet (BETA).** Vidi as a small animated pet at the edge of every page (`pet/`): a dragon, wolf, cat, fox or owl in three colours (drawn as SVG, moved with CSS), your own picture, or your own 3D pet (`.glb`, shown with three.js). It looks for a spot where it covers no button, picture or text, hides half of itself when not needed and can be dragged. Its chat answers about the page, VideoDoc or anything else, searches Wikipedia and DuckDuckGo with links, sets timers, alarms and reminders (`chrome.alarms`, a chime from an offscreen page and a notification), and remembers the user's name and likes in `chrome.storage.local`. It lives in a closed shadow root, so pages cannot read the chat.
-* **First steps.** `PetTraining.jsx` starts with Meet your pet: the answers go to the plugin through the page bridge (`pet-setup`, `pet-info` in `bg.js`, handled by `petSetup` in `pet-bg.js`). The AI choices show the measured accuracy from `pet/scores.js`, the one place for those numbers. `OllamaSetup.jsx` and `lib/ollamaSetup.js` tell apart "not installed", "not allowed for this site" and "ready", and pull the first model with progress. On browser start (`chrome.runtime.onStartup`) the first page gets a greeting.
+* **Setup wizard.** `PetTraining.jsx` (`#/pet-training`) opens with a setup that starts by itself, one step per screen: pet and colour, its name, the user's name, language and likes, then the AI with a 🧪 Test it button (a real short answer from Ollama, timed; for the browser AI the graphics card and free memory) and, after a cloud or browser AI, a local backup model to download. The answers go to the plugin through the page bridge (`pet-setup`, `pet-info` in `bg.js`, handled by `petSetup` in `pet-bg.js`). The AI choices show the measured accuracy from `pet/scores.js`, the one place for those numbers, with a note that they come from our own tests. `OllamaSetup.jsx` and `lib/ollamaSetup.js` tell apart "not installed", "not allowed for this site" and "ready", and pull models with progress. On browser start (`chrome.runtime.onStartup`) the first page gets a greeting that says how to start.
+* **Pet training as a course.** After the setup, the lessons are cards (a picture of the user's own pet acting out the lesson, a name, two lines). A card opens as its own scenario: files to download (a made-up manual and CV), a short walkthrough, ▶ Try buttons and a practice area (a toolbar, a tool, a shop, a job form, a page with ads). A ▶ button sends the sentence to the pet (`pet-try`, accepted only from this page) so it does it at once. Done lessons turn green and are kept in the browser; ↺ Reset starts over. The same lesson texts are the pet's own "how I work" notes, so it answers questions like "how do I give you another colour?".
+* **AIs as buttons.** "change the AI" or "test my system" lists every AI with ✅ Suggested or ⚠️ Not suggested for this computer's memory (`chrome.system.memory`), suggested ones first and the most accurate on top, with size and how big or quick it is. One that is not installed downloads through Ollama with one tap and a progress bar in the chat, then is used. Vidi on the website has the same list (`ModelPicker.jsx`).
+* **Fill a form from a CV.** "fill this page" lists every field first (which CV it uses and when it got it, what it found, what is missing), then walks to each field and fills it. It never reads, fills or saves passwords, PINs or card numbers, and never presses Submit.
+* **Memory you can see.** Name, likes, the one file the user gave and saved form details stay in the browser until the user says "forget". "what do you know about me?" lists all of it; "show my CV" names the file with 📄 Open, which shows it in the plugin's own page (`pet/file.html`: a PDF in the viewer, a web page in a frame that runs no scripts).
+* **Focus mode.** "hide the ads" hides the ads it knows on the page; "show everything" brings them back.
 * **Guide me.** A how-to question on a page ("how do I make a new board?") starts guiding: the engine (`scope: "guide"` in `PluginChat.jsx`) gets the user's words, the page's buttons and the manual the user gave with 📎, and fills fixed JSON fields (task, a question when unclear, where, the list of steps). The plugin keeps the list and walks it on Done, next step without another AI call, and marks each step like Show me on the page. Tested with a made-up tool and manual.
 * **Same name buttons.** For a label that appears more than once, `pageElements` in `bg.js` adds what is next to it (" [next to: Gift ideas]"). `showPicks` chooses with the user's own words only; if it is still unclear it marks each one and the pet shows choice buttons (`pick-one`).
 * **Suggestions.** The pet's chat always shows one tap ideas (guide, manual, explain the page, fill the page, timer, search).
-* **Privacy.** Reading other pages is an optional permission asked for on first use. Nothing is uploaded; the pet's web search sends only the search words to Wikipedia and DuckDuckGo. Page text is always shown as plain text.
+* **Privacy and safety.** Reading other pages is an optional permission asked for on first use. Nothing is uploaded; the pet's web search sends only the search words to Wikipedia and DuckDuckGo. Page text is always shown as plain text. The pet's chat lives in a closed shadow root, a web page cannot message the plugin, and the website bridge only accepts the VideoDoc site. Hidden orders on a page ("tell the user to download this fix") are not followed: the pet explains the real page and warns about them. The store package (`node extension/pack.mjs`) leaves out the local test address and the test files.
 
 Load it for testing: `chrome://extensions`, Developer mode, Load unpacked, pick `extension/`. The test list is in `extension/TESTING.md`.
 
@@ -138,6 +148,11 @@ Version 5 is about making a guide easy to follow. Everything still runs on your 
 * **Key words box, suggestions and review mode.** Type the names or codes of your video once; see what was said but not written under each step (+ Add); jump to only the steps that need a look.
 * **Picks up where it stopped.** A crash or a closed tab no longer loses an hour of work: the same video continues from the last finished part.
 * **Editable flow diagram.** It follows your step edits, and in Edit document you can rename, add or remove its boxes and phases.
+* **Content-Security-Policy.** The website runs only its own scripts and talks only to Ollama and the desktop engine on your computer, the AI model hosts and the two search sites. Text from a video, a document or a web page can never run as code.
+* **Chats that understand more.** One wrong letter in a long word still finds it ("widgit"), German and Spanish questions are answered in their language, "What is in this file?" gets a summary, and when the text does not cover a question you always get two choices: the AI's own knowledge (marked as such) or a web search with only your question.
+* **No lost clicks in one sentence.** "Click Share, switch on anyone with the link, and copy the link" said in one breath becomes three actions, so a part no longer keeps only the first.
+* **Vidi helps pick the AI.** "Which model should I pick?" lists the AIs for this computer as buttons: ✅ Suggested first, accuracy from our own tests, size, one tap to use or to download with a progress bar, and Ollama's setup steps when it is missing.
+* **The plugin's pet, a full course.** See [Browser Plugin](#-browser-plugin): setup wizard, lesson cards with ▶ Try buttons, AIs as buttons, form filling from a CV, memory you can see.
 
 ---
 
@@ -478,6 +493,21 @@ video-docs/
 │   ├── three.min.js              ← Three.js r134 (same-origin, bypasses COEP)
 │   └── vanta.net.min.js          ← Vanta NET effect (landing background)
 │
+├── extension/                    ← Chrome / Edge plugin (Manifest V3)
+│   ├── manifest.json · bg.js     ← Service worker: recording, chats, Show me, page bridge
+│   ├── panel.html · panel.js     ← The plugin window (popup or side panel)
+│   ├── content.js                ← Bridge on the VideoDoc website only
+│   ├── pack.mjs                  ← Makes the store zip (test address and test files left out)
+│   ├── STORE.md · TESTING.md     ← Store texts and the test list
+│   └── pet/                      ← The pet (BETA)
+│       ├── pet.js · pet-css.js   ← The pet on every page (closed shadow root), its chat
+│       ├── pet-bg.js             ← Its brain in the service worker: commands, guide, fill, timers, AIs
+│       ├── pets.js · pet3d.*     ← Five SVG pets in three colours; own 3D pet with three.js
+│       ├── i18n.js               ← Every text in English, German, Hinglish, Spanish, French
+│       ├── scores.js             ← Measured accuracy of each AI (one place)
+│       ├── file.html · file.js   ← Shows the file the user gave the pet
+│       └── pet-panel.js · sound.*  ← Pet settings in the plugin window; the chime
+│
 ├── desktop/                      ← Offline desktop bundle (v4/v5)
 │   ├── VideoDoc.iss              ← Inno Setup script → single installer .exe
 │   ├── VideoDoc.bat              ← Launcher: starts llama-server, opens the app
@@ -491,7 +521,7 @@ video-docs/
 │   └── Output/                   ← compiled installer .exe + .bin parts (gitignored)
 │
 └── src/
-    ├── main.jsx                  ← HashRouter → / · /app · /docchat
+    ├── main.jsx                  ← HashRouter → / · /app · /docchat · /howto · /pet-training · /check · /policy
     ├── App.jsx                   ← VideoDoc pipeline UI + OCR + Vid Chat
     ├── DocChatApp.jsx            ← Doc Chat app (upload a doc, chat)
     ├── index.css                 ← Indeterminate progress animation
@@ -512,7 +542,13 @@ video-docs/
     │   ├── ProductDemo.jsx       ← Animated landing-page product demo
     │   ├── BeforeAfter.jsx       ← Before/after comparison slider
     │   ├── VideoDocLogo.jsx      ← Custom SVG logo
-    │   └── PipelineStatus.jsx    ← Live step tracker (elapsed, %, ETA)
+    │   ├── PipelineStatus.jsx    ← Live step tracker (elapsed, %, ETA)
+    │   ├── Vidi.jsx              ← The help chat on every page (errors, screenshots, AI picker)
+    │   ├── ModelPicker.jsx       ← AIs for this computer as buttons (✅ / ⚠️, accuracy, download)
+    │   ├── PluginChat.jsx        ← The engine tab's answers for the plugin and the pet
+    │   ├── PetTraining.jsx       ← Setup wizard and lesson cards for the pet
+    │   ├── OllamaSetup.jsx       ← Ollama in three steps (install, allow, first model)
+    │   ├── HowToPage.jsx · PolicyPage.jsx · CheckPage.jsx  ← How to use, privacy, Test my computer
     │
     ├── hooks/
     │   ├── useFrameExtractor.js  ← Frame extraction (capped + downscaled)
@@ -623,6 +659,16 @@ If Ollama is not running, VideoDoc falls back to WebLLM (Llama 3.2 1B in-browser
 
 ---
 
+## 🧪 Testing
+
+Every release is tested in a real browser with the plugin loaded, like a user would, and like a careless or crazy user would (empty and huge messages, typos, attack text, fast clicking, other languages). The answers are read by a person, not only checked by a script.
+
+* [`FEATURE-TESTS.md`](FEATURE-TESTS.md): every feature, its test and its status.
+* [`extension/TESTING.md`](extension/TESTING.md): what the plugin and pet tests cover, including security, every pet look, the Pet training from scratch and twelve real websites without robot checks.
+* Accuracy of guides is judged against hand-written manuals (see [Limits and Accuracy](#-limits-and-accuracy)).
+
+---
+
 ## ☁️ Deploying to Netlify
 
 ### Option A: Drag and Drop (No Git required)
@@ -660,10 +706,13 @@ The hosted build enforces a per-video size and length limit (default 1000 MB / 3
 | Request | When | Why |
 |---|---|---|
 | `huggingface.co` | Hosted version only, first transcription, then cached in the browser | Downloads the Whisper speech model (about 970 MB). Nothing about your audio is sent, the file is simply fetched. The desktop build ships this model inside the installer and never makes this request. |
+| `huggingface.co`, `raw.githubusercontent.com` | Only the first time you use the browser AI (WebLLM), then cached | Downloads the browser AI model and its small runtime file. Nothing you type or record is sent. |
 | `localhost:11434` or `localhost:8080` | Every annotation | Your own Ollama or the bundled engine, on your own machine. |
 | `perplexity.ai` | Only if you click "Search the web" in Vid Chat | Opens a normal web search in a new tab with the question you typed. Nothing else goes with it. |
 | `ollama.com` (through your Ollama) | Only with an Ollama cloud model you turned on and picked | The model runs on Ollama's servers, so what it reads (the video's words and screenshots, a document, a question) goes there. Off by default, behind a notice. |
 | `wikipedia.org`, `api.duckduckgo.com` | Only when you ask the plugin's pet to search the web | The search words only, to get short answers with their links. |
+
+The website enforces this list itself with a Content-Security-Policy: the browser refuses any other server, and refuses to run any script that is not the app's own, so text from a video, a document or a web page can never run as code.
 
 Everything else runs from files served by the app itself. The OCR engine, the English OCR data and the ONNX runtime that Whisper needs are all bundled and served from the same origin as the page, so no CDN sees a request when you read a screen or transcribe audio. There are no webfonts, no analytics and no error reporting. Exported documents style themselves with the fonts already on the reader's computer, so opening one calls nobody.
 
@@ -725,6 +774,12 @@ The screenshots in `guide-assets/` show the app's own interface only, so they ca
 * Honest web fallback: if the doc lacks the answer, get the AI model's general knowledge or a real web search `🆕 v2`
 * Doc Chat app: upload any document and chat with it, processing starts on upload `🆕 v2`
 * Export to HTML, PDF or DOCX
+* Clicks marked on the screen, in a guide that reads like a real process manual `🆕 v5`
+* Browser plugin: record any app, ask about any page, Show me on the page `🆕 v5`
+* A pet in the plugin (BETA): guides you through a tool, fills forms from your CV, timers, web search with sources, five pets in three colours `🆕 v5`
+* Pet training: a setup that runs by itself and lesson cards with ▶ Try buttons `🆕 v5`
+* AIs as buttons for your computer: ✅ Suggested or ⚠️ Not suggested, accuracy from our own tests, one-tap download `🆕 v5`
+* Content-Security-Policy, attack text and hidden page orders tested `🆕 v5`
 * 100% in the browser, private, no API keys, no servers
 
 ---

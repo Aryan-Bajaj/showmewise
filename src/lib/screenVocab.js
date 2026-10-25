@@ -1,6 +1,6 @@
 // The screen as a dictionary for the transcript. Speech recognition does not
 // know an app's abbreviations and codes, so "KBI report" is heard for the
-// "KPI Report" on screen, "gel account" for "G/L Account", "mn21n" for "ME21N".
+// "KPI Report" on screen, "gel account" for "G/L Account", "qn21n" for "QX21N".
 // Where a spoken phrase sounds like such a term read on screen, it takes the
 // screen's spelling.
 // Safety: only terms that hold a real abbreviation or code (2+ capitals in a
@@ -8,7 +8,7 @@
 // words are never "corrected" into an OCR misread. (Tested on a real recording:
 // a looser rule turned "from" into the OCR noise "FromF".)
 
-const SPECIAL = /\b[A-Z]{2,}[A-Z0-9]*\b|\b[A-Z]\/[A-Z]\b|\b(?=\w*\d)(?=\w*[A-Za-z])\w{3,}\b/ // KPI, G/L, ME21N
+const SPECIAL = /\b[A-Z]{2,}[A-Z0-9]*\b|\b[A-Z]\/[A-Z]\b|\b(?=\w*\d)(?=\w*[A-Za-z])\w{3,}\b/ // KPI, G/L, QX21N
 const TOKEN = /[A-Za-z0-9/]+/g
 
 // sound-alike letters count as one: g/j, c/k/q, s/z, v/w, ph/f
@@ -48,7 +48,7 @@ export function screenVocab(frameTexts) {
 }
 
 // One transcript line → the line with sound-alike phrases replaced
-// loose (the user's own key words): a code may also be one digit off ("ME211N" heard for ME21N)
+// loose (the user's own key words): a code may also be one digit off ("QX211N" heard for QX21N)
 export function fixWithVocab(text, vocab, { loose = false } = {}) {
   if (!text || !vocab?.length) return text
   const terms = vocab.map((t) => ({ t, c: canon(t), n: t.split(" ").length }))

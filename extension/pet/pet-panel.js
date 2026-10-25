@@ -62,6 +62,8 @@
   async function perm() { $("petAllow").hidden = !pet.on || (await allowed()) }
 
   $("petName").addEventListener("input", (e) => { const v = e.target.value.trim(); if (v) save({ name: v.slice(0, 20) }).then(() => { $("petTitle").textContent = pet.name }) })
+  // an empty name is not saved: leaving the box shows the pet's name again (it stayed empty before)
+  $("petName").addEventListener("blur", (e) => { if (!e.target.value.trim()) e.target.value = pet.name })
   $("petColour").onchange = (e) => save({ colour: e.target.value }).then(draw)
   // the pet's language: the browser's by default, or one of five
   $("petLang").append(new Option("Automatic (the browser's language)", "auto"), ...Object.entries(window.VidiI18n.LANGS).map(([k, n]) => new Option(n, k)))

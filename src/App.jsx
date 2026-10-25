@@ -472,7 +472,7 @@ export default function App() {
       // poisoned reaches the document or the insights built from it.
       finalDocs = sanitizeDocs(finalDocs, participants)
       // last word on numbers: the screen's most-read spelling (no later stage may
-      // bring back a heard "7731520" for the "7731320" on screen)
+      // bring back a heard "4502188" for the "4502168" on screen)
       const votes = screenCounts(ocrFrameTexts)
       finalDocs = finalDocs.map((d) => d.step ? { ...d, suggest: (d.suggest || []).filter((s) => { const m = s.match(/^Use '(.+)'\.$/); return !m || !JSON.stringify(d.step).toLowerCase().replace(/[^a-z0-9]/g, '').includes(m[1].toLowerCase().replace(/[^a-z0-9]/g, '')) }), step: { ...d.step, title: userSpelling(d.step.title, termsRef.current), steps: screenNames(screenSpelling(tidyActions((d.step.steps || []).map(tidyLine), d.ocrText || "", d.text || ""), votes), d.ocrText || "").map((x) => userSpelling(x, termsRef.current)), note: tidyNote(d.step.note) } } : d)
       finalDocs = dropRepeatedParts(finalDocs) // a part that only repeats the one before it

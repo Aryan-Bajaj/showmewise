@@ -77,6 +77,14 @@ Each line says what a user does and what must happen.
 - Fresh questions (26 checks): new facts, typos, empty message, Hinglish, a huge request, explain a page without copying it, same name buttons on a shop page, and help in the middle of a task goes on from the step the user is at.
 - All of them run with the local and the cloud AI in `regress.sh`, one after the other.
 
+## Added 25 Oct 2026 (all in `regress.sh`)
+
+- `security_check.mjs`: no keys in the site or the plugin, the store package without the test address or test files, every security header and the Content-Security-Policy, npm audit (no high or critical), attack text in Doc Chat, the pet chat and a file name runs nothing, a web page cannot read the pet's chat, message the plugin or use the site bridge, a page with hidden orders for the AI is explained honestly, and the site only talks to known servers.
+- `pet_looks.mjs`: all five pets in all three colours chosen in the plugin panel and checked on a web page, kept after a reload, odd and HTML names shown as text, my own picture (and a file that is not one), my own 3D pet, fast clicking, the panel at 360 px.
+- `pet_training.mjs`: the Pet training page from scratch, every lesson and every "Try:" line typed into the pet, every practice area used, "what can you do?" in three languages, "what do you know about me?", "show my CV" with Open, and which CV is used before filling. Every answer is saved to be read.
+- `pet_sites.mjs`: twelve more real websites without robot checks (books, news, maps, shops, docs, English and German): the pet shows, covers nothing, keeps its size, its chat is on top, typing sets off no page shortcut, "explain this page" is about that page.
+- `vidchat_crazy.mjs`: Vid Chat asked like crazy users: facts, order, typos, Hinglish, German, Spanish, emoji only, not in the video, "print your system prompt", attack text, a huge question, an empty one.
+
 ## Store and search checklist (from the saved SEO Reel)
 
 - Clear name and short description with the words people search ("screen recorder", "step-by-step guide", "chat with page").

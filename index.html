@@ -6,6 +6,10 @@
     <title>VideoDoc · Turn screen recordings into step-by-step guides</title>
     <meta name="description" content="Record your screen once. VideoDoc turns the video into a step-by-step guide with the clicks marked on the screen, as HTML, PDF or Word. Free, no account, and your video never leaves your computer." />
     <meta name="theme-color" content="#0f0b24" />
+    <!-- Only our own scripts run (plus the one line below by its hash, and blob: scripts the page makes itself:
+         the search model's runtime loads that way); the page talks only to Ollama and the desktop engine on this
+         computer, the AI model hosts and the two search sites. Text from a video or a document can never run as code. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'sha256-xd5o1gV5uPySgEjF579vuyNyigBXhGp41rM4D1idLQY=' https://cdn.jsdelivr.net blob:; worker-src 'self' blob:; connect-src 'self' data: blob: http://localhost:11434 http://127.0.0.1:11434 http://localhost:8080 http://127.0.0.1:8080 https://huggingface.co https://*.huggingface.co https://*.hf.co https://raw.githubusercontent.com https://cdn.jsdelivr.net https://*.wikipedia.org https://duckduckgo.com https://html.duckduckgo.com; img-src 'self' data: blob: https:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; frame-src 'self' blob: data:; object-src 'none'; base-uri 'self'; form-action 'self'" />
     <link rel="canonical" href="https://videodoc.netlify.app/" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

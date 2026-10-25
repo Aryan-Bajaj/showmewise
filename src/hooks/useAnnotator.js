@@ -391,6 +391,8 @@ ${seen}`, userTerms) })
       }
       addPlanToWindows(windows, plan)
       console.info(`[VideoDoc] whole transcript: ${plan.length} actions kept: ${plan.map((p) => `${p.t}s ${p.do}`).join(" | ")}`)
+      // what each part is told to cover (an action said but not on screen in its part is not added: this shows it)
+      console.info(`[VideoDoc] actions per part: ${windows.map((w) => `${Math.round(w.a)}s [${(w.actions || []).join(" | ")}]`).join(" ;; ")}`)
     } catch (e) { console.info("[VideoDoc] whole transcript pass skipped:", e?.message || e) }
 
     // "Said but not written": what was said (and shown) in this part but is not

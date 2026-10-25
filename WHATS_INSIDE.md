@@ -81,3 +81,19 @@ There are **two ways to ship** — IT chooses:
 > 100% locally and is **never transmitted**. The only network traffic is an optional
 > one-time model download and an optional update check — both of which can be
 > eliminated by shipping the fully-offline (model-bundled, auto-update-off) build.
+
+## 5. The website and the browser plugin (not part of the desktop build)
+
+For teams that use the website (videodoc.netlify.app) and the Chrome / Edge plugin instead of the desktop app.
+
+| What | Where it stays | What goes out |
+|---|---|---|
+| Video, audio, frames, transcript, guide | The browser on this computer | Nothing |
+| The pet's chat, the user's name and likes, the one file given to it (for example a CV), form details the user chose to save | The plugin's storage in this browser, until the user says "forget" | Nothing |
+| A web search asked of the pet | | Only the search words, to Wikipedia and DuckDuckGo |
+| A question to an Ollama cloud model (only if the user turned cloud models on and picked one) | | The question and the page or file it is about, to Ollama's servers |
+| AI model downloads (first use) | Browser cache or Ollama | A normal download request to Hugging Face (and GitHub for the browser AI's runtime file) |
+
+- **Content-Security-Policy:** the website runs only its own scripts and can only connect to Ollama and the desktop engine on this computer, the model hosts and the two search sites.
+- **Plugin permissions:** reading other pages is optional and asked once. The pet never presses Submit, never reads, fills or saves passwords, PINs or card numbers, and a web page cannot read its chat or send it commands.
+- Tested on 25 Oct 2026 with attack text in every box, a page with hidden orders for the AI, and a page pretending to be the VideoDoc site (see `FEATURE-TESTS.md`).

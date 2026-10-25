@@ -322,11 +322,23 @@ async function petHear(text, tabId, noGuide) {
   // focus mode: hide the ads on this page ("hide the ads", "ads hata do"), and back
   if (tabId != null && /\b(show everything|show (the )?ads( again)?|focus mode off|undo focus|stop focus)\b/i.test(t)) return petFocus(tabId, false)
   if (tabId != null && /\b(focus mode|hide (the |all )?ads|remove (the |all )?ads|block (the )?ads|ads hata|hide distractions)\b/i.test(t)) return petFocus(tabId, true)
+  // "test my system": the AI list, each tagged for this computer
+  if (/\b(test|check|scan)\b.{0,15}\b(my |this |the )?(system|computer|pc|laptop|machine)\b|\bsystem (check|test)\b|\b(mera|apna) (system|computer|pc|laptop) (check|test)\b|\bteste? meinen? (computer|rechner|pc)\b/i.test(text)) return petModels(true)
   // which AI answers ("change the AI", "which model?", "LLM badlo")
   if (/\b(change|switch|which|choose|pick|select|badlo|badal|better)\b.{0,25}\b(ai|model|llm)\b|\b(ai|model|llm)\b.{0,15}\b(change|badlo|badal|switch)\b/i.test(t)) return petModels()
   // fill the form on this page ("fill this page", "page bhar do")
   if (/\b(fill|complete)\b.{0,40}\b(form|page|fields?|this|it)\b|\bfill (it|this) (in|out)\b|\bbhar ?do\b|\bbhar ?de\b/i.test(t) && tabId != null) return petFill(tabId)
   if (/\b(forget|remove|delete)\b.{0,20}\b(file|document|cv|resume)\b/.test(t)) { await fileSet("doc", null); return petSay(tr("forgotFile")) }
+  // "what can you do?", "how can you help me?": a short, happy answer (always the same, never an AI
+  // guess) in the language the user wrote in, with the 🎓 Training button to try each skill for real
+  if (/\b(what can you do|what do you do|how can you help|what are you good at|your (skills|features)|kya kya kar sakte|kya kar sakte ho|kya kar sakta|kaise madad|was kannst du|wie kannst du (mir )?helfen|qu[eé] puedes hacer|c[oó]mo me puedes ayudar|que (peux|sais)-tu faire|comment peux-tu m'aider)\b/i.test(text)) {
+    const w = (re) => (text.match(re) || []).length
+    const l = w(/\b(kya|kar|sakte|sakta|ho|mujhe|meri|mera|kaise|madad|batao|tum|aap)\b/gi) >= 2 ? "hi" : w(/\b(was|kannst|du|wie|mir|helfen)\b/gi) >= 2 ? "de" : w(/\b(qu[eé]|puedes|c[oó]mo|ayudar|hacer)\b/gi) >= 2 ? "es" : w(/\b(que|peux|sais|faire|comment|aider)\b/gi) >= 2 ? "fr" : VidiI18n.lang
+    return petSay(VidiI18n.tIn(l, "canDo", { name: (await petGet()).name || "Vidi" }), { trainingLink: true, mood: "happy" })
+  }
+  // what the pet keeps about the user, and the file it has (with a button to open it)
+  if (/\bwhat (do|did) you (know|remember|save[d]?)\b.{0,20}\b(me|my)\b|\bwhat have you saved\b|\b(mere|mujhe) (baare|bare) (me|mein) kya\b|\bwas weißt du über mich\b/i.test(t)) return petAboutMe()
+  if (/^\W*(please\s+)?(show|open|view|see)\b.{0,15}\b(my |the )?(file|cv|resume|document|lebenslauf)\b|\bwhich (file|cv|document|resume)\b|\bkonsi (file|cv)\b|\b(file|cv) dikhao\b/i.test(t)) return petFileInfo()
   if (/\b(forget|remove|delete)\b.{0,30}\b(saved )?details\b/.test(t)) { await chrome.storage.local.remove("petProfile"); return petSay(tr("forgotDetails")) }
 
   // a task on this page ("how do I add a card?", "I want to share this", "ye kaise karu"), or the
@@ -544,6 +556,27 @@ async function fileSet(key, value) {
 }
 async function fileGet(key) { const db = await idb(); return new Promise((res) => { const g = db.transaction("files").objectStore("files").get(key); g.onsuccess = () => res(g.result || null); g.onerror = () => res(null) }) }
 
+// a date in the computer's own format (system default)
+const day = (at) => at ? new Date(at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "?"
+async function petFileInfo() {
+  const doc = await fileGet("doc")
+  if (!doc) return petSay(tr("noFile"))
+  return petSay(tr("fileIs", { file: doc.name, date: day(doc.at) }), { openFile: doc.name })
+}
+async function petAboutMe() {
+  const mem = await memGet(), profile = (await chrome.storage.local.get("petProfile")).petProfile || {}, doc = await fileGet("doc")
+  const keys = Object.keys(profile).filter((k) => profile[k])
+  const list = [
+    mem.user ? tr("aboutName", { name: mem.user }) : "",
+    mem.likes?.length ? tr("aboutLikes", { likes: mem.likes.join(", ") }) : "",
+    keys.length ? tr("aboutDetails", { list: keys.join(", ") }) : "",
+    doc ? tr("aboutFile", { file: doc.name, date: day(doc.at) }) : "",
+  ].join("") || tr("aboutNothing")
+  return petSay(tr("aboutMe", { list }), doc ? { openFile: doc.name } : {})
+}
+// the saved file opens in the plugin's own page (pet/file.html), never on a website
+const openFile = () => chrome.tabs.create({ url: chrome.runtime.getURL("pet/file.html") })
+
 async function petFile(m) {
   if (!/\.(pdf|docx|html?|txt|md|csv|json)$/i.test(m.name || "")) return petSay(tr("fileTypes"))
   if ((m.size || 0) > 15e6) return petSay(tr("fileBig"))
@@ -600,7 +633,7 @@ async function petFill(tabId) {
   for (const f of fields) { const v = profile[canon(f.label, f.type)]; if (v && f.type !== "file") { values[f.i] = v; from[f.i] = "remembered" } }
   const doc = await fileGet("doc")
   const fileField = doc && fields.find((f) => f.type === "file" && CV_FIELD.test(f.label))
-  const plan = { tabId, fields: fields.filter((f) => f.type !== "file"), values, from, file: fileField ? { i: fileField.i, label: fileField.label, name: doc.name } : null, docName: doc?.name || "" }
+  const plan = { tabId, fields: fields.filter((f) => f.type !== "file"), values, from, file: fileField ? { i: fileField.i, label: fileField.label, name: doc.name } : null, docName: doc?.name || "", docAt: doc?.at || 0 }
   const open = plan.fields.filter((f) => values[f.i] == null)
   if (doc && open.length) {
     // the file answers what it can (the VideoDoc tab reads it, the AI matches the fields)
@@ -615,8 +648,12 @@ function fillReady(id, plan, fills = []) {
   for (const f of fills) if (plan.values[f.i] == null) { plan.values[f.i] = f.value; plan.from[f.i] = "file" }
   const known = plan.fields.filter((f) => plan.values[f.i] != null).length, total = plan.fields.length
   const src = plan.docName ? tr("fillFrom", { file: plan.docName, last: Object.values(plan.from).includes("remembered") ? tr("fillLast") : "" }) : tr("fillOnlyLast")
-  const text = tr("fillList", { total, known: known ? tr("fillKnown", { n: known, src }) : tr("fillNone"), rest: known < total ? tr("fillRest") : "", file: plan.file ? tr("fillAttach", { file: plan.file.name, label: plan.file.label }) : "" })
-  return petUpdate(id, { state: "done", label: "", text, fillPlan: plan, fillForm: true })
+  const list = tr("fillList", { total, known: known ? tr("fillKnown", { n: known, src }) : tr("fillNone"), rest: known < total ? tr("fillRest") : "", file: plan.file ? tr("fillAttach", { file: plan.file.name, label: plan.file.label }) : "" })
+    // with nothing left to type, the next sentence starts small ("... (from cv.pdf). check everything"): a capital again
+    .replace(/([.!?]\s+)(\p{Ll})/gu, (_, a, b) => a + b.toUpperCase())
+  // which CV it uses, and when it got it: an old CV is easy to spot and replace
+  const text = plan.docName ? `${tr("fillUsing", { file: plan.docName, date: day(plan.docAt) })}\n${list}` : list
+  return petUpdate(id, { state: "done", label: "", text, fillPlan: plan, fillForm: true, openFile: plan.docName || undefined })
 }
 
 async function fillGo(id, values, remember) {
@@ -704,19 +741,75 @@ const bestLocal = (ms) => ms.find((m) => /^gemma3:12b$/.test(m.name)) || ms.find
 const freeCloud = (ms) => ms.find((m) => /^gemma4:31b-cloud$/.test(m.name)) || ms.find((m) => isCloudModel(m.name))
 // how often it was right in our tests (pet/scores.js); a model not listed was not tested
 const score = (n) => VidiScore(n) != null ? ` · ✓ ${VidiScore(n)}%` : ""
-async function petModels() {
+// "test my system": every AI is tagged ✅ Suggested (runs well with this computer's memory) or ⚠️ Not
+// suggested, suggested ones first, each group by its accuracy in our tests (highest first)
+async function petModels(check = false) {
   const models = await ollamaModels(), pet = await petGet(), mem = await memGet()
   const local = models.filter((m) => !isCloudModel(m.name)), cloud = models.filter((m) => isCloudModel(m.name))
-  const choices = [{ name: "", label: tr("auto") },
-    ...local.map((m) => ({ name: m.name, label: `${m.name}${m.details?.parameter_size ? ` · ${m.details.parameter_size}` : ""}${score(m.name)}` })),
-    ...cloud.map((m) => ({ name: m.name, label: `☁ ${m.name} (cloud)${score(m.name)}` })),
-    { name: "webllm", label: tr("browserAI") }]
+  const info = await chrome.system.memory.getInfo().catch(() => null)
+  const total = info ? info.capacity / 1048576 : null, free = info ? info.availableCapacity / 1048576 : null
+  // a model needs about its file size plus a quarter in memory; it runs well when that is at most half of all memory
+  const fits = (needMB) => total == null ? null : needMB <= total * 0.5
+  const tag = (ok) => ok == null ? "" : ok ? `${tr("tagOk")} · ` : `${tr("tagNo")} · `
+  const acc = (n) => VidiScore(n) ?? -1
+  const items = [
+    ...local.map((m) => { const ok = fits((m.size || 0) / 1048576 * 1.25); return { name: m.name, ok, acc: acc(m.name), label: `${tag(ok)}${m.name}${m.details?.parameter_size ? ` · ${m.details.parameter_size}` : ""}${score(m.name)}` } }),
+    ...cloud.map((m) => ({ name: m.name, ok: true, acc: acc(m.name), label: `${tag(true)}☁ ${m.name} (cloud)${score(m.name)}` })),
+    { name: "webllm", ok: total == null ? null : total >= 8000, acc: acc("webllm"), label: `${tag(total == null ? null : total >= 8000)}${tr("browserAI")}${score("webllm")}` },
+  ]
+  // [name, download size, memory it needs, how it is: small and quick / medium / big and best]
+  const GET = [["gemma3:1b", "0.8 GB", 7500, 0], ["gemma3:4b", "3.3 GB", 15000, 1], ["gemma3:12b", "8.1 GB", 31000, 2]]
+  const HOW = { en: ["small, fastest, simple answers", "medium, quick, good answers", "big, slower, best answers"], de: ["klein, am schnellsten, einfache Antworten", "mittel, schnell, gute Antworten", "groß, langsamer, beste Antworten"],
+    hi: ["chhota, sabse tez, simple jawab", "medium, tez, achhe jawab", "bada, thoda slow, sabse achhe jawab"], es: ["pequeño, el más rápido, respuestas simples", "mediano, rápido, buenas respuestas", "grande, más lento, las mejores respuestas"],
+    fr: ["petit, le plus rapide, réponses simples", "moyen, rapide, bonnes réponses", "grand, plus lent, meilleures réponses"] }
+  // ready to download, one tap (the ones too big for this computer are listed too, marked not suggested)
+  if (models.length || await ollamaUp()) for (const [name, size, needMB, how] of GET) {
+    if (local.some((m) => m.name === name)) continue
+    const ok = total == null ? null : total >= needMB
+    items.push({ name: `pull:${name}`, ok, acc: acc(name), label: tag(ok) + tr("dlLabel", { model: name, size, how: (HOW[VidiI18n.lang] || HOW.en)[how] }) + score(name) })
+  }
+  // suggested first, then by accuracy (highest first); "automatic" always on top
+  const rank = (x) => (x.ok === false ? 1 : 0)
+  const choices = [{ name: "", label: tr("auto") }, ...items.sort((a, b) => rank(a) - rank(b) || b.acc - a.acc)]
+  const head = check && total ? tr("sysChecked", { total: Math.round(total / 1024), free: Math.round((free || 0) / 1024 * 10) / 10 }) + "\n" : ""
   const now = !pet.model ? tr("autoNow") : pet.model === "webllm" ? tr("browserAINow") : `${isCloudModel(pet.model) ? "☁ " : ""}${pet.model}`
   const rec = mem.notConfidential && freeCloud(cloud) ? tr("recCloud", { model: freeCloud(cloud).name })
     : bestLocal(local) ? `For private things I recommend ${bestLocal(local).name}${/12b/.test(bestLocal(local).name) ? " (better answers, a bit slower)" : " (quick)"}.` : ""
-  return petSay(tr("modelsNow", { now, rec }), { modelChoices: choices })
+  return petSay(head + tr("modelsNow", { now, rec }), { modelChoices: choices })
+}
+const ollamaUp = () => fetch("http://localhost:11434/api/version", { signal: AbortSignal.timeout(2000) }).then((r) => r.ok, () => false)
+// "⬇ gemma3:4b": downloaded through the Ollama app on this computer, the progress shown in the chat,
+// then the pet answers with it
+async function petPull(name) {
+  if (!(await ollamaUp())) return petSay(tr("noOllama"), { trainingLink: true })
+  const id = petId()
+  await petEdit((log) => log.push({ id, who: "pet", text: tr("pulling", { model: name, pct: 0 }), state: "thinking", label: tr("pulling", { model: name, pct: 0 }), at: Date.now() }))
+  try {
+    const r = await fetch("http://localhost:11434/api/pull", { method: "POST", body: JSON.stringify({ name, stream: true }) })
+    if (!r.ok || !r.body) throw new Error(`Ollama said ${r.status}`)
+    const rd = r.body.getReader(), dec = new TextDecoder()
+    let buf = "", shown = -1
+    for (;;) {
+      const { value, done } = await rd.read(); if (done) break
+      buf += dec.decode(value, { stream: true })
+      const lines = buf.split("\n"); buf = lines.pop()
+      for (const l of lines) {
+        if (!l.trim()) continue
+        const j = JSON.parse(l)
+        if (j.error) throw new Error(j.error)
+        const pct = j.total ? Math.floor((j.completed || 0) / j.total * 100) : null
+        // (the chat draws a progress bar from "progress", 0 to 100)
+        if (pct != null && pct >= shown + 2) { shown = pct; await petUpdate(id, { label: tr("pulling", { model: name, pct }), text: tr("pulling", { model: name, pct }), progress: pct }) }
+      }
+    }
+    await petSet({ model: name })
+    return petUpdate(id, { state: "done", label: "", text: tr("pulled", { model: name }), mood: "happy", progress: null })
+  } catch (e) {
+    return petUpdate(id, { state: "done", label: "", text: tr("pullFail", { model: name, err: String(e.message || e).slice(0, 120) }), progress: null })
+  }
 }
 async function petPickModel(name) {
+  if (name.startsWith("pull:")) return petPull(name.slice(5))
   if (isCloudModel(name) && (await memGet()).notConfidential !== true) {
     return petSay(tr("confAsk", { model: name }), { confQuestion: name })
   }
@@ -760,6 +853,7 @@ chrome.runtime.onMessage.addListener((m, from, reply) => {
   if (m?.to !== "pet") return
   const done = (p) => Promise.resolve(p).then((r) => reply({ ok: true, ...(r || {}) }), (e) => reply({ ok: false, error: e.message }))
   if (m.type === "say") done(petHear(m.text, from.tab?.id))
+  else if (m.type === "open-file") done(openFile())
   else if (m.type === "open-training") done(site().then((u) => chrome.tabs.create({ url: u + "/#/pet-training" })))
   else if (m.type === "file") done(petFile(m))
   else if (m.type === "fill-go") done(fillGo(m.id, m.values, m.remember))

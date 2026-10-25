@@ -7,8 +7,9 @@ import "../../extension/pet/pets.js"
 import "../../extension/pet/pet-css.js"
 import "../../extension/pet/scores.js"
 import { PLUGIN_URL } from "../lib/links"
-import { pluginSystem } from "../lib/computerCheck"
-import { pullModel } from "../lib/ollamaSetup"
+import { pluginSystem, gpuInfo } from "../lib/computerCheck"
+import { pullModel, ollamaState } from "../lib/ollamaSetup"
+import { callOllama } from "../lib/llm"
 import OllamaSetup from "./OllamaSetup"
 import VideoDocLogo from "./VideoDocLogo"
 
@@ -16,6 +17,7 @@ const C = { bg: "#0f0b24", card: "rgba(22,15,46,0.94)", line: "rgba(167,139,250,
 const Card = ({ children, style, id }) => <section id={id} style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 16, padding: 18, ...style }}>{children}</section>
 const Say = ({ children }) => <code style={{ background: "#0f0b24", border: `1px solid ${C.line}`, borderRadius: 8, padding: "2px 8px", color: "#e4ddff", fontSize: 13.5 }}>{children}</code>
 const KINDS = { dragon: "Dragon", wolf: "Wolf", cat: "Cat", fox: "Fox", owl: "Owl" }
+const isCloudName = (n) => /cloud/i.test(n || "")
 
 // one pet, drawn and moving like on any web page
 function PetPic({ kind, colour, mood, size = 120 }) {
@@ -31,11 +33,11 @@ function PetPic({ kind, colour, mood, size = 120 }) {
 }
 
 // the lessons: what it does, why it helps, what to try (and a place to try it)
-const LESSONS = [
+export const LESSONS = [
   { id: "hello", icon: "👋", title: "Say hi and give it a name",
     what: "Click your pet at the edge of the page: its chat opens. It answers like a friend, in your language (English, Hinglish, German, Spanish, French). The small browser AI often answers Hinglish in English; Ollama answers it in Hinglish.",
-    why: "It greets you by name and remembers what you like, on every page.",
-    tryIt: ["your name is Draco", "my name is (your name)", "I love dragons", "mujhe ek joke sunao"] },
+    why: "It greets you by name and remembers what you like, on every page. Not sure what to ask? “what can you do?” gives a short list of its skills and a button back to this training.",
+    tryIt: ["your name is Draco", "my name is (your name)", "I love dragons", "mujhe ek joke sunao", "what can you do?"] },
   { id: "avatar", icon: "🎨", title: "Choose your pet",
     what: "In the plugin, under Your pet: a dragon, wolf, cat, fox or owl, each in three colours. Or “My picture” (a photo of your own pet, a drawing) or “My 3D pet” (a .glb file).",
     why: "A pet you like makes the helper feel like yours. Your own picture moves and reacts like the others. A 3D pet uses its own animations when they are named Idle, Happy, Think, Sleep or Sad.",
@@ -54,7 +56,7 @@ const LESSONS = [
     why: "It never guesses for you, so you never click the wrong product or delete the wrong note.",
     tryIt: ["how do I put the tea kettle in my cart?", "how do I add something to the cart? (it asks which one)"], practice: "shop" },
   { id: "form", icon: "📝", title: "Fill a form from your CV",
-    what: "Give your pet your CV with 📎 (or drop it on the pet), then say “fill this page”. It shows a list of all fields first: what it found in your CV is filled in, the rest is empty for you to type. Press Fill the page: it walks from field to field, fills each one and marks it green.",
+    what: "Give your pet your CV with 📎 (or drop it on the pet), then say “fill this page”. It first says which CV it uses and when you gave it (📄 Open it to check; an old one? give the new one with 📎). Then it shows a list of all fields: what it found in your CV is filled in, the rest is empty for you to type. Press Fill the page: it walks from field to field, fills each one and marks it green.",
     why: "Job and sign-up forms take seconds instead of minutes. What you typed is remembered for next time (tick the box), and you always check before sending.",
     tryIt: ["📎 the sample CV below", "fill this page", "page bhar do (also works)"], practice: "form",
     safe: ["It never presses Submit: you check and send.", "Passwords, PINs, card numbers and security codes are never read, filled or saved.", "IBAN and account numbers are allowed, and only saved when you tick the box.", "“forget my saved details” or the button in the plugin clears what it saved."] },
@@ -77,9 +79,9 @@ const LESSONS = [
     tryIt: ["change the AI", "which model do you use?", "LLM badlo"],
     safe: ["A cloud model sends what you ask, and the page or file you ask about, to Ollama's servers. It is used only after you said “No, not confidential”, and those answers are marked ☁."] },
   { id: "chats", icon: "🕘", title: "New chat, earlier chats, memory",
-    what: "＋ in the chat header starts a new chat; the old one is kept under 🕘 Earlier chats (the 15 newest). Your name, what you like, the file and saved form details stay for every chat.",
-    why: "A fresh start for a new topic without losing anything.",
-    tryIt: ["press ＋, then 🕘", "forget the file", "forget my saved details"] },
+    what: "＋ in the chat header starts a new chat; the old one is kept under 🕘 Earlier chats (the 15 newest). Your name, what you like, the file and saved form details stay for every chat, also after the browser or computer restarts. Ask “what do you know about me?” to see all of it, and “show my CV” to see the file it has, with 📄 Open to look at it.",
+    why: "A fresh start for a new topic without losing anything, and you always know what it keeps.",
+    tryIt: ["press ＋, then 🕘", "what do you know about me?", "show my CV", "forget the file", "forget my saved details"] },
   { id: "focus", icon: "🧹", title: "Focus mode: hide the ads on a page",
     what: "Say “focus mode” or “hide the ads”: your pet hides the ads it knows on the page you are on and tells you how many. “show everything” brings them back.",
     why: "Read an article in peace, without blinking boxes, only when you want it.",
@@ -90,6 +92,88 @@ const LESSONS = [
     why: "It keeps you company without ever being in the way. On a site where you do not want it, press Hide on this site.",
     tryIt: ["drag it to another spot", "make the chat bigger from its corner", "Hide on this site (in its chat)", "in the plugin: Let my pet find its own spot"] },
 ]
+
+// Each lesson as its own small course: a one-line summary for its card, the files to download, and a
+// short walkthrough (what to do, and the words to type where there are any)
+// What the page shows in a lesson: one short line on what it does, one on why. (The long texts above stay
+// as the pet's own knowledge, so it can still answer the details when asked.)
+const SIMPLE = {
+  hello: ["Click your pet to chat. It answers in your language.", "It knows your name and what you like."],
+  avatar: ["Pick a dragon, wolf, cat, fox or owl, a colour, or your own picture.", "A pet you like feels like yours."],
+  page: ["Ask about the page, then press 📍 Show me: the button gets marked.", "Find the right button on any website at once."],
+  guide: ["Give it a manual, ask how to do something, follow one step at a time.", "Learn a new tool while you use it."],
+  same: ["Say which product you mean, and only its button gets marked.", "You never click the wrong one."],
+  form: ["Give it your CV, say “fill this page”, check the list, press Fill.", "Forms done in seconds. You still press Submit."],
+  time: ["Say “timer 5 minutes” or “remind me at 5 to call mum”.", "No extra app: it rings right where you work."],
+  search: ["Say “search the web for …”: a short answer with links.", "Quick facts, and you see where they come from."],
+  files: ["Give it a file with 📎, then ask about it.", "Long files answered in seconds, on your computer."],
+  ai: ["Say “change the AI” and tap one. ✅ means it runs well here.", "Private on your computer, or stronger in the cloud."],
+  chats: ["＋ starts a new chat. Ask “what do you know about me?”", "You always see what it remembers, and can delete it."],
+  focus: ["Say “hide the ads”. “show everything” brings them back.", "Read in peace, only when you want."],
+  move: ["Drag it anywhere. Drag the chat's corner to resize it.", "Always there, never in the way."],
+}
+
+// the card pictures: a soft background each, and the pet's mood that fits the lesson
+const ART = ["linear-gradient(135deg,#3b2a8f,#6d4aff)", "linear-gradient(135deg,#0e5a6b,#22d3ee)", "linear-gradient(135deg,#7a2e5c,#ec4899)", "linear-gradient(135deg,#1f5f3a,#34d399)",
+  "linear-gradient(135deg,#7a4b12,#fbbf24)", "linear-gradient(135deg,#2a3f8f,#60a5fa)", "linear-gradient(135deg,#5b2a8f,#c084fc)"]
+const MOOD = { hello: "happy", avatar: "happy", page: "think", guide: "think", same: "think", form: "happy", time: "alert", search: "think", files: "think", ai: "think", chats: "happy", focus: "idle", move: "sleep" }
+const MANUAL = { href: "/pet-sample-manual.html", label: "Sample manual (Demo Planner, made up)" }
+const CV = { href: "/pet-sample-cv.pdf", label: "Sample CV (Mira Hoffmann, made up)" }
+export const COURSE = {
+  hello: { short: "Open the chat, give your pet a name and tell it yours.", min: 2, walk: [
+    { do: "Click your pet at the right edge of this page: its chat opens." },
+    { do: "Give it a name.", say: ["your name is Draco"] },
+    { do: "Tell it your name and something you like.", say: ["my name is (your name)", "I love dragons"] },
+    { do: "Ask for a joke in Hinglish, or ask what it can do.", say: ["mujhe ek joke sunao", "what can you do?"] }] },
+  avatar: { short: "A dragon, wolf, cat, fox or owl in three colours, or your own picture.", min: 1, walk: [
+    { do: "Open the plugin (the VideoDoc icon in the toolbar), then Your pet." },
+    { do: "Pick a pet and a colour: the pet on this page changes at once." },
+    { do: "Or press My picture and choose a photo of your own pet." }] },
+  page: { short: "Ask about the page you are on and see the right button marked.", min: 2, walk: [
+    { do: "Look at the made-up toolbar below." },
+    { do: "Ask your pet:", say: ["How do I export a report on this page?"] },
+    { do: "Press 📍 Show me on the page under the answer: Export report gets a numbered mark beside it." }] },
+  guide: { short: "Give it a tool's manual and it guides you one step at a time.", min: 4, files: [MANUAL], walk: [
+    { do: "Download the sample manual above." },
+    { do: "Give it to your pet: press 📎 in its chat and choose the file (or drop the file on the pet)." },
+    { do: "Ask in your own words:", say: ["how do I make a new board?"] },
+    { do: "Do the step yourself in the Demo Planner below, then press ✅ Done, next step. Repeat until “All done”." },
+    { do: "Try a vague request: it asks back what you mean.", say: ["help me with this (it asks back)", "I want to share a board"] }] },
+  same: { short: "Many “Add to cart” buttons: it marks the one you mean.", min: 2, walk: [
+    { do: "Look at the made-up shop below: every product has its own Add to cart." },
+    { do: "Name the product:", say: ["how do I put the tea kettle in my cart?"] },
+    { do: "Now do not name one: it marks all of them and asks which. Tap your choice.", say: ["how do I add something to the cart? (it asks which one)"] }] },
+  form: { short: "Give it your CV and it fills a form for you to check.", min: 4, files: [CV], walk: [
+    { do: "Download the sample CV above and give it to your pet with 📎." },
+    { do: "Scroll to the practice form below and say:", say: ["fill this page", "page bhar do (also works)"] },
+    { do: "It says which CV it uses and lists every field. Check the list, type what is missing." },
+    { do: "Press Fill the page: it fills each field and marks it green. You press Submit yourself, or not at all." }] },
+  time: { short: "Timers, alarms and reminders, said like to a friend.", min: 2, walk: [
+    { do: "Set a short timer and a reminder:", say: ["timer 1 minute", "remind me in 2 minutes to stretch"] },
+    { do: "Set an alarm and look at everything you set:", say: ["alarm at 7:30", "show my timers"] },
+    { do: "Cancel what you do not need:", say: ["cancel the timer"] }] },
+  search: { short: "Quick facts from the web, always with the links.", min: 1, walk: [
+    { do: "Start with “search the web for”:", say: ["search the web for the height of Mount Everest", "search the web for who invented the telephone"] },
+    { do: "Open a link under the answer to check it, or press More results." }] },
+  files: { short: "Ask questions about a PDF, Word or text file.", min: 2, files: [CV], walk: [
+    { do: "Give your pet a file with 📎 (the sample CV works)." },
+    { do: "Ask about it, with “file”, “document” or “CV” in the question:", say: ["What is in this file?", "Which university is in my CV?"] }] },
+  ai: { short: "Pick the AI it answers with: private on your computer, or stronger in the cloud.", min: 1, walk: [
+    { do: "Ask for the list:", say: ["change the AI", "which model do you use?", "LLM badlo"] },
+    { do: "Tap a model in the list. For private or work things, keep one marked “on your computer”." }] },
+  chats: { short: "New chats, earlier chats, and everything it remembers about you.", min: 2, walk: [
+    { do: "Press ＋ in the chat header for a new chat, then 🕘 to see the earlier ones.", say: ["press ＋, then 🕘"] },
+    { do: "See what it keeps, and the file it has (📄 Open shows it):", say: ["what do you know about me?", "show my CV"] },
+    { do: "Remove what you do not want it to keep:", say: ["forget the file", "forget my saved details"] }] },
+  focus: { short: "Hide the ads on a page while you read.", min: 1, walk: [
+    { do: "Look at the made-up news page below, with two ads." },
+    { do: "Say:", say: ["hide the ads", "ads hata do"] },
+    { do: "Bring them back:", say: ["show everything"] }] },
+  move: { short: "Drag it anywhere, resize the chat, hide it on a site.", min: 2, walk: [
+    { do: "Drag the pet to another spot: it stays there.", say: ["drag it to another spot"] },
+    { do: "Drag the bottom right corner of the open chat to make it bigger.", say: ["make the chat bigger from its corner"] },
+    { do: "Press Hide on this site in its chat (bring it back from the plugin).", say: ["Hide on this site (in its chat)", "in the plugin: Let my pet find its own spot"] }] },
+}
 
 // a toolbar to practise "Show me on the page"
 function Toolbar() {
@@ -134,7 +218,6 @@ function PracticeTool() {
   const i = { padding: "8px 10px", borderRadius: 8, border: `1px solid ${C.line}`, background: "#0f0b24", color: "#fff", font: "inherit" }
   return (
     <div style={{ marginTop: 12, padding: 14, borderRadius: 12, background: "#0f0b24", border: `1px dashed ${C.line}` }}>
-      <p style={{ margin: "0 0 8px" }}><a href="/pet-sample-manual.html" download style={{ color: "#c4b5fd" }}>⬇ Download the sample manual</a> <span style={{ color: C.dim, fontSize: 13 }}>(for the made-up Demo Planner below), then give it to your pet with 📎.</span></p>
       <b style={{ display: "block", marginBottom: 8 }}>Practice: Demo Planner, a made-up tool</b>
       {boards.map((x, k) => <div key={k} style={{ display: "flex", gap: 8, alignItems: "center", margin: "6px 0" }}><span style={{ flex: 1 }}>{x}</span><button style={b}>Share</button></div>)}
       {!open ? <button style={b} onClick={() => setOpen(true)}>New board</button> : (
@@ -155,7 +238,6 @@ function PracticeForm() {
   const i = { display: "block", width: "100%", boxSizing: "border-box", marginTop: 4, padding: "8px 10px", borderRadius: 8, border: `1px solid ${C.line}`, background: "#0f0b24", color: "#fff", font: "inherit" }
   return (
     <div style={{ marginTop: 12 }}>
-      <p style={{ margin: "0 0 8px" }}><a href="/pet-sample-cv.pdf" download style={{ color: "#c4b5fd" }}>⬇ Download the sample CV</a> <span style={{ color: C.dim, fontSize: 13 }}>(Mira Hoffmann, a made-up person), then give it to your pet with 📎.</span></p>
       <form onSubmit={(e) => { e.preventDefault(); setSent(Object.fromEntries([...new FormData(e.target)].map(([k, v]) => [k, typeof v === "string" ? v : v.name]))) }}
         style={{ padding: 14, borderRadius: 12, background: "#120d2c", border: `1px dashed ${C.line}` }}>
         <b>Practice: apply for a job</b>
@@ -186,15 +268,18 @@ const AIS = [
 // a local backup for the cloud, small enough for this computer (total memory from the plugin)
 const backupFor = (totalMB) => totalMB == null ? null : totalMB >= 15000 ? { name: "gemma3:4b", size: "3.3 GB" } : totalMB >= 7500 ? { name: "gemma3:1b", size: "0.8 GB" } : null
 
-// "Meet your pet": a few easy questions, sent to the plugin, so the pet knows the user,
-// looks the way they like and answers with the AI they chose
-function PetIntro({ kind, setKind, colour, setColour }) {
+// The setup wizard: it starts by itself on this page, one easy question per screen, so the user only
+// follows along. Pet, colour, name, about you, the AI (tested right here), a backup for offline use.
+// Everything goes to the plugin in this browser, nowhere else.
+const SETUP_KEY = "vd-pet-setup-done"
+function PetSetup({ kind, setKind, colour, setColour }) {
   const [info, setInfo] = useState(null) // the plugin's pet, or false: no plugin
-  const [f, setF] = useState({ user: "", name: "", lang: "auto", likes: "", ai: "webllm" })
+  const [f, setF] = useState({ user: "", name: "", lang: "auto", likes: "", ai: "gemma3:4b" })
+  const [step, setStep] = useState(() => { try { return localStorage.getItem(SETUP_KEY) ? -1 : 0 } catch { return 0 } }) // -1: finished
   const [cloudOk, setCloudOk] = useState(false)
-  const [backup, setBackup] = useState(null) // { p } while it downloads, { done } or { error }
+  const [test, setTest] = useState(null) // { busy, msg } / { ok, msg } / { bad, msg, fix }
+  const [backup, setBackup] = useState(null)
   const [sys, setSys] = useState(null)
-  const [saved, setSaved] = useState(false)
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value })
   const ask = (type, extra = {}) => new Promise((res) => {
     const id = Math.random().toString(36).slice(2)
@@ -206,83 +291,143 @@ function PetIntro({ kind, setKind, colour, setColour }) {
   useEffect(() => {
     ask("pet-info").then((i) => {
       setInfo(i || false)
-      if (i) { setF((x) => ({ ...x, user: i.user, name: i.name === "Vidi" ? "" : i.name, lang: i.lang, likes: (i.likes || []).join(", "), ai: i.model || x.ai })); if (i.kind) setKind(i.kind); if (i.colour) setColour(i.colour) }
+      if (i) { setF((x) => ({ ...x, user: i.user || "", name: i.name === "Vidi" ? "" : i.name, lang: i.lang || "auto", likes: (i.likes || []).join(", "), ai: i.model || x.ai })); if (i.kind) setKind(i.kind); if (i.colour) setColour(i.colour) }
     })
     pluginSystem().then(setSys)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const bk = backupFor(sys?.totalMB)
+  // 🧪 does the chosen AI run here? a real short answer, timed (the browser AI: graphics card and memory)
+  const runTest = async () => {
+    setTest({ busy: true, msg: "Checking..." })
+    if (f.ai === "webllm") {
+      const g = await gpuInfo(), free = sys?.freeMB
+      if (!g.webgpu) return setTest({ bad: true, msg: "This browser cannot run the browser AI here (no WebGPU).", fix: "Choose Ollama on your computer instead." })
+      if (free != null && free < 2600) return setTest({ bad: true, msg: `Only ${Math.round(free / 1024 * 10) / 10} GB of memory is free now; the browser AI needs about 2.5 GB.`, fix: "Close some tabs or programs, or choose Ollama." })
+      return setTest({ ok: true, msg: `✓ It can run here${g.vendor ? ` (graphics: ${g.vendor})` : ""}. The first answer downloads it once (about 1 GB).` })
+    }
+    const st = await ollamaState()
+    if (st.state !== "ok") return setTest({ bad: true, msg: st.state === "missing" ? "Ollama is not installed or not running yet." : "Ollama runs, but does not allow this website yet.", fix: "Follow the steps below, then press Test it again." })
+    if (!st.models.includes(f.ai)) return setTest({ bad: true, need: true, msg: `Ollama is ready, but ${f.ai} is not on this computer yet.`, fix: isCloudName(f.ai) ? `In a terminal: ollama signin, then ollama pull ${f.ai}.` : "Press the button below to download it." })
+    const t0 = performance.now()
+    try {
+      const a = await callOllama("Say hello in three words.", "You are a friendly pet. Answer in at most five words.", f.ai, { maxTokens: 20 })
+      const s = ((performance.now() - t0) / 1000).toFixed(1)
+      setTest({ ok: true, msg: `✓ It works: “${String(a).trim().slice(0, 60)}” in ${s} s.` })
+    } catch (e) { setTest({ bad: true, msg: `It did not answer: ${String(e.message || e).slice(0, 140)}`, fix: isCloudName(f.ai) ? "Sign in once in a terminal: ollama signin. Free cloud use has daily limits." : "Try again, or choose a smaller model." }) }
+  }
+  const getModel = async (name) => {
+    setBackup({ name, p: 0 })
+    try { await pullModel(name, (p) => setBackup({ name, p })); setBackup({ name, done: true }); if (name === f.ai) runTest() } catch (e) { setBackup({ name, error: e.message }) }
+  }
   const save = async () => {
     const r = await ask("pet-setup", { setup: { user: f.user, name: f.name || "Vidi", kind, colour, lang: f.lang, likes: f.likes.split(","), model: f.ai } })
-    if (r) { setInfo(r); setSaved(true) }
+    if (r) setInfo(r)
+    try { localStorage.setItem(SETUP_KEY, "1") } catch { /* private window */ }
+    setStep(6)
   }
-  const pct = (id) => window.VidiScore(id)
-  const bk = backupFor(sys?.totalMB)
-  const getBackup = async () => {
-    setBackup({ p: 0 })
-    try { await pullModel(bk.name, (p) => setBackup({ p })); setBackup({ done: true }) } catch (e) { setBackup({ error: e.message }) }
-  }
-  const inp = { font: "inherit", padding: "8px 10px", borderRadius: 8, border: `1px solid ${C.line}`, background: "#0f0b24", color: "#fff", width: "100%", boxSizing: "border-box" }
-  const lab = { display: "block", fontSize: 14, color: C.dim, marginTop: 10 }
-  const pill = (on) => ({ font: "inherit", fontSize: 13.5, cursor: "pointer", borderRadius: 999, padding: "6px 12px", border: `1px solid ${on ? C.acc : C.line}`, background: on ? "#2b2063" : "transparent", color: "#fff" })
+  const inp = { font: "inherit", padding: "10px 12px", borderRadius: 10, border: `1px solid ${C.line}`, background: "#0f0b24", color: "#fff", width: "100%", boxSizing: "border-box", fontSize: 15 }
+  const pill = (on) => ({ font: "inherit", fontSize: 14, cursor: "pointer", borderRadius: 999, padding: "8px 14px", border: `1px solid ${on ? C.acc : C.line}`, background: on ? "#2b2063" : "transparent", color: "#fff" })
+  const big = (on = true) => ({ font: "inherit", fontWeight: 700, padding: "11px 20px", borderRadius: 12, border: 0, cursor: on ? "pointer" : "default", opacity: on ? 1 : 0.45, background: "linear-gradient(90deg,#7c5cff,#22d3ee)", color: "#fff" })
   const colours = Object.keys(window.VidiPets.colours[kind])
-  const canSave = info && (f.ai !== "gemma4:31b-cloud" || cloudOk)
+  const needBackup = f.ai === "webllm" || isCloudName(f.ai)
+  const STEPS = ["Welcome", "Your pet", "Its name", "About you", "Its AI", "Backup", "Done"]
+  const last = needBackup ? 5 : 4
+
+  if (step === -1) return (
+    <Card id="intro" style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+      <PetPic kind={kind} colour={colour} mood="happy" size={64} />
+      <span style={{ flex: 1, lineHeight: 1.5 }}><b>{f.name || info?.name || "Vidi"}</b> is set up{f.user ? ` for ${f.user}` : ""}. Click it at the right edge to chat, or pick a lesson below.</span>
+      <button type="button" style={pill(false)} onClick={() => { setStep(1); setTest(null) }}>✎ Change the setup</button>
+    </Card>
+  )
   return (
-    <Card id="intro" style={{ borderColor: "rgba(124,92,255,.6)" }}>
-      <h2 style={{ margin: "0 0 4px", fontSize: 19 }}>👋 Meet your pet</h2>
-      <p style={{ margin: 0, color: C.dim, lineHeight: 1.5 }}>A few easy questions, then your pet knows you, looks the way you like and uses the AI you chose. You can change everything later.</p>
-      {info === false && <p style={{ margin: "10px 0 0", padding: "8px 12px", borderRadius: 10, background: "rgba(251,191,36,.1)", color: "#fde68a", fontSize: 14 }}>The VideoDoc plugin was not found in this browser. {PLUGIN_URL ? <a href={PLUGIN_URL} target="_blank" rel="noopener" style={{ color: "#c4b5fd" }}>Add it to Chrome or Edge</a> : "Add it to Chrome or Edge"}, then reload this page.</p>}
-      {info && !info.allowed && <p style={{ margin: "10px 0 0", padding: "8px 12px", borderRadius: 10, background: "rgba(251,191,36,.1)", color: "#fde68a", fontSize: 14 }}>One more thing: open the plugin (the VideoDoc icon in the toolbar), then Your pet, and tick <b>Show my pet on web pages</b>. It asks for your OK once.</p>}
-      <div style={{ display: "flex", gap: 18, flexWrap: "wrap", marginTop: 6 }}>
-        <div style={{ flex: "0 0 auto", margin: "10px auto 0" }}><PetPic kind={kind} colour={colour} mood={saved ? "happy" : "idle"} size={130} /></div>
-        <div style={{ flex: 1, minWidth: 240 }}>
-          <label style={lab}>1. What is your name?<input style={inp} value={f.user} onChange={set("user")} maxLength={20} placeholder="Your first name" autoComplete="given-name" /></label>
-          <span style={lab}>2. Pick your pet and its colour</span>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 4 }}>{Object.entries(KINDS).map(([k, n]) => <button key={k} type="button" style={pill(k === kind)} onClick={() => { setKind(k); setColour("") }}>{n}</button>)}</div>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}>{colours.map((c) => <button key={c} type="button" style={pill(c === (colour || colours[0]))} onClick={() => setColour(c)}>{c}</button>)}</div>
-          <label style={lab}>3. Give your pet a name<input style={inp} value={f.name} onChange={set("name")} maxLength={20} placeholder="Vidi" /></label>
-          <label style={lab}>4. Which language should it speak?
-            <select style={inp} value={f.lang} onChange={set("lang")}>{Object.entries({ auto: "Like my browser", en: "English", de: "Deutsch", hi: "Hinglish", es: "Español", fr: "Français" }).map(([k, n]) => <option key={k} value={k}>{n}</option>)}</select>
-          </label>
-          <label style={lab}>5. What do you like? <span style={{ fontSize: 12.5 }}>(optional, with commas)</span><input style={inp} value={f.likes} onChange={set("likes")} maxLength={200} placeholder="football, cooking, dragons" /></label>
-        </div>
+    <Card id="intro" style={{ borderColor: "rgba(124,92,255,.7)", padding: 22 }}>
+      {/* where you are: one dot per step */}
+      <div style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 14, flexWrap: "wrap" }}>
+        {STEPS.map((s, k) => (k === 5 && !needBackup) ? null : <span key={s} title={s} style={{ width: k === step ? 26 : 10, height: 10, borderRadius: 9, background: k < step ? C.ok : k === step ? C.acc : "rgba(255,255,255,.15)", transition: "all .3s" }} />)}
+        <span style={{ marginLeft: "auto", color: C.dim, fontSize: 13 }}>{STEPS[step]}</span>
       </div>
-      <span style={{ ...lab, marginTop: 14 }}>6. Which AI should answer? <span style={{ fontSize: 12.5 }}>(✓ % = right answers in our own tests: chat, guiding and forms. Yours can differ.)</span></span>
-      <div style={{ display: "grid", gap: 8, marginTop: 6 }}>
-        {AIS.map((a) => {
-          const s = window.VidiScores[a.id] || {}
-          return (
-            <label key={a.id} style={{ display: "flex", gap: 10, padding: 12, borderRadius: 12, cursor: "pointer", border: `1px solid ${f.ai === a.id ? C.acc : C.line}`, background: f.ai === a.id ? "#221a4f" : "transparent" }}>
-              <input type="radio" name="ai" checked={f.ai === a.id} onChange={() => setF({ ...f, ai: a.id })} />
-              <span style={{ fontSize: 14, lineHeight: 1.5 }}>
-                <b>{a.title}</b> {pct(a.id) != null ? <span style={{ color: C.ok }}>✓ {pct(a.id)}% in tests</span> : <span style={{ color: C.dim }}>(not fully tested yet)</span>}
-                <span style={{ display: "block", color: C.dim }}>{a.what} {s.speed ? `Speed: ${s.speed}.` : ""} {a.note}</span>
-              </span>
+      {info === false && <p style={{ margin: "0 0 12px", padding: "8px 12px", borderRadius: 10, background: "rgba(251,191,36,.1)", color: "#fde68a", fontSize: 14 }}>The VideoDoc plugin was not found in this browser. {PLUGIN_URL ? <a href={PLUGIN_URL} target="_blank" rel="noopener" style={{ color: "#c4b5fd" }}>Add it to Chrome or Edge</a> : "Add it to Chrome or Edge"}, then reload this page.</p>}
+      {info && !info.allowed && <p style={{ margin: "0 0 12px", padding: "8px 12px", borderRadius: 10, background: "rgba(251,191,36,.1)", color: "#fde68a", fontSize: 14 }}>One more thing: open the plugin (the VideoDoc icon in the toolbar), then Your pet, and tick <b>Show my pet on web pages</b>. It asks for your OK once.</p>}
+      <div style={{ display: "flex", gap: 20, flexWrap: "wrap", alignItems: "flex-start" }}>
+        <div style={{ flex: "0 0 auto", margin: "0 auto" }}><PetPic kind={kind} colour={colour} mood={step === 6 ? "happy" : step === 4 && test?.busy ? "think" : "idle"} size={140} /></div>
+        <div style={{ flex: 1, minWidth: 250 }}>
+          {step === 0 && <>
+            <h2 style={{ margin: "0 0 6px", fontSize: 21 }}>👋 Let's set up your pet</h2>
+            <p style={{ margin: 0, color: C.dim, lineHeight: 1.6 }}>Five quick steps, about two minutes: pick your pet, give it a name, tell it a little about you and choose its AI. Just follow along; you can change everything later.</p>
+          </>}
+          {step === 1 && <>
+            <h2 style={{ margin: "0 0 10px", fontSize: 19 }}>Which pet do you like?</h2>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>{Object.entries(KINDS).map(([k, n]) => <button key={k} type="button" style={pill(k === kind)} onClick={() => { setKind(k); setColour("") }}>{n}</button>)}</div>
+            <p style={{ margin: "14px 0 6px", color: C.dim }}>And its colour:</p>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>{colours.map((c) => <button key={c} type="button" style={pill(c === (colour || colours[0]))} onClick={() => setColour(c)}>{c}</button>)}</div>
+          </>}
+          {step === 2 && <>
+            <h2 style={{ margin: "0 0 10px", fontSize: 19 }}>What should we call it?</h2>
+            <input style={inp} value={f.name} onChange={set("name")} maxLength={20} placeholder="Vidi" autoFocus />
+            <p style={{ margin: "8px 0 0", color: C.dim, fontSize: 13.5 }}>Leave it empty and it is called Vidi.</p>
+          </>}
+          {step === 3 && <>
+            <h2 style={{ margin: "0 0 10px", fontSize: 19 }}>A little about you</h2>
+            <label style={{ display: "block", color: C.dim, fontSize: 14 }}>Your first name<input style={{ ...inp, marginTop: 4 }} value={f.user} onChange={set("user")} maxLength={20} placeholder="Your first name" autoComplete="given-name" autoFocus /></label>
+            <label style={{ display: "block", color: C.dim, fontSize: 14, marginTop: 10 }}>Its language
+              <select style={{ ...inp, marginTop: 4 }} value={f.lang} onChange={set("lang")}>{Object.entries({ auto: "Like my browser", en: "English", de: "Deutsch", hi: "Hinglish", es: "Español", fr: "Français" }).map(([k, n]) => <option key={k} value={k}>{n}</option>)}</select>
             </label>
-          )
-        })}
-      </div>
-      {f.ai === "gemma3:4b" && <OllamaSetup />}
-      {f.ai === "gemma4:31b-cloud" && (
-        <div style={{ marginTop: 10, padding: 12, borderRadius: 12, border: "1px solid rgba(251,191,36,.45)", background: "rgba(251,191,36,.08)", fontSize: 14, lineHeight: 1.55 }}>
-          <b style={{ color: "#fde68a" }}>Before you choose the cloud</b>
-          <p style={{ margin: "4px 0 0" }}>The cloud model runs on Ollama's servers. What you ask, and the page or file you ask about, goes there. Do not use it for private or work things. It needs internet, and free use has daily limits.</p>
-          <label style={{ display: "block", marginTop: 8, cursor: "pointer" }}><input type="checkbox" checked={cloudOk} onChange={(e) => setCloudOk(e.target.checked)} /> I understand</label>
-          <p style={{ margin: "8px 0 0" }}>It needs the Ollama app (below), then once in a terminal: <Say>ollama signin</Say> and <Say>ollama pull gemma4:31b-cloud</Say></p>
-          <OllamaSetup />
-          <p style={{ margin: "10px 0 0" }}><b>A local backup</b>, for when you are offline, the free limit is used up, or for private things:{" "}
-            {bk ? <>{bk.name} ({bk.size}) fits this computer{sys?.totalMB ? ` (${Math.round(sys.totalMB / 1024)} GB memory)` : ""}.</> : sys ? <>this computer has little memory, so no local model: the browser AI is the backup.</> : <>the plugin checks this computer's memory first.</>}</p>
-          {bk && !backup && <button type="button" onClick={getBackup} style={{ ...pill(true), marginTop: 6 }}>⬇ Get the backup ({bk.size})</button>}
-          {backup?.p != null && <p style={{ margin: "6px 0 0" }}>Downloading the backup... {Math.round(backup.p * 100)}%</p>}
-          {backup?.done && <p style={{ margin: "6px 0 0", color: C.ok }}>✓ The backup is ready.</p>}
-          {backup?.error && <p style={{ margin: "6px 0 0", color: "#fca5a5" }}>{backup.error}</p>}
+            <label style={{ display: "block", color: C.dim, fontSize: 14, marginTop: 10 }}>What do you like? <span style={{ fontSize: 12.5 }}>(optional)</span><input style={{ ...inp, marginTop: 4 }} value={f.likes} onChange={set("likes")} maxLength={200} placeholder="football, cooking, dragons" /></label>
+            <p style={{ margin: "8px 0 0", color: C.dim, fontSize: 13 }}>It remembers this in this browser only, until you say “forget”.</p>
+          </>}
+          {step === 4 && <>
+            <h2 style={{ margin: "0 0 4px", fontSize: 19 }}>Which AI should answer?</h2>
+            <p style={{ margin: "0 0 8px", color: C.dim, fontSize: 13.5 }}>✓ % = how often each AI was right in our own testing (chat, guiding and forms). This is based on our tests only: on your computer and with your questions it can differ. Pick one, then press 🧪 Test it.</p>
+            <div style={{ display: "grid", gap: 8 }}>
+              {AIS.map((a) => (
+                <label key={a.id} style={{ display: "flex", gap: 10, padding: 12, borderRadius: 12, cursor: "pointer", border: `1px solid ${f.ai === a.id ? C.acc : C.line}`, background: f.ai === a.id ? "#221a4f" : "transparent" }}>
+                  <input type="radio" name="ai" checked={f.ai === a.id} onChange={() => { setF({ ...f, ai: a.id }); setTest(null) }} />
+                  <span style={{ fontSize: 14, lineHeight: 1.5 }}>
+                    <b>{a.title}</b> {window.VidiScore(a.id) != null ? <span style={{ color: C.ok }}>✓ {window.VidiScore(a.id)}% in tests</span> : <span style={{ color: C.dim }}>(not fully tested yet)</span>}
+                    <span style={{ display: "block", color: C.dim }}>{a.what} {a.note}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+            {isCloudName(f.ai) && <label style={{ display: "block", marginTop: 10, padding: 10, borderRadius: 10, background: "rgba(251,191,36,.08)", border: "1px solid rgba(251,191,36,.45)", fontSize: 14, cursor: "pointer" }}><input type="checkbox" checked={cloudOk} onChange={(e) => setCloudOk(e.target.checked)} /> I understand: what I ask goes to Ollama's servers, so nothing private or for work.</label>}
+            <div style={{ marginTop: 12, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+              <button type="button" style={big(!test?.busy && (!isCloudName(f.ai) || cloudOk))} disabled={test?.busy || (isCloudName(f.ai) && !cloudOk)} onClick={runTest}>🧪 Test it</button>
+              {test && <span style={{ color: test.ok ? C.ok : test.bad ? "#fca5a5" : C.dim, fontSize: 14, lineHeight: 1.5 }}>{test.msg}{test.fix ? ` ${test.fix}` : ""}</span>}
+            </div>
+            {test?.need && !isCloudName(f.ai) && !backup && <button type="button" style={{ ...pill(true), marginTop: 10 }} onClick={() => getModel(f.ai)}>⬇ Download {f.ai} (3.3 GB)</button>}
+            {backup?.name === f.ai && backup.p != null && !backup.done && <p style={{ margin: "8px 0 0" }}>Downloading {f.ai}... {Math.round(backup.p * 100)}%</p>}
+            {test?.bad && f.ai !== "webllm" && /Ollama/.test(test.msg) && <OllamaSetup />}
+          </>}
+          {step === 5 && <>
+            <h2 style={{ margin: "0 0 6px", fontSize: 19 }}>A backup for offline use</h2>
+            <p style={{ margin: 0, color: C.dim, lineHeight: 1.6 }}>{f.ai === "webllm" ? "The browser AI is the weakest of the three." : "The cloud needs internet and has daily limits."} A small AI on your computer keeps your pet working offline, when the free limit is used up, and for private things.</p>
+            {bk ? <>
+              <p style={{ margin: "10px 0 0" }}><b>{bk.name}</b> ({bk.size}) fits this computer{sys?.totalMB ? ` (${Math.round(sys.totalMB / 1024)} GB memory)` : ""}. It needs the free Ollama app.</p>
+              {!backup?.done && backup?.p == null && <button type="button" style={{ ...big(), marginTop: 10 }} onClick={() => getModel(bk.name)}>⬇ Get the backup ({bk.size})</button>}
+              {backup?.p != null && !backup.done && <p style={{ margin: "8px 0 0" }}>Downloading the backup... {Math.round(backup.p * 100)}%</p>}
+              {backup?.done && <p style={{ margin: "8px 0 0", color: C.ok }}>✓ The backup is ready. Your pet uses it when the cloud cannot answer.</p>}
+              {backup?.error && <><p style={{ margin: "8px 0 0", color: "#fca5a5" }}>{backup.error}</p><OllamaSetup /></>}
+            </> : <p style={{ margin: "10px 0 0" }}>{sys ? "This computer has little memory, so the browser AI is the backup." : "The plugin checks this computer's memory first."}</p>}
+          </>}
+          {step === 6 && <>
+            <h2 style={{ margin: "0 0 6px", fontSize: 21 }}>🎉 {f.name || "Vidi"} is ready{f.user ? `, ${f.user}` : ""}!</h2>
+            <p style={{ margin: 0, lineHeight: 1.6 }}>It waits at the right edge of the page: click it to say hi.</p>
+            <p style={{ margin: "10px 0 0", padding: "10px 12px", borderRadius: 10, background: "rgba(124,92,255,.12)", lineHeight: 1.6 }}>💡 Want another AI later? Just tell your pet <Say>change the AI</Say>: it shows the ones ready to use and the ones to download, as buttons.</p>
+          </>}
         </div>
-      )}
-      <div style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 14, flexWrap: "wrap" }}>
-        <button type="button" disabled={!canSave} onClick={save} style={{ font: "inherit", fontWeight: 700, padding: "10px 18px", borderRadius: 12, border: 0, cursor: canSave ? "pointer" : "default", opacity: canSave ? 1 : 0.45, background: "linear-gradient(90deg,#7c5cff,#22d3ee)", color: "#fff" }}>Set up my pet</button>
-        {saved && <span style={{ color: C.ok }}>✓ Done! Your pet is at the right edge of the page: click it to say hi.</span>}
+      </div>
+      <div style={{ display: "flex", gap: 10, marginTop: 18, flexWrap: "wrap", alignItems: "center" }}>
+        {step > 0 && step < 6 && <button type="button" style={pill(false)} onClick={() => setStep(step === 5 && !needBackup ? 4 : step - 1)}>← Back</button>}
+        {step < last && <button type="button" style={big(step !== 4 || (!!test?.ok && (!isCloudName(f.ai) || cloudOk)))} disabled={step === 4 && !(test?.ok && (!isCloudName(f.ai) || cloudOk))} onClick={() => setStep(step + 1)}>{step === 0 ? "Let's start" : "Next →"}</button>}
+        {step === last && <button type="button" style={big(step !== 4 || !!test?.ok)} disabled={step === 4 && !test?.ok} onClick={save}>✓ Finish</button>}
+        {step === 4 && !test?.ok && <button type="button" style={{ ...pill(false), fontSize: 13 }} onClick={() => (needBackup ? setStep(5) : save())}>Skip the test</button>}
+        {step === 6 && <button type="button" style={big()} onClick={() => { setStep(-1); document.getElementById("courses")?.scrollIntoView({ behavior: "smooth" }) }}>Start the lessons →</button>}
       </div>
     </Card>
   )
 }
+
 
 export default function PetTraining() {
   const [kind, setKind] = useState("dragon")
@@ -291,6 +436,13 @@ export default function PetTraining() {
   useEffect(() => { try { localStorage.setItem("vd-pet-training", JSON.stringify(done)) } catch { /* private window */ } }, [done])
   useEffect(() => { document.title = "Pet training · VideoDoc" }, [])
   const toggle = (id) => setDone((d) => d.includes(id) ? d.filter((x) => x !== id) : [...d, id])
+  // the open lesson (null: the course cards); the page goes back to the top of the lessons
+  const [open, setOpen] = useState(null)
+  const [setupKey, setSetupKey] = useState(0) // a new key starts the setup wizard over (↺ Reset)
+  // "▶ Try it": the plugin's pet hears the sentence as if the user typed it (only on this page)
+  const tryIt = (t) => window.postMessage({ source: "videodoc-app", type: "pet-try", text: t.replace(/\s*\((it asks[^)]*|also works)\)/i, "") }, location.origin)
+  let setUp = false; try { setUp = !!localStorage.getItem(SETUP_KEY) } catch { /* private window */ }
+  const openLesson = (id) => { setOpen(id); requestAnimationFrame(() => document.getElementById("courses")?.scrollIntoView({ behavior: "smooth" })) }
   const pill = (on) => ({ font: "inherit", fontSize: 13.5, cursor: "pointer", borderRadius: 999, padding: "6px 12px", border: `1px solid ${on ? C.acc : C.line}`, background: on ? "#2b2063" : "transparent", color: "#fff" })
 
   return (
@@ -313,7 +465,7 @@ export default function PetTraining() {
         <p style={{ margin: 0, padding: "10px 14px", borderRadius: 12, background: "rgba(251,191,36,.1)", border: "1px solid rgba(251,191,36,.4)", color: "#fde68a", fontSize: 14, lineHeight: 1.5 }}>
           Everything to practise on this page is made up: the sample CV (Mira Hoffmann is not a real person), the form, the toolbar and the ads. Nothing you type here is sent anywhere.
         </p>
-        <PetIntro kind={kind} setKind={setKind} colour={colour} setColour={setColour} />
+        <PetSetup key={setupKey} kind={kind} setKind={setKind} colour={colour} setColour={setColour} />
 
         <Card>
           <h2 style={{ margin: "0 0 8px", fontSize: 17 }}>Before you start</h2>
@@ -325,21 +477,73 @@ export default function PetTraining() {
           <p style={{ margin: "10px 0 0", color: C.dim, fontSize: 13.5 }}>On the rest of the VideoDoc website the pet stays away, because VideoDoc has its own Vidi there. This page is its training ground.</p>
         </Card>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div id="courses" style={{ display: "flex", alignItems: "center", gap: 12, scrollMarginTop: 80 }}>
           <div style={{ flex: 1, height: 8, background: "rgba(255,255,255,.08)", borderRadius: 9, overflow: "hidden" }}><div style={{ width: `${(done.length / LESSONS.length) * 100}%`, height: "100%", background: "linear-gradient(90deg,#7c5cff,#22d3ee)", transition: "width .4s" }} /></div>
-          <b style={{ fontSize: 14 }}>{done.length} of {LESSONS.length} learned</b>
+          <b style={{ fontSize: 14 }}>{done.length} of {LESSONS.length} done</b>
+          {/* start over: every lesson open again, and the setup from the beginning */}
+          <button type="button" onClick={() => { if (!confirm("Start the training again? Your ✓ Done marks are cleared and the setup starts from the beginning. Your pet keeps what it knows.")) return; setDone([]); try { localStorage.removeItem(SETUP_KEY) } catch { /* private window */ } setOpen(null); setSetupKey((k) => k + 1) }}
+            style={{ ...pill(false), fontSize: 12.5, padding: "5px 10px", whiteSpace: "nowrap" }}>↺ Reset</button>
         </div>
-        <nav style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>{LESSONS.map((l) => <a key={l.id} href={`#/pet-training`} onClick={(e) => { e.preventDefault(); document.getElementById(l.id)?.scrollIntoView({ behavior: "smooth" }) }} style={{ ...pill(done.includes(l.id)), textDecoration: "none" }}>{l.icon} {l.title.split(",")[0]}</a>)}</nav>
 
-        {LESSONS.map((l, n) => (
-          <Card key={l.id} id={l.id} style={{ borderColor: done.includes(l.id) ? "rgba(52,211,153,.45)" : C.line }}>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-              <h2 style={{ margin: 0, fontSize: 18, flex: 1 }}>{l.icon} {n + 1}. {l.title}</h2>
-              <label style={{ fontSize: 13.5, color: done.includes(l.id) ? C.ok : C.dim, cursor: "pointer", whiteSpace: "nowrap" }}><input type="checkbox" checked={done.includes(l.id)} onChange={() => toggle(l.id)} /> I tried it</label>
+        {/* the lessons as course cards: pick one, it opens as its own little scenario */}
+        {!open && (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(220px,1fr))", gap: 12 }}>
+            {LESSONS.map((l, n) => {
+              const ok = done.includes(l.id), c = COURSE[l.id] || {}
+              return (
+                <button key={l.id} data-lesson={l.id} onClick={() => openLesson(l.id)}
+                  style={{ textAlign: "left", font: "inherit", color: C.ink, cursor: "pointer", display: "flex", flexDirection: "column", padding: 0, overflow: "hidden", borderRadius: 16,
+                    background: ok ? "linear-gradient(160deg,rgba(52,211,153,.16),rgba(22,15,46,.94))" : C.card, border: `1px solid ${ok ? "rgba(52,211,153,.6)" : C.line}` }}>
+                  {/* the picture: your own pet doing the lesson, its big icon beside it */}
+                  <div style={{ position: "relative", height: 118, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: ART[n % ART.length] }}>
+                    {/* before the setup the whole pet family takes turns; afterwards it is your own pet */}
+                    <PetPic kind={setUp ? kind : Object.keys(KINDS)[n % 5]} colour={setUp ? colour : ""} mood={MOOD[l.id] || "happy"} size={86} />
+                    <span style={{ fontSize: 44, filter: "drop-shadow(0 4px 8px rgba(0,0,0,.35))" }}>{l.icon}</span>
+                    <span style={{ position: "absolute", top: 8, right: 8, fontSize: 12, padding: "3px 9px", borderRadius: 999, background: ok ? "rgba(16,94,68,.85)" : "rgba(15,11,36,.7)", color: ok ? "#a7f3d0" : "#e4ddff" }}>{ok ? "✓ Done" : `Lesson ${n + 1}`}</span>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: "12px 14px 14px", flex: 1 }}>
+                    <b style={{ fontSize: 15.5, lineHeight: 1.35 }}>{l.title}</b>
+                    {/* two lines at most */}
+                    <span style={{ color: C.dim, fontSize: 13.5, lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", flex: 1 }}>{c.short}</span>
+                    <span style={{ color: C.dim, fontSize: 12.5 }}>⏱ about {c.min || 2} min{c.files ? " · 📥 file" : ""}</span>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        )}
+
+        {LESSONS.map((l, n) => open === l.id && (
+          <Card key={l.id} id={l.id} style={{ borderColor: done.includes(l.id) ? "rgba(52,211,153,.6)" : C.line }}>
+            <button onClick={() => openLesson(null)} style={{ ...pill(false), marginBottom: 12 }}>← All lessons</button>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ display: "flex", alignItems: "center", padding: "4px 10px", borderRadius: 14, background: ART[n % ART.length] }}><PetPic kind={kind} colour={colour} mood={MOOD[l.id] || "happy"} size={58} /><span style={{ fontSize: 30 }}>{l.icon}</span></span>
+              <h2 style={{ margin: 0, fontSize: 20, flex: 1 }}>{n + 1}. {l.title}</h2>
+              {done.includes(l.id) && <span style={{ color: C.ok, fontSize: 14, whiteSpace: "nowrap" }}>✓ Done</span>}
             </div>
-            <p style={{ margin: "10px 0 0", lineHeight: 1.6 }}>{l.what}</p>
-            <p style={{ margin: "8px 0 0", lineHeight: 1.6, color: C.dim }}><b style={{ color: C.ok }}>Why it helps:</b> {l.why}</p>
-            {l.tryIt.length > 0 && <p style={{ margin: "10px 0 0", lineHeight: 2.1 }}><b>Try:</b> {l.tryIt.map((t) => <span key={t} style={{ marginRight: 6 }}><Say>{t}</Say></span>)}</p>}
+            <p style={{ margin: "12px 0 0", lineHeight: 1.6, fontSize: 16 }}>{SIMPLE[l.id]?.[0] || l.what}</p>
+            <p style={{ margin: "4px 0 0", lineHeight: 1.6, color: C.ok }}>👍 {SIMPLE[l.id]?.[1] || l.why}</p>
+            {COURSE[l.id]?.files && (
+              <div style={{ marginTop: 14, padding: 12, borderRadius: 12, background: "rgba(124,92,255,.1)", border: `1px solid ${C.line}` }}>
+                <b style={{ display: "block", marginBottom: 6 }}>📥 Files for this lesson</b>
+                {COURSE[l.id].files.map((f) => <a key={f.href} href={f.href} download style={{ ...pill(false), display: "inline-block", textDecoration: "none", margin: "4px 8px 4px 0" }}>⬇ {f.label}</a>)}
+                <p style={{ margin: "6px 0 0", color: C.dim, fontSize: 13 }}>Download it, then give it to your pet with 📎 in its chat (or drop it on the pet).</p>
+              </div>
+            )}
+            <h3 style={{ margin: "16px 0 4px", fontSize: 15.5 }}>▶ Try it now</h3>
+            <p style={{ margin: "0 0 6px", color: C.dim, fontSize: 13.5 }}>Follow the steps. Tap a ▶ button and your pet opens and does it right here, or type the words into its chat yourself.</p>
+            {/* data-vidi-skip: the pet does not take these Try buttons for buttons of the practice page */}
+            <ol data-vidi-skip="" style={{ margin: 0, paddingLeft: 22, lineHeight: 1.7, listStyle: "decimal" }}>
+              {(COURSE[l.id]?.walk || []).map((s, k) => (
+                <li key={k} style={{ margin: "6px 0" }}>{s.do}{s.say && <span style={{ display: "block", lineHeight: 2.3 }}>{s.say.map((t) => (
+                  // a sentence to say: one tap says it to the pet; an action ("press ＋", "drag it") stays a hint
+                  /^(press|drag|make the chat|hide on this site|in the plugin|📎)|\(your name\)/i.test(t)
+                    ? <span key={t} data-try={t} style={{ marginRight: 6 }}><Say>{t}</Say></span>
+                    : <button key={t} type="button" data-try={t} onClick={() => tryIt(t)} title="Your pet says it for you"
+                        style={{ font: "inherit", fontSize: 13.5, cursor: "pointer", margin: "0 6px 4px 0", padding: "3px 10px", borderRadius: 999, border: `1px solid ${C.acc}`, background: "#2b2063", color: "#fff" }}>▶ {t.replace(/\s*\((it asks[^)]*|also works)\)/i, "")}</button>
+                ))}</span>}</li>
+              ))}
+            </ol>
             {l.practice === "toolbar" && <Toolbar />}
             {l.practice === "tool" && <PracticeTool />}
             {l.practice === "shop" && <PracticeShop />}
@@ -355,6 +559,10 @@ export default function PetTraining() {
             )}
             {l.practice === "avatar" && <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap" }}>{Object.keys(KINDS).map((k) => <PetPic key={k} kind={k} mood="idle" size={64} />)}</div>}
             {l.safe && <ul style={{ margin: "10px 0 0", paddingLeft: 20, color: C.warn, fontSize: 14, lineHeight: 1.7, listStyle: "disc" }}>{l.safe.map((s) => <li key={s}>{s}</li>)}</ul>}
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 16 }}>
+              <button onClick={() => toggle(l.id)} style={{ ...pill(done.includes(l.id)), padding: "9px 16px", borderColor: done.includes(l.id) ? C.ok : C.line, color: done.includes(l.id) ? C.ok : "#fff" }}>{done.includes(l.id) ? "✓ Done (tap to undo)" : "✓ Mark as done"}</button>
+              {n + 1 < LESSONS.length && <button onClick={() => { if (!done.includes(l.id)) toggle(l.id); openLesson(LESSONS[n + 1].id) }} style={{ ...pill(true), padding: "9px 16px" }}>Next lesson: {LESSONS[n + 1].icon} {LESSONS[n + 1].title.split(",")[0]} →</button>}
+            </div>
           </Card>
         ))}
 
