@@ -1,3 +1,6 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
 Copyright (c) 2026 by
 Aryan Bajaj, AI and automation developer * https://github.com/Aryan-Bajaj/showmewise
 "ShowMeWise: record your screen once, get a guide that shows where to click."
@@ -48,7 +51,14 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 
---End of License
+- --End of License
 
 Third-party parts (React, Whisper, Transformers.js, three.js and the
 others listed on the website's policy page) keep their own licenses.
+-----BEGIN PGP SIGNATURE-----
+
+iHUEARYKAB0WIQTT77/N8WtBsve7I8KrYNaWQiF1agUCat5JWgAKCRCrYNaWQiF1
+av/rAP9mifOCt0QtEt8esn0K5E91uH+5HO5WkbQhIo4bnkfYbAD/UfZQGraSu8Bh
+O63PMQlKDTn1Y+X3oKxYeAVwq1wVcQk=
+=i9HL
+-----END PGP SIGNATURE-----
