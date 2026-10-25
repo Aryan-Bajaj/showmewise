@@ -99,7 +99,7 @@ function render(s, closed) {
 
 chrome.runtime.onMessage.addListener((m) => { if (m?.to === "panel" && m.type === "status") render(m.status, m.closed) })
 bg("state").then((st) => {
-  if (st?.site) { $("site").href = st.site + "/"; $("privacy").href = st.site + "/#/policy"; $("check").href = st.site + "/#/check" }
+  if (st?.site) { $("site").href = st.site + "/"; $("privacy").href = st.site + "/#/policy"; $("legal").href = st.site + "/#/legal";$("check").href = st.site + "/#/check" }
   render(st?.status || null, st?.closed)
 })
 chrome.storage.local.get("autoStart").then(({ autoStart }) => { $("auto").checked = autoStart !== false })

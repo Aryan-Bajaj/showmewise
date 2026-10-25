@@ -6,6 +6,7 @@ import LandingPage from './components/LandingPage.jsx'
 import App from './App.jsx'
 import DocChatApp from './DocChatApp.jsx'
 import PolicyPage from './components/PolicyPage.jsx'
+import LegalNotice from './components/LegalNotice.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import MobileNotice from './components/MobileNotice.jsx'
 import HowToPage from './components/HowToPage.jsx'
@@ -26,6 +27,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/app" element={<ErrorBoundary name="VideoDoc"><App /></ErrorBoundary>} />
         <Route path="/docchat" element={<DocChatApp />} />
         <Route path="/policy" element={<PolicyPage />} />
+        <Route path="/legal" element={<LegalNotice />} />
         <Route path="/howto" element={<HowToPage />} />
         <Route path="/check" element={<CheckPage />} />
         <Route path="/pet-training" element={<PetTraining />} />

@@ -1295,6 +1295,7 @@ export default function LandingPage() {
           </span>
           <span style={{ display: 'flex', gap: 18, alignItems: 'center', flexWrap: 'wrap' }}>
             <a href="/#/policy" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none' }}>Privacy, terms and credits</a>
+            <a href="/#/legal" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none' }}>Legal notice</a>
             <a href="https://github.com/Aryan-Bajaj/video-docs" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none' }}>GitHub</a>
           </span>
         </footer>

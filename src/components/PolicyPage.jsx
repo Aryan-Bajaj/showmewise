@@ -140,7 +140,7 @@ export default function PolicyPage() {
         </Section>
 
         <Section id="contact" n="4" title="Contact">
-          <p style={{ margin: 0 }}>Questions, ideas or a problem? Please open an issue on <A href={`${REPO}/issues`}>GitHub</A>. We usually answer there.</p>
+          <p style={{ margin: 0 }}>Questions, ideas or a problem? Please open an issue on <A href={`${REPO}/issues`}>GitHub</A>. We usually answer there. Who runs VideoDoc: see the <a href="/#/legal" style={{ color: C.acc }}>Legal notice</a>.</p>
         </Section>
 
         <Section id="changes" n="5" title="Changes to this page">

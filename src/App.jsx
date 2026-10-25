@@ -644,6 +644,7 @@ export default function App() {
         <a href="/#/howto" className="text-xs text-zinc-400 hover:text-violet-300 transition-colors">How to use</a>
         <a href="/#/pet-training" className="text-xs text-zinc-400 hover:text-violet-300 transition-colors">Pet training</a>
         <a href="/#/policy" className="text-xs text-zinc-400 hover:text-violet-300 transition-colors">Privacy</a>
+        <a href="/#/legal" className="text-xs text-zinc-400 hover:text-violet-300 transition-colors">Legal notice</a>
 
         {videoFile && !showAISettings && !isAnnotating && frames.length > 0 && !busy && (
           <button
