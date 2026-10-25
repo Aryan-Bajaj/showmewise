@@ -10,6 +10,9 @@
 
 > **Want the offline desktop installer?** → [Download & install instructions](INSTALL.md)
 
+<p align="center"><img src="public/landing/guide-html.jpg" alt="A guide made by VideoDoc: Part A with numbered actions and marked screenshots, and the step clip beside it" width="820"></p>
+<p align="center"><sub>A guide written by VideoDoc from a one-minute recording: numbered actions, the click marked on each screenshot, the step clip beside it.</sub></p>
+
 ---
 
 ## 📑 Table of Contents
@@ -57,6 +60,8 @@ You sigh. You open a doc. You rewatch the video. You pause. You type. You pause 
 Two hours later you have a half-finished document you never want to look at again.
 
 **VideoDoc eliminates that entirely.**
+
+<p align="center"><img src="public/landing/marked-page.jpg" alt="A screenshot from the guide with the click marked: 1 Click + New dashboard, beside the button" width="720"></p>
 
 Upload the video. Click annotate. Get a polished, structured, beautifully formatted document, with screenshots, numbered steps, and AI-written annotations. A short how-to takes a few minutes; a 10 minute recording about 1 to 2 hours on a normal laptop (faster with a strong graphics card). Read it through before you share it.
 
@@ -107,6 +112,29 @@ Every release is tested against manuals written by hand for real screen recordin
 
 The `extension/` folder holds the VideoDoc plugin for Chrome and Edge (Manifest V3). It opens as a small window under its toolbar icon, or on the side.
 
+<p align="center"><img src="docs/images/pet-family.png" alt="The pets: dragon, wolf, cat, fox and owl, each in three colours" width="820"></p>
+<p align="center"><sub>The pet that lives at the edge of your pages: five pets in three colours each, or your own picture or 3D pet.</sub></p>
+
+<table>
+<tr>
+<td width="50%"><img src="docs/images/pet-chat.png" alt="The pet's chat: what it can do, with one-tap ideas"><br><sub><b>Chat with your pet.</b> “what can you do?” gets a short answer and a button to the training.</sub></td>
+<td width="50%"><img src="docs/images/pet-show-me.png" alt="The pet marks the tea kettle's own Add to cart button"><br><sub><b>Show me on the page.</b> Three “Add to cart” buttons: it marks the one for the tea kettle you asked about.</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/images/pet-fill-done.png" alt="A job form filled from a sample CV, the fields marked green"><br><sub><b>Fill a form from your CV.</b> Filled fields turn green; passwords and card numbers stay empty; you press Submit.</sub></td>
+<td width="50%"><img src="docs/images/pet-ai-list.png" alt="The pet's AI list after test my system: suggested AIs with their accuracy" width="300"><br><sub><b>“test my system”.</b> Every AI tagged ✅ Suggested or ⚠️ Not suggested for this computer, the most accurate first.</sub></td>
+</tr>
+</table>
+
+**Pet training** (`#/pet-training`): a setup that starts by itself, then lessons as cards.
+
+<table>
+<tr>
+<td width="42%"><img src="docs/images/training-wizard-ai.png" alt="Setup wizard: choose the AI, with accuracy from our tests and a Test it button that shows it works"><br><sub><b>Setup, one step at a time.</b> 🧪 Test it checks that the AI really runs here.</sub></td>
+<td width="58%"><img src="docs/images/training-cards.png" alt="The Pet training lessons as cards, each with a pet and an icon"><br><sub><b>Lessons as cards.</b> Each opens as its own little scenario with ▶ Try buttons; done ones turn green.</sub></td>
+</tr>
+</table>
+
 * **Record any app.** The whole screen, one window or a tab, with your voice (`chrome.desktopCapture`). When you stop, the guide is written by itself with the AI used last time.
 * **Steps, time left and a notification** when the guide is ready. The computer is kept awake while it records or writes (`chrome.power`).
 * **Ask Vidi** about your video, the page you are on, a document (PDF, Word, HTML, text) or VideoDoc itself.
@@ -152,6 +180,8 @@ Version 5 is about making a guide easy to follow. Everything still runs on your 
 * **Chats that understand more.** One wrong letter in a long word still finds it ("widgit"), German and Spanish questions are answered in their language, "What is in this file?" gets a summary, and when the text does not cover a question you always get two choices: the AI's own knowledge (marked as such) or a web search with only your question.
 * **No lost clicks in one sentence.** "Click Share, switch on anyone with the link, and copy the link" said in one breath becomes three actions, so a part no longer keeps only the first.
 * **Vidi helps pick the AI.** "Which model should I pick?" lists the AIs for this computer as buttons: ✅ Suggested first, accuracy from our own tests, size, one tap to use or to download with a progress bar, and Ollama's setup steps when it is missing.
+
+  <img src="docs/images/vidi-ai-picker.png" alt="Vidi on the website lists the AIs for this computer with their accuracy" width="360">
 * **The plugin's pet, a full course.** See [Browser Plugin](#-browser-plugin): setup wizard, lesson cards with ▶ Try buttons, AIs as buttons, form filling from a CV, memory you can see.
 
 ---
