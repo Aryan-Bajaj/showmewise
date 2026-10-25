@@ -46,14 +46,14 @@ An assistant for learning and documenting how software is used: it turns screen 
 - desktopCapture: to record the screen, a window or a tab when the user presses Record.
 - sidePanel: to show ShowMeWise next to the page when the user chooses "Open on the side".
 - notifications: to say when a guide is ready.
-- storage: to keep the user's settings and the current chat until the browser closes, and the pet's chat, name and memory (including the one file the user gave it and form details the user chose to save) until the user clears them. Nothing is sent anywhere.
+- storage: to keep the user's settings and the current chat until the browser closes, and the pet's chat, name and memory until the user clears them. The memory can include one document the user gave the pet, such as a CV, and form details the user chose to save. Everything stays on the user's computer. Nothing is sent anywhere.
 - alarms: for the timers, alarms and reminders the user sets with the pet.
 - offscreen: to play the short chime of a timer or alarm (a background worker cannot play sound).
-- search: "More results" opens the user's own search engine with the words they searched for.
+- search: when the user clicks "More results", the plugin opens the user's default search engine with the words they searched for.
 - system.memory: for "Test my computer" on the ShowMeWise website: the free memory decides which AI model can run without slowing the computer down. Only the number is read; it stays on the computer.
 - power: to keep the computer awake while a recording or a guide is in progress, so the work is not cut off.
 - scripting and activeTab: to read the text of the page the user asks about, and to mark buttons on it when the user presses "Show me on the page".
-- Host permission for showmewise.netlify.app: the plugin uses the ShowMeWise website in a tab to do the work on the user's computer.
+- Host permission for showmewise.netlify.app: the plugin opens the ShowMeWise website in a tab, and the website makes the guides on the user's computer.
 - Optional host permission for all sites: asked for only when the user first asks about a page or turns on the pet, so Vidi can read that page and up to 3 linked pages of the same site, show the pet on pages, and get web search answers from Wikipedia and DuckDuckGo.
 
 ## Remote code

@@ -30,5 +30,6 @@ const zip = path.join(OUT, `showmewise-plugin-${man.version}.zip`)
 fs.rmSync(zip, { force: true })
 // Windows: its own tar makes zip files (the one from Git does not)
 const TAR = process.platform === "win32" ? "C:/Windows/System32/tar.exe" : "tar"
-execFileSync(TAR, ["-a", "-c", "-f", zip, "-C", TMP, "."])
+// list the names, not ".": the store wants manifest.json at the root, not ./manifest.json
+execFileSync(TAR, ["-a", "-c", "-f", zip, "-C", TMP, ...fs.readdirSync(TMP)])
 console.log("made", zip, Math.round(fs.statSync(zip).size / 1024), "KB")
