@@ -1,15 +1,15 @@
 import { useEffect } from 'react'
-import VideoDocLogo from './VideoDocLogo'
+import ShowMeWiseLogo from './ShowMeWiseLogo'
 import MarkedShot from './MarkedShot'
 import { HOWTO } from '../lib/howto'
 
-// How to use VideoDoc, step by step, with real screenshots of the app and
+// How to use ShowMeWise, step by step, with real screenshots of the app and
 // numbered pins. The text comes from lib/howto.js, which Vidi answers from too.
 const C = { bg: '#0f0b24', card: 'rgba(22,15,46,0.94)', line: 'rgba(167,139,250,0.22)', ink: '#f1eeff', body: 'rgba(241,238,255,0.88)', dim: 'rgba(236,233,255,0.55)', acc: '#a78bfa' }
 
 export default function HowToPage() {
   useEffect(() => {
-    document.title = 'VideoDoc · How to use'
+    document.title = 'ShowMeWise · How to use'
     const id = window.location.hash.split('#')[2] // /#/howto#export opens that part
     if (id) setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }), 300)
     else window.scrollTo(0, 0)
@@ -22,7 +22,7 @@ export default function HowToPage() {
       <nav style={{ position: 'sticky', top: 0, zIndex: 10, background: 'rgba(15,11,36,0.92)', borderBottom: `1px solid ${C.line}` }}>
         <div style={{ maxWidth: 980, margin: '0 auto', padding: '14px 22px', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <a href="/#/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: C.ink, fontWeight: 700 }}>
-            <VideoDocLogo size={26} /> VideoDoc
+            <ShowMeWiseLogo size={26} /> ShowMeWise
           </a>
           <span style={{ color: C.dim, fontSize: 13 }}>· How to use</span>
           <a href="/#/app" style={{ marginLeft: 'auto', color: '#fff', fontSize: 13, textDecoration: 'none', padding: '7px 14px', borderRadius: 10, background: 'linear-gradient(135deg,#6d4aff,#3f62ff)' }}>Open the app</a>
@@ -30,7 +30,7 @@ export default function HowToPage() {
       </nav>
 
       <main style={{ maxWidth: 980, margin: '0 auto', padding: '40px 22px 80px' }}>
-        <h1 style={{ fontSize: 'clamp(2rem, 5vw, 2.8rem)', margin: '0 0 12px', letterSpacing: '-0.02em' }}>How to use VideoDoc</h1>
+        <h1 style={{ fontSize: 'clamp(2rem, 5vw, 2.8rem)', margin: '0 0 12px', letterSpacing: '-0.02em' }}>How to use ShowMeWise</h1>
         <p style={{ color: C.body, fontSize: '1.05rem', lineHeight: 1.7, margin: '0 0 22px', maxWidth: 760 }}>
           From a screen recording to a finished guide in eight steps. The pictures are the real app; the numbers on each picture match the list below it. Questions? Ask Vidi, the helper at the bottom right.
         </p>

@@ -1,4 +1,4 @@
-// Makes the Chrome Web Store package: dist-extension/videodoc-plugin-<version>.zip
+// Makes the Chrome Web Store package: dist-extension/showmewise-plugin-<version>.zip
 // The local test address (127.0.0.1:8899) is taken out of the manifest, and the
 // test list and this script are left out. Usage: node extension/pack.mjs
 import fs from "node:fs"
@@ -26,7 +26,7 @@ const petJs = path.join(TMP, "pet", "pet.js")
 fs.writeFileSync(petJs, fs.readFileSync(petJs, "utf8").replace(', "http://127.0.0.1:8899"]', "]"))
 for (const f of fs.readdirSync(path.join(TMP, "pet"))) if (/\.check\.mjs$/.test(f)) fs.rmSync(path.join(TMP, "pet", f))
 
-const zip = path.join(OUT, `videodoc-plugin-${man.version}.zip`)
+const zip = path.join(OUT, `showmewise-plugin-${man.version}.zip`)
 fs.rmSync(zip, { force: true })
 // Windows: its own tar makes zip files (the one from Git does not)
 const TAR = process.platform === "win32" ? "C:/Windows/System32/tar.exe" : "tar"

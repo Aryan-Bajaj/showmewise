@@ -213,7 +213,7 @@ export default function AISettings({ onConfirm, onClose, suggestedSections, tool
                 <span className="block text-xs text-zinc-400 mt-0.5">Runs inside this app — best accuracy, sees the screen, fully offline. Nothing leaves your device.</span>
                 {hasLocalEngine
                   ? <span className="block text-xs text-emerald-400 mt-1">✓ Ready</span>
-                  : <span className="block text-xs text-violet-400 mt-1">Starting… if this doesn't turn green, launch VideoDoc.bat and keep its window open.</span>}
+                  : <span className="block text-xs text-violet-400 mt-1">Starting… if this doesn't turn green, launch ShowMeWise.bat and keep its window open.</span>}
               </span>
             </button>
           )}

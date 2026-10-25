@@ -1,10 +1,10 @@
-// The plugin's background worker. The VideoDoc website does the real work in a
+// The plugin's background worker. The ShowMeWise website does the real work in a
 // tab of its own (the "engine"): the same app, the same downloaded models and
 // the same saved progress as on the website. This worker opens that tab when
 // needed, starts recordings in it, passes chat questions to it, keeps the
 // computer awake while it works and says when a guide is ready.
 
-const SITES = ["https://videodoc.netlify.app", "http://127.0.0.1:8899"]
+const SITES = ["https://showmewise.netlify.app", "http://127.0.0.1:8899"]
 const site = async () => (await chrome.storage.local.get("site")).site || SITES[0]
 const isSite = (url = "") => SITES.some((s) => url.startsWith(s + "/"))
 
@@ -15,7 +15,7 @@ const getState = async () => (await chrome.storage.session.get("st")).st || { st
 const setState = async (patch) => { const st = { ...(await getState()), ...patch }; await chrome.storage.session.set({ st }); return st }
 const toPanel = (msg) => chrome.runtime.sendMessage({ to: "panel", ...msg }).catch(() => {})
 
-// the engine tab: one that already talks to us, else a VideoDoc app tab
+// the engine tab: one that already talks to us, else a ShowMeWise app tab
 async function findEngine() {
   const { engine } = await getState()
   const tabs = await chrome.tabs.query({ url: SITES.map((s) => s + "/*") })
@@ -28,7 +28,7 @@ async function findEngine() {
 function waitFor(ok, ms = 45000) {
   return new Promise((res, rej) => {
     const on = (m) => { if (m?.from === "page" && m.type === "status" && ok(m)) { chrome.runtime.onMessage.removeListener(on); clearTimeout(t); res(m) } }
-    const t = setTimeout(() => { chrome.runtime.onMessage.removeListener(on); rej(new Error("The VideoDoc tab did not answer. Is the website open and loaded?")) }, ms)
+    const t = setTimeout(() => { chrome.runtime.onMessage.removeListener(on); rej(new Error("The ShowMeWise tab did not answer. Is the website open and loaded?")) }, ms)
     chrome.runtime.onMessage.addListener(on)
   })
 }
@@ -36,7 +36,7 @@ function waitFor(ok, ms = 45000) {
 const send = (tabId, msg) => chrome.tabs.sendMessage(tabId, { to: "page", ...msg })
   .catch(() => new Promise((r) => setTimeout(r, 1500)).then(() => chrome.tabs.sendMessage(tabId, { to: "page", ...msg })))
 
-// many questions at once must share one VideoDoc tab, not open one each
+// many questions at once must share one ShowMeWise tab, not open one each
 let opening = null
 const ensureEngine = () => opening || (opening = openEngine().finally(() => { opening = null }))
 async function openEngine() {
@@ -44,7 +44,7 @@ async function openEngine() {
   if (!id) {
     // can the website be reached at all? (otherwise the user waited 45 s for nothing)
     const ok = await fetch((await site()) + "/", { method: "HEAD", cache: "no-store", signal: AbortSignal.timeout(6000) }).then((r) => r.ok, () => false)
-    if (!ok) throw new Error("The VideoDoc website cannot be reached. Check your internet connection and try again.")
+    if (!ok) throw new Error("The ShowMeWise website cannot be reached. Check your internet connection and try again.")
     const tab = await chrome.tabs.create({ url: (await site()) + "/#/app", active: false, pinned: true })
     id = tab.id
     await setState({ engine: id })
@@ -59,7 +59,7 @@ async function openEngine() {
       const tab = await chrome.tabs.get(id)
       if (tab.status === "complete") await chrome.scripting.executeScript({ target: { tabId: id }, files: ["content.js"] }).catch(() => {})
     }
-    if (!(await answered)) throw new Error("The VideoDoc tab did not answer. Reload it and try again.")
+    if (!(await answered)) throw new Error("The ShowMeWise tab did not answer. Reload it and try again.")
   }
   return id
 }
@@ -69,12 +69,12 @@ let starting = null
 async function record(opts = {}) {
   const id = await ensureEngine()
   const { status } = await getState()
-  if (status?.state === "working") throw new Error("VideoDoc is still writing a guide. Record the next one when it is done.")
+  if (status?.state === "working") throw new Error("ShowMeWise is still writing a guide. Record the next one when it is done.")
   if (status?.state && status.state !== "upload") {
     await send(id, { type: "new" })
     await waitFor((m) => m.state === "upload", 15000)
   }
-  // the picker opens over the VideoDoc tab; pick the whole screen, a window or a tab.
+  // the picker opens over the ShowMeWise tab; pick the whole screen, a window or a tab.
   // Afterwards the user goes straight back to the tab they were on.
   const [back] = await chrome.tabs.query({ active: true, lastFocusedWindow: true })
   const tab = await chrome.tabs.update(id, { active: true })
@@ -99,12 +99,12 @@ async function onStatus(m, tabId) {
   else chrome.power.releaseKeepAwake()
   if (before?.state !== m.state) {
     if (m.state === "done" && before?.state === "working") notify("done", "Your guide is ready", `${m.title || "The guide"} is written. Open it to read, change and save it.`)
-    if (m.state === "stopped" && before?.state === "working") notify("stopped", "VideoDoc stopped", m.error || "Open the VideoDoc tab to see what happened.")
+    if (m.state === "stopped" && before?.state === "working") notify("stopped", "ShowMeWise stopped", m.error || "Open the ShowMeWise tab to see what happened.")
     // a recording made with the plugin starts writing by itself with the last AI settings
     if (m.state === "settings" && st.auto) {
       await setState({ auto: false })
       if (m.lastAI && (await chrome.storage.local.get("autoStart")).autoStart !== false) send(tabId, { type: "generate" }).catch(() => {})
-      else notify("settings", "Recording saved", "Choose the AI in the VideoDoc tab to write the guide.")
+      else notify("settings", "Recording saved", "Choose the AI in the ShowMeWise tab to write the guide.")
     }
   }
   toPanel({ type: "status", status: m })
@@ -123,19 +123,19 @@ async function focusEngine() {
 }
 
 // the engine tab was closed: say so, the work can be picked up again
-// questions still waiting when the VideoDoc tab goes away would wait forever
+// questions still waiting when the ShowMeWise tab goes away would wait forever
 const failPending = (why) => edit((log) => log.forEach((x) => { if (!x.done) Object.assign(x, { done: true, error: why }) }))
 chrome.tabs.onUpdated.addListener(async (id, info) => {
   // only a tab that was already working: a fresh tab loading for the first time is not a reload
   if (info.status !== "loading") return
   const st = await getState()
-  if (id === st.engine && st.ready) { await setState({ ready: false }); failPending("The VideoDoc tab was reloaded. Ask again.") }
+  if (id === st.engine && st.ready) { await setState({ ready: false }); failPending("The ShowMeWise tab was reloaded. Ask again.") }
 })
 
 chrome.tabs.onRemoved.addListener(async (id) => {
   const st = await getState()
   if (id !== st.engine) return
-  failPending("The VideoDoc tab was closed. Ask again: Vidi opens it by itself.")
+  failPending("The ShowMeWise tab was closed. Ask again: Vidi opens it by itself.")
   const was = st.status?.state
   const closed = was === "working" || was === "recording" || was === "settings"
   await setState({ engine: null, status: null, closed })
@@ -296,7 +296,7 @@ async function showMe(id) {
   const entry = (await getChat()).find((x) => x.id === id)
   if (!entry?.done || entry.error) throw new Error("There is no answer to show yet.")
   if (!(await chrome.permissions.contains({ origins: ["<all_urls>"] }))) throw new Error("To mark the page, Vidi needs your OK once. Press Allow Vidi to read the pages I ask about.")
-  // Help answers are about VideoDoc itself: shown on the VideoDoc tab
+  // Help answers are about ShowMeWise itself: shown on the ShowMeWise tab
   const tab = entry.scope === "help" ? await chrome.tabs.get(await ensureEngine()) : await pageTab()
   if (!tab) throw new Error("This page cannot be marked. Browser pages and the web store are protected.")
   await chrome.tabs.update(tab.id, { active: true }); await chrome.windows.update(tab.windowId, { focused: true })

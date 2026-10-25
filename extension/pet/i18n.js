@@ -5,7 +5,7 @@
 ;(function (g) {
   const T = {
     en: {
-      hello: "Hi! I'm {name}. 👋 Ask me about this page, VideoDoc or anything else. I can also set timers and reminders, fill forms from your CV, or search the web.",
+      hello: "Hi! I'm {name}. 👋 Ask me about this page, ShowMeWise or anything else. I can also set timers and reminders, fill forms from your CV, or search the web.",
       chipExplain: "Explain this page", chipExplainAsk: "Explain this page in simple words", chipTimer: "Timer 10 minutes", chipSearch: "Search the web...", searchPrefix: "Search the web for ",
       chipLearn: "🎓 Learn what I can do", settings: "Pet settings", history: "Earlier chats", newChat: "New chat (this one is kept under Earlier chats)", close: "Close",
       placeholder: "Ask me anything...", send: "Send", fileBtn: "Give me a file (PDF, Word, HTML, text)", foot: "BETA · chats stay in this browser", training: "🎓 Training", hide: "Hide on this site",
@@ -49,7 +49,7 @@
       sugGuide: "🧭 Help me with this page", sugGuideDoc: "🧭 Guide me with my manual", sugGuideAsk: "help me with this page", sugManual: "📎 Add a manual", sugExplain: "📍 Explain this page", sugFill: "📝 Fill this page", sugFillAsk: "fill this page", sugTimer: "⏰ Timer", sugSearch: "🔎 Search", whichOne: "This button is on the page more than once, so I marked them all. Which one do you mean? {list} (tap it below)", introDone: "Yay, all set! 🎉 Hi {user}, I am {name}. Click me any time to chat.", guideStepN: "Step {n} of {total}:", guideDid: "I did that step.", guideNext: "✅ Done, next step", guideStop: "Stop guiding", guideStopped: "Okay, I stopped guiding. Say “guide me” any time.", guideFinished: "All done! Well done 🎉",
     },
     de: {
-      hello: "Hallo! Ich bin {name}. 👋 Frag mich zu dieser Seite, zu VideoDoc oder zu allem anderen. Ich stelle auch Timer und Erinnerungen, fülle Formulare aus deinem Lebenslauf aus oder suche im Web.",
+      hello: "Hallo! Ich bin {name}. 👋 Frag mich zu dieser Seite, zu ShowMeWise oder zu allem anderen. Ich stelle auch Timer und Erinnerungen, fülle Formulare aus deinem Lebenslauf aus oder suche im Web.",
       chipExplain: "Diese Seite erklären", chipExplainAsk: "Erkläre diese Seite in einfachen Worten", chipTimer: "Timer 10 Minuten", chipSearch: "Im Web suchen...", searchPrefix: "Suche im Web nach ",
       chipLearn: "🎓 Lerne, was ich kann", settings: "Einstellungen", history: "Frühere Chats", newChat: "Neuer Chat (dieser bleibt unter Frühere Chats)", close: "Schließen",
       placeholder: "Frag mich etwas...", send: "Senden", fileBtn: "Gib mir eine Datei (PDF, Word, HTML, Text)", foot: "BETA · Chats bleiben in diesem Browser", training: "🎓 Training", hide: "Auf dieser Seite ausblenden",
@@ -92,7 +92,7 @@
       sugGuide: "🧭 Hilf mir mit dieser Seite", sugGuideDoc: "🧭 Führe mich mit meiner Anleitung", sugGuideAsk: "hilf mir mit dieser Seite", sugManual: "📎 Anleitung geben", sugExplain: "📍 Seite erklären", sugFill: "📝 Seite ausfüllen", sugFillAsk: "fülle diese Seite aus", sugTimer: "⏰ Timer", sugSearch: "🔎 Suchen", whichOne: "Diesen Knopf gibt es mehrmals, darum habe ich alle markiert. Welchen meinst du? {list} (unten antippen)", introDone: "Juhu, alles fertig! 🎉 Hallo {user}, ich bin {name}. Klick mich an, wann immer du reden willst.", guideStepN: "Schritt {n} von {total}:", guideDid: "Ich habe den Schritt gemacht.", guideNext: "✅ Erledigt, nächster Schritt", guideStop: "Anleitung beenden", guideStopped: "Okay, ich höre auf. Sag jederzeit „guide me“.", guideFinished: "Fertig! Gut gemacht 🎉",
     },
     hi: {
-      hello: "Hi! Main {name} hoon. 👋 Is page, VideoDoc ya kisi bhi cheez ke baare mein poocho. Main timer aur reminder bhi laga sakta hoon, CV se form bhar sakta hoon, ya web pe search kar sakta hoon.",
+      hello: "Hi! Main {name} hoon. 👋 Is page, ShowMeWise ya kisi bhi cheez ke baare mein poocho. Main timer aur reminder bhi laga sakta hoon, CV se form bhar sakta hoon, ya web pe search kar sakta hoon.",
       chipExplain: "Yeh page samjhao", chipExplainAsk: "Yeh page aasaan shabdon mein samjhao", chipTimer: "Timer 10 minute", chipSearch: "Web pe search...", searchPrefix: "Search the web for ",
       chipLearn: "🎓 Dekho main kya kar sakta hoon", settings: "Pet settings", history: "Purani chats", newChat: "Nayi chat (yeh wali Purani chats mein rahegi)", close: "Band karo",
       placeholder: "Kuch bhi poocho...", send: "Bhejo", fileBtn: "Mujhe file do (PDF, Word, HTML, text)", foot: "BETA · chats isi browser mein rehti hain", training: "🎓 Training", hide: "Is site pe chhupao",
@@ -135,7 +135,7 @@
       sugGuide: "🧭 Is page pe madad karo", sugGuideDoc: "🧭 Manual se guide karo", sugGuideAsk: "is page pe meri madad karo", sugManual: "📎 Manual do", sugExplain: "📍 Page samjhao", sugFill: "📝 Page bhar do", sugFillAsk: "page bhar do", sugTimer: "⏰ Timer", sugSearch: "🔎 Search", whichOne: "Yeh button page pe kai baar hai, isliye maine sab mark kiye. Kaunsa wala? {list} (neeche tap karo)", introDone: "Yay, sab set! 🎉 Hi {user}, main {name} hoon. Jab chaho mujhe click karke baat karo.", guideStepN: "Step {n} / {total}:", guideDid: "Maine woh step kar liya.", guideNext: "✅ Ho gaya, agla step", guideStop: "Guide band karo", guideStopped: "Theek hai, guide band. Kabhi bhi “guide me” bolo.", guideFinished: "Ho gaya! Shabaash 🎉",
     },
     es: {
-      hello: "¡Hola! Soy {name}. 👋 Pregúntame sobre esta página, VideoDoc o lo que quieras. También pongo temporizadores y recordatorios, relleno formularios con tu CV o busco en la web.",
+      hello: "¡Hola! Soy {name}. 👋 Pregúntame sobre esta página, ShowMeWise o lo que quieras. También pongo temporizadores y recordatorios, relleno formularios con tu CV o busco en la web.",
       chipExplain: "Explica esta página", chipExplainAsk: "Explica esta página con palabras sencillas", chipTimer: "Temporizador 10 minutos", chipSearch: "Buscar en la web...", searchPrefix: "Search the web for ",
       chipLearn: "🎓 Mira lo que sé hacer", settings: "Ajustes", history: "Chats anteriores", newChat: "Chat nuevo (este se guarda en Chats anteriores)", close: "Cerrar",
       placeholder: "Pregúntame lo que quieras...", send: "Enviar", fileBtn: "Dame un archivo (PDF, Word, HTML, texto)", foot: "BETA · los chats se quedan en este navegador", training: "🎓 Entrenamiento", hide: "Ocultar en este sitio",
@@ -178,7 +178,7 @@
       sugGuide: "🧭 Ayúdame con esta página", sugGuideDoc: "🧭 Guíame con mi manual", sugGuideAsk: "ayúdame con esta página", sugManual: "📎 Dar un manual", sugExplain: "📍 Explicar la página", sugFill: "📝 Rellenar la página", sugFillAsk: "rellena esta página", sugTimer: "⏰ Temporizador", sugSearch: "🔎 Buscar", whichOne: "Este botón aparece varias veces, así que los marqué todos. ¿Cuál quieres? {list} (tócalo abajo)", introDone: "¡Bien, todo listo! 🎉 Hola {user}, soy {name}. Haz clic en mí cuando quieras charlar.", guideStepN: "Paso {n} de {total}:", guideDid: "Ya hice ese paso.", guideNext: "✅ Hecho, siguiente paso", guideStop: "Dejar de guiar", guideStopped: "Vale, dejo de guiarte. Di “guide me” cuando quieras.", guideFinished: "¡Listo! Bien hecho 🎉",
     },
     fr: {
-      hello: "Salut ! Je suis {name}. 👋 Pose-moi des questions sur cette page, sur VideoDoc ou sur n'importe quoi. Je règle aussi des minuteurs et des rappels, je remplis des formulaires avec ton CV ou je cherche sur le web.",
+      hello: "Salut ! Je suis {name}. 👋 Pose-moi des questions sur cette page, sur ShowMeWise ou sur n'importe quoi. Je règle aussi des minuteurs et des rappels, je remplis des formulaires avec ton CV ou je cherche sur le web.",
       chipExplain: "Explique cette page", chipExplainAsk: "Explique cette page avec des mots simples", chipTimer: "Minuteur 10 minutes", chipSearch: "Chercher sur le web...", searchPrefix: "Search the web for ",
       chipLearn: "🎓 Découvre ce que je sais faire", settings: "Réglages", history: "Anciens chats", newChat: "Nouveau chat (celui-ci reste dans Anciens chats)", close: "Fermer",
       placeholder: "Demande-moi ce que tu veux...", send: "Envoyer", fileBtn: "Donne-moi un fichier (PDF, Word, HTML, texte)", foot: "BETA · les chats restent dans ce navigateur", training: "🎓 Entraînement", hide: "Masquer sur ce site",

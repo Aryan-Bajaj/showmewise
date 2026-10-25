@@ -181,7 +181,7 @@ async function postWithRetry(url, body) {
     } catch (e) {
       if (i >= RETRY_WAITS.length) throw e
     }
-    console.info(`[VideoDoc] AI server did not answer, trying again in ${RETRY_WAITS[i] / 1000} s`)
+    console.info(`[ShowMeWise] AI server did not answer, trying again in ${RETRY_WAITS[i] / 1000} s`)
     await new Promise((r) => setTimeout(r, RETRY_WAITS[i]))
   }
 }
@@ -211,7 +211,7 @@ export async function callOllama(userMsg, systemPrompt, model = "llama3.2", opts
   const res = await postWithRetry("http://localhost:11434/api/generate", body)
   if (!res.ok) {
     const why = await res.text().catch(() => "")
-    console.info(`[VideoDoc] AI server refused the request (${res.status}): ${why.slice(0, 200)}`)
+    console.info(`[ShowMeWise] AI server refused the request (${res.status}): ${why.slice(0, 200)}`)
     if (isCloud(model) && res.status !== 400) throw new Error(cloudError(res.status, why))
     throw new Error(res.status === 400 ? `Ollama refused the request: ${why.slice(0, 200)}` : "Ollama not reachable — is it running on localhost:11434?")
   }

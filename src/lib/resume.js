@@ -3,7 +3,7 @@
 // done so far is kept in this browser (IndexedDB, never uploaded): the
 // transcript and screen text, and every part already written. The same video
 // with the same settings then continues instead of starting over.
-const DB = "videodoc-resume", STORE = "runs"
+const DB = "showmewise-resume", STORE = "runs"
 
 const open = () => new Promise((res, rej) => {
   const r = indexedDB.open(DB, 1)

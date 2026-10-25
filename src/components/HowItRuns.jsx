@@ -26,7 +26,7 @@ export default function HowItRuns() {
         <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#34d399', marginBottom: 12 }}>How it works</div>
         <h2 style={{ fontSize: 'clamp(1.8rem, 4.2vw, 2.8rem)', fontWeight: 700, letterSpacing: '-0.025em', margin: 0 }}>Everything stays on your computer</h2>
         <p style={{ maxWidth: 620, margin: '14px auto 0', fontSize: '0.98rem', lineHeight: 1.7, color: dim }}>
-          Your video is never uploaded. VideoDoc works inside your browser, and the AI runs on your own computer: in the browser, or in the free Ollama app.
+          Your video is never uploaded. ShowMeWise works inside your browser, and the AI runs on your own computer: in the browser, or in the free Ollama app.
         </p>
       </div>
 

@@ -256,7 +256,7 @@ export async function exportPDF(docs, videoName, meta = {}) {
       pdf.setDrawColor(...C.accent); pdf.setLineWidth(0.5); pdf.line(M, 14.5, W - M, 14.5); pdf.setLineWidth(0.2)
     }
     font(8, "normal", C.muted)
-    pdf.text("Made with VideoDoc", M, H - 10)
+    pdf.text("Made with ShowMeWise", M, H - 10)
     pdf.text(`Page ${i} of ${total}`, W - M, H - 10, { align: "right" })
   }
 

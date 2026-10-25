@@ -1,4 +1,4 @@
-# VideoDoc Desktop — IT Requirements & Approval Sheet
+# ShowMeWise Desktop — IT Requirements & Approval Sheet
 
 **What it is:** a desktop app that turns a screen recording into step-by-step
 documentation. The AI runs **entirely on the user's computer**. There is **no
@@ -37,14 +37,14 @@ end.
 - Ships as an **Inno Setup installer** (`.exe`, currently **unsigned** — no code-signing
   certificate yet. Windows SmartScreen will show an "unknown publisher" prompt on
   first run until the org either allow-lists it or a certificate is added).
-- Due to the ~7.6 GB payload, the installer is delivered as `VideoDoc-Setup.exe`
+- Due to the ~7.6 GB payload, the installer is delivered as `ShowMeWise-Setup.exe`
   plus a few sibling `.bin` files that must be kept together in the same folder —
   still a single run of the `.exe` to install everything.
 - **Per-user install → NO admin rights needed** (good for locked-down machines).
 - Installs only to the user's local app folder (`%LOCALAPPDATA%`). No drivers, no
   system services, no registry-wide changes.
 - Supports a **silent switch** for software deployment tools (Matrix42, Intune, SCCM):
-  `VideoDoc-Setup.exe /VERYSILENT /NORESTART /SUPPRESSMSGBOXES`.
+  `ShowMeWise-Setup.exe /VERYSILENT /NORESTART /SUPPRESSMSGBOXES`.
 
 ## 4. Network & security  *(the important part for IT)*
 

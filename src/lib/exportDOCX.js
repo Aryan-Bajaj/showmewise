@@ -188,7 +188,7 @@ export async function exportDOCX(docs, videoName, meta = {}) {
   }
 
   const document = new Document({
-    creator: "VideoDoc",
+    creator: "ShowMeWise",
     title: g.title,
     styles: { default: { document: { run: { font: "Segoe UI", size: 20, color: COL.body } } } },
     sections: [{
@@ -199,10 +199,10 @@ export async function exportDOCX(docs, videoName, meta = {}) {
         first: new Header({ children: [P(run(""))] }),
       },
       footers: {
-        default: new Footer({ children: [P([run("Made with VideoDoc", { size: 16, color: COL.muted }),
+        default: new Footer({ children: [P([run("Made with ShowMeWise", { size: 16, color: COL.muted }),
           new TextRun({ children: ["\tPage ", PageNumber.CURRENT, " of ", PageNumber.TOTAL_PAGES], font: "Segoe UI", size: 16, color: COL.muted })],
           { tabStops: [{ type: TabStopType.RIGHT, position: 9600 }] })] }),
-        first: new Footer({ children: [P(run("Made with VideoDoc", { size: 16, color: COL.muted }))] }),
+        first: new Footer({ children: [P(run("Made with ShowMeWise", { size: 16, color: COL.muted }))] }),
       },
       children,
     }],

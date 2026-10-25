@@ -1,8 +1,8 @@
 // Vidi the pet (BETA), the background part. Loaded by bg.js.
 // The pet on the page sends what the user types here. Timers, alarms,
 // reminders, the time, names and likes are handled right here, without the
-// AI, so they are always right. Everything else goes to the VideoDoc engine
-// tab like the other chats: questions about VideoDoc to Help, "this page"
+// AI, so they are always right. Everything else goes to the ShowMeWise engine
+// tab like the other chats: questions about ShowMeWise to Help, "this page"
 // to the page, the rest to a friendly general chat (with web results when
 // the user asks to search). The chat, the settings and what Vidi remembers
 // stay in this browser (chrome.storage.local).
@@ -163,7 +163,7 @@ chrome.runtime.onInstalled.addListener(petStart)
 
 // ---- the pet on every page --------------------------------------------------------
 // Only after the user said OK to pages ("Allow Vidi to read the pages"), only
-// when the pet is on. On the VideoDoc website only on the Pet training page (it has its own Vidi elsewhere).
+// when the pet is on. On the ShowMeWise website only on the Pet training page (it has its own Vidi elsewhere).
 const PET_FILES = ["pet/i18n.js", "pet/pets.js", "pet/pet-css.js", "pet/pet.js"]
 async function petScript() {
   const pet = await petGet()
@@ -172,7 +172,7 @@ async function petScript() {
   // an older version registered only the pet: both again
   if (have === 1) { for (const id of ["vidi-pet", "vidi-pet-keys"]) await chrome.scripting.unregisterContentScripts({ ids: [id] }).catch(() => {}); have = 0 }
   if (pet.on && allowed && !have) {
-    // also on the VideoDoc website: there the pet shows only on the Pet training page (pet.js)
+    // also on the ShowMeWise website: there the pet shows only on the Pet training page (pet.js)
     const where = { matches: ["http://*/*", "https://*/*"] }
     await chrome.scripting.registerContentScripts([
       { id: "vidi-pet-keys", ...where, js: ["pet/keys.js"], runAt: "document_start" },
@@ -221,7 +221,7 @@ chrome.storage.onChanged.addListener((ch, area) => { if (area === "local" && ch.
 async function webSearch(q) {
   const out = []
   // Wikipedia asks apps to say who they are
-  const get = (u) => fetch(u, { signal: AbortSignal.timeout(8000), headers: /wikipedia/.test(u) ? { "Api-User-Agent": "VideoDoc-plugin/1.0 (https://videodoc.netlify.app)" } : {} })
+  const get = (u) => fetch(u, { signal: AbortSignal.timeout(8000), headers: /wikipedia/.test(u) ? { "Api-User-Agent": "ShowMeWise-plugin/1.0 (https://showmewise.netlify.app)" } : {} })
     .then((r) => { if (r.status === 429) out.busy = true; return r.ok ? r.json() : null }).catch(() => null)
   // the subject alone first: "Eiffel Tower height" found only replicas (the word
   // "height" pulled in pages about heights), "Eiffel Tower" finds the tower
@@ -231,7 +231,7 @@ async function webSearch(q) {
   const plain = q.replace(/^(the|a|an)\s+/i, "")
   const wsearch = (t) => get(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(t)}&srlimit=3&format=json&origin=*`)
   const [ddg, main, all] = await Promise.all([
-    get(`https://api.duckduckgo.com/?q=${encodeURIComponent(q)}&format=json&no_html=1&skip_disambig=1&t=videodoc`),
+    get(`https://api.duckduckgo.com/?q=${encodeURIComponent(q)}&format=json&no_html=1&skip_disambig=1&t=showmewise`),
     subject && subject.toLowerCase() !== q.toLowerCase() ? wsearch(subject) : null,
     wsearch(plain),
   ])
@@ -347,16 +347,16 @@ async function petHear(text, tabId, noGuide) {
   let { petGuide: guiding } = await chrome.storage.local.get("petGuide")
   // a guide left alone for 10 minutes is over (an old one caught every message, even "hi")
   if (guiding && !(Date.now() - (guiding.at || 0) < 10 * 60000)) { await chrome.storage.local.remove("petGuide"); guiding = null }
-  // a search, a VideoDoc question or "explain this page" is never a step of a task: guiding ends
+  // a search, a ShowMeWise question or "explain this page" is never a step of a task: guiding ends
   // (a search for "the capital of Australia" was answered with the board step before)
-  const other = /^(please\s+|bitte\s+)?(search|google|look up|suche|such|busca|buscar|cherche|chercher)\b|^(web|internet|google)\s+(pe|par)\b|\b(videodoc|vid chat|doc chat|this plugin)\b|\b(explain|summari[sz]e|translate)\b.{0,20}\b(page|site|article|file|document)\b|^(what|which|who)\b.{0,40}\b(in|from) (my|the|this) (file|document|pdf|cv|resume)\b/i.test(text)
+  const other = /^(please\s+|bitte\s+)?(search|google|look up|suche|such|busca|buscar|cherche|chercher)\b|^(web|internet|google)\s+(pe|par)\b|\b(show ?me ?wise|vid chat|doc chat|this plugin)\b|\b(explain|summari[sz]e|translate)\b.{0,20}\b(page|site|article|file|document)\b|^(what|which|who)\b.{0,40}\b(in|from) (my|the|this) (file|document|pdf|cv|resume)\b/i.test(text)
   if (other && guiding) await chrome.storage.local.remove("petGuide")
   // with a manual given, a short question on a page is tried as a task first ("notiz löschen?"); the guide hands
   // anything that is not about the page back to the normal chat
   const shortAsk = /\?\s*$/.test(text) && text.split(/\s+/).length <= 8 && !!(await chrome.storage.local.get("petHasDoc")).petHasDoc
   if (tabId != null && !noGuide && !other && (guiding?.chat || shortAsk || /\b(guide me|walk me through|step by step|how (do|can|should) i|how to|where (is|are|do i|can i)|i (want|need|have) to|i'?m (stuck|lost)|help me|what (do|should) i do|kaise|kahan|kya karu|wie (kann|mache|ändere|finde|lege|erstelle)|wo (ist|finde)|cómo|dónde|comment (faire|je|puis|changer|créer))\b/.test(t))) return petGuide(tabId, text)
 
-  // everything else is for the AI in the VideoDoc tab
+  // everything else is for the AI in the ShowMeWise tab
   const id = petId()
   await petEdit((log) => log.push({ id, who: "pet", text: "", state: "thinking", at: Date.now() }))
   try {
@@ -373,7 +373,7 @@ async function petHear(text, tabId, noGuide) {
       if (!msg.results.length) return petUpdate(id, { state: "done", searchFor: search[1], text: msg.results.busy
         ? tr("searchBusy")
         : tr("searchNone") })
-    } else if (/\b(videodoc|vid chat|doc chat|record(ing)?|the guide|this plugin|the plugin)\b/.test(t)) {
+    } else if (/\b(show ?me ?wise|vid chat|doc chat|record(ing)?|the guide|this plugin|the plugin)\b/.test(t)) {
       msg.scope = "help"
     } else if (/\b(this|the) (page|site|website|article|tab)\b/.test(t) && tabId != null) {
       const [{ result }] = await chrome.scripting.executeScript({
@@ -547,7 +547,7 @@ function petShot(id, shot, note) {
 }
 
 // ---- files the user gives the pet (PDF, Word, HTML, text) ---------------------------------
-// Kept in the plugin's own storage on this computer; read by the VideoDoc tab
+// Kept in the plugin's own storage on this computer; read by the ShowMeWise tab
 // like Doc Chat does. The newest file is "the file" (a CV for forms, too).
 const idb = () => new Promise((res, rej) => { const r = indexedDB.open("vidi-pet", 1); r.onupgradeneeded = () => r.result.createObjectStore("files"); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error) })
 async function fileSet(key, value) {
@@ -636,7 +636,7 @@ async function petFill(tabId) {
   const plan = { tabId, fields: fields.filter((f) => f.type !== "file"), values, from, file: fileField ? { i: fileField.i, label: fileField.label, name: doc.name } : null, docName: doc?.name || "", docAt: doc?.at || 0 }
   const open = plan.fields.filter((f) => values[f.i] == null)
   if (doc && open.length) {
-    // the file answers what it can (the VideoDoc tab reads it, the AI matches the fields)
+    // the file answers what it can (the ShowMeWise tab reads it, the AI matches the fields)
     await petUpdate(id, { label: `Reading ${doc.name}...`, fillPlan: plan })
     return send(await ensureEngine(), { type: "chat", id, scope: "fill", model: (await petGet()).model || undefined, doc: { name: doc.name, size: doc.size, data: doc.data }, fields: open })
   }

@@ -69,8 +69,8 @@ export default function Uploader({ onVideoSelect }) {
     }
     const stop = () => rec?.stop()
     const again = async () => { const f = await recoverRecording(); setSaved(null); if (f) handleVideo(f, f.vdOpts) }
-    window.addEventListener("videodoc:record", on); window.addEventListener("videodoc:stop", stop); window.addEventListener("videodoc:recover", again)
-    return () => { window.removeEventListener("videodoc:record", on); window.removeEventListener("videodoc:stop", stop); window.removeEventListener("videodoc:recover", again) }
+    window.addEventListener("showmewise:record", on); window.addEventListener("showmewise:stop", stop); window.addEventListener("showmewise:recover", again)
+    return () => { window.removeEventListener("showmewise:record", on); window.removeEventListener("showmewise:stop", stop); window.removeEventListener("showmewise:recover", again) }
   })
   const mmss = (ms) => `${Math.floor(ms / 60000)}:${String(Math.floor(ms / 1000) % 60).padStart(2, "0")}`
 
@@ -94,7 +94,7 @@ export default function Uploader({ onVideoSelect }) {
         </span>
         <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Drop your screen recording</h2>
         <p className="text-zinc-400 text-sm sm:text-base max-w-lg mx-auto">
-          VideoDoc listens, reads and looks at every step, then writes a guide with the clicks marked on the screen.
+          ShowMeWise listens, reads and looks at every step, then writes a guide with the clicks marked on the screen.
         </p>
       </div>
 

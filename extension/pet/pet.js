@@ -545,8 +545,8 @@
   // ---- settings and chat from the plugin ----
   let hideUntil = 0 // the pet steps out of a screenshot of the marked page
   function apply() {
-    // the VideoDoc website has its own Vidi: the pet comes only on its training page
-    const vdSite = ["https://videodoc.netlify.app", "http://127.0.0.1:8899"].includes(location.origin) && !/^#\/pet-training/.test(location.hash)
+    // the ShowMeWise website has its own Vidi: the pet comes only on its training page
+    const vdSite = ["https://showmewise.netlify.app", "http://127.0.0.1:8899"].includes(location.origin) && !/^#\/pet-training/.test(location.hash)
     const hidden = vdSite || !pet.on || (pet.hiddenSites || []).includes(location.host) || !!document.fullscreenElement || Date.now() < hideUntil
     host.style.display = hidden ? "none" : ""
     if (!hidden) { texts(); draw(); place(); render() }
@@ -554,7 +554,7 @@
   // the 3D file could not be read: the dragon stands in
   addEventListener("message", (e) => { if (frame && e.source === frame.contentWindow && e.data?.vidi3d === "error") { broken3d = true; draw(); setMood() } })
   document.addEventListener("fullscreenchange", () => pet && apply())
-  addEventListener("hashchange", () => pet && apply()) // the VideoDoc website changes pages without loading
+  addEventListener("hashchange", () => pet && apply()) // the ShowMeWise website changes pages without loading
   chrome.storage.onChanged.addListener((ch, area) => {
     if (area !== "local" || !alive()) return
     if (ch.pet) { pet = { ...pet, ...ch.pet.newValue }; apply() }

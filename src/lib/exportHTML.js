@@ -165,7 +165,7 @@ export async function exportHTML(docs, videoName, allFrames, meta = {}) {
   // an AI assistant for deeper questions.
   const transcript = Array.isArray(meta.transcript) ? meta.transcript : []
   const transcriptHtml = transcript.length ? `
-<div id="videodoc-transcript" data-purpose="ai-context" aria-hidden="true" style="display:none">
+<div id="showmewise-transcript" data-purpose="ai-context" aria-hidden="true" style="display:none">
 ${transcript.map((c) => {
     const ts = c.timestamp?.[0] ?? 0
     return `[${String(Math.floor(ts / 60)).padStart(2, '0')}:${String(Math.floor(ts % 60)).padStart(2, '0')}] ${esc(c.text || '')}`
@@ -185,7 +185,7 @@ ${transcript.map((c) => {
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="generator" content="VideoDoc">
+<meta name="generator" content="ShowMeWise">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${esc(g.title)}</title>
 <style>
@@ -307,7 +307,7 @@ footer b{color:#c4b5fd}
 <body>
 <div class="pbar" id="pbar"></div>
 <nav><div class="nav-in">
-  <a class="brand" href="#top"><i></i>VideoDoc</a>
+  <a class="brand" href="#top"><i></i>ShowMeWise</a>
   <span class="nav-t">${esc(g.title)}</span>
   <ul class="nav-l">
     <li><a href="#glance">At a glance</a></li>
@@ -329,7 +329,7 @@ footer b{color:#c4b5fd}
   ${body}
 </div>
 ${transcriptHtml}
-<footer>Made with <b>VideoDoc</b> &bull; ${esc(date)} &bull; ${g.parts.length} parts &bull; ${g.figures} marked screenshots</footer>
+<footer>Made with <b>ShowMeWise</b> &bull; ${esc(date)} &bull; ${g.parts.length} parts &bull; ${g.figures} marked screenshots</footer>
 <div class="lb" id="lb"><img alt=""><video muted loop playsinline></video></div>
 <script>
 (function(){

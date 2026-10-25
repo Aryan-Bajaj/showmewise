@@ -58,7 +58,7 @@ function render(s, closed) {
   const btns = $("runBtns"); btns.textContent = ""
   const add = (label, fn) => { const b = el("button", null, label); b.onclick = fn; btns.append(b) }
   if (closed && !show) {
-    $("runTitle").textContent = "The VideoDoc tab was closed"
+    $("runTitle").textContent = "The ShowMeWise tab was closed"
     $("runLine").textContent = "Nothing is lost: what was done is saved. Continue picks up where it stopped."
     $("steps").textContent = ""; $("runBar").style.width = "0"
     add("Continue", () => bg("recover"))
@@ -74,9 +74,9 @@ function render(s, closed) {
   if (w?.status === "active" && w.step > 1 && w.ms) { const per = w.ms / (w.step - 1); const ms = per * (w.total - w.step + 1) + per * 3; left = ms < 90000 ? "About a minute left" : `About ${Math.round(ms / 60000)} minutes left` }
   $("runLine").textContent = {
     working: left || "Working on it. Keep the computer on; it stays awake by itself.",
-    settings: s.lastAI ? "Ready to write." : "Choose the AI in the VideoDoc tab to write the guide.",
+    settings: s.lastAI ? "Ready to write." : "Choose the AI in the ShowMeWise tab to write the guide.",
     done: "Your guide is ready.",
-    stopped: s.error || "It stopped. Open the VideoDoc tab to see why.",
+    stopped: s.error || "It stopped. Open the ShowMeWise tab to see why.",
     ready: "The guide is there. Open it to read and save it.",
   }[s.state] || ""
   // compact: in the popup only the step being worked on and the counts
@@ -94,7 +94,7 @@ function render(s, closed) {
   if (s.state === "settings" && s.lastAI) add(`Write it with ${s.lastAI}`, () => bg("generate"))
   if (s.state === "settings") add("Choose another AI", () => bg("focus"))
   if (s.state === "done" || s.state === "ready") add("Open the guide", () => bg("focus"))
-  if (s.state === "working" || s.state === "stopped") add("Show in VideoDoc", () => bg("focus"))
+  if (s.state === "working" || s.state === "stopped") add("Show in ShowMeWise", () => bg("focus"))
 }
 
 chrome.runtime.onMessage.addListener((m) => { if (m?.to === "panel" && m.type === "status") render(m.status, m.closed) })
@@ -108,9 +108,9 @@ $("auto").onchange = () => chrome.storage.local.set({ autoStart: $("auto").check
 // ---- chat --------------------------------------------------------------------
 let scope = "video", doc = null
 const CTX = {
-  video: () => "Vidi answers from your video in VideoDoc.",
+  video: () => "Vidi answers from your video in ShowMeWise.",
   page: () => "Vidi answers from the page you are on.",
-  help: () => "Ask Vidi anything about VideoDoc: how to use it, its limits, the plugin.",
+  help: () => "Ask Vidi anything about ShowMeWise: how to use it, its limits, the plugin.",
   doc: () => doc ? `Vidi answers from ${doc.name}.` : "Choose a PDF, Word, web page or text file for Vidi to read.",
 }
 function setScope(s) {

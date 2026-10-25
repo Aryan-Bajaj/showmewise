@@ -17,13 +17,13 @@ function extractHeadings(htmlText) {
     .slice(0, 10)
 }
 
-// A PDF guide saved by VideoDoc: like the HTML guide, its summaries (process at
+// A PDF guide saved by ShowMeWise: like the HTML guide, its summaries (process at
 // a glance, checklist, quick reference) list one action per part, and Doc Chat
 // answered "how do I add a widget" from them with one step. The page footers
 // also cut steps in half. Both are left out; every step stays in the parts.
 function vdGuidePdf(t) {
-  if (!/Made with\s+VideoDoc/.test(t)) return t
-  t = t.split('\n').filter((l) => !/^Made with VideoDoc\s+Page \d+ of \d+\s*$/.test(l.trim()) && !/\|\s*Process guide\s*$/.test(l.trim())).join('\n')
+  if (!/Made with\s+ShowMeWise/.test(t)) return t
+  t = t.split('\n').filter((l) => !/^Made with ShowMeWise\s+Page \d+ of \d+\s*$/.test(l.trim()) && !/\|\s*Process guide\s*$/.test(l.trim())).join('\n')
   // the body headings: the last place each appears (the contents list them first)
   const cut = (from, to) => { const a = t.lastIndexOf(from), b = t.lastIndexOf(to); if (a >= 0 && b > a) t = t.slice(0, a) + t.slice(b) }
   cut('Process at a glance', 'Step by step')
@@ -40,11 +40,11 @@ export async function extractText(file) {
     const doc = new DOMParser().parseFromString(html, 'text/html')
     // Drop non-content nodes — otherwise their CSS / JS text pollutes the index
     // and the chat ends up "reading" stylesheets instead of the real document.
-    // A guide saved by VideoDoc repeats its steps in summaries (at a glance,
+    // A guide saved by ShowMeWise repeats its steps in summaries (at a glance,
     // checklist, quick reference). Doc Chat copied a summary that lists one
     // action of every part as the answer to "how do I add a widget", so they
     // are left out; every step is still in the parts themselves.
-    const vdGuide = doc.querySelector('meta[name=generator][content^=VideoDoc]') || (doc.querySelector('section#glance.sec') && doc.querySelector('section#steps.sec'))
+    const vdGuide = doc.querySelector('meta[name=generator][content^=ShowMeWise]') || (doc.querySelector('section#glance.sec') && doc.querySelector('section#steps.sec'))
     if (vdGuide) doc.querySelectorAll('section#glance, section#checklist, section#quick').forEach((el) => el.remove())
     doc.querySelectorAll('script,style,noscript,svg,template,link,meta').forEach((el) => el.remove())
     const body = doc.body
@@ -62,7 +62,7 @@ export async function extractText(file) {
   if (/\.docx$/.test(name)) {
     const mammoth = await import('mammoth')
     const { value } = await mammoth.default.extractRawText({ arrayBuffer: await file.arrayBuffer() })
-    return vdGuidePdf(value || '') // a Word guide by VideoDoc has the same summaries as the PDF
+    return vdGuidePdf(value || '') // a Word guide by ShowMeWise has the same summaries as the PDF
   }
   if (/\.pdf$/.test(name)) {
     // pdf.js reads the text layer on this computer; a scanned PDF has none
@@ -85,7 +85,7 @@ export async function extractText(file) {
 export function chunkText(text, size = 900, overlap = 120) {
   const clean = (text || '').replace(/\r/g, '').replace(/\n{3,}/g, '\n\n').trim()
   if (!clean) return []
-  // A VideoDoc guide as PDF: each part ("Part B: Add a widget") is one piece, so
+  // A ShowMeWise guide as PDF: each part ("Part B: Add a widget") is one piece, so
   // its steps stay together and the part wins for its own topic (packed pieces
   // mixed the end of one part with the start of the next)
   // (only body parts carry a time, "Part B: ... 00:21"; the contents list them without)

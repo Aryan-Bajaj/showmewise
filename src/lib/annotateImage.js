@@ -4,7 +4,7 @@
 // so every export marks the screen the same way.
 
 export const MARK = {
-  accent: "#6d4aff",   // VideoDoc violet, readable on light and dark UIs
+  accent: "#6d4aff",   // ShowMeWise violet, readable on light and dark UIs
   accentDark: "#4b2fd1",
   text: "#ffffff",
   halo: "rgba(109,74,255,0.18)",

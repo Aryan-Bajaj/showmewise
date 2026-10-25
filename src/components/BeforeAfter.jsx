@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 // Drag to compare: the raw recording (a real frame of our demo how-to) against
-// the guide VideoDoc made from it (real export pages). Nothing here is a mock-up.
+// the guide ShowMeWise made from it (real export pages). Nothing here is a mock-up.
 const OUTPUTS = [
   { id: 'html', label: 'HTML', src: '/landing/guide-html.jpg', note: 'Web guide with step clips' },
   { id: 'pdf', label: 'PDF', src: '/landing/guide-pdf.jpg', note: 'Print-ready manual' },
@@ -51,14 +51,14 @@ export default function BeforeAfter() {
       {/* AFTER: the real guide */}
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(160deg,#1a1240,#0f0b24)', display: 'flex', flexDirection: 'column' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6, padding: '14px 16px 10px' }}>
-          <span style={{ marginRight: 'auto', marginLeft: `calc(${pos}% + 10px)`, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#c4b5fd', whiteSpace: 'nowrap' }}>After · VideoDoc guide</span>
+          <span style={{ marginRight: 'auto', marginLeft: `calc(${pos}% + 10px)`, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#c4b5fd', whiteSpace: 'nowrap' }}>After · ShowMeWise guide</span>
           {OUTPUTS.map((o) => (
             <button key={o.id} onMouseDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} onClick={() => setTab(o.id)}
               style={{ fontSize: 12, fontWeight: 700, padding: '6px 12px', borderRadius: 8, cursor: 'pointer', border: `1px solid ${tab === o.id ? 'rgba(167,139,250,0.7)' : 'rgba(255,255,255,0.12)'}`, background: tab === o.id ? 'rgba(109,74,255,0.3)' : 'rgba(255,255,255,0.04)', color: '#fff' }}>{o.label}</button>
           ))}
         </div>
         <div style={{ flex: 1, margin: '0 16px 16px', borderRadius: 12, overflow: 'hidden', background: '#fff', position: 'relative' }}>
-          <img key={out.src} src={out.src} alt={`${out.label} guide made by VideoDoc`} loading="lazy" draggable={false}
+          <img key={out.src} src={out.src} alt={`${out.label} guide made by ShowMeWise`} loading="lazy" draggable={false}
             style={{ width: '100%', display: 'block', objectFit: 'cover', objectPosition: 'top', height: '100%' }} />
           <span style={{ position: 'absolute', right: 10, bottom: 10, fontSize: 11, fontWeight: 600, color: '#fff', background: 'rgba(15,11,36,0.82)', padding: '4px 10px', borderRadius: 100 }}>{out.note}</span>
         </div>

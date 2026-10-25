@@ -1,6 +1,6 @@
 import { useState } from "react"
 
-// On a phone, say up front that VideoDoc is made for a computer and what it
+// On a phone, say up front that ShowMeWise is made for a computer and what it
 // would download, before anyone fills their phone storage. Once per visit.
 const isPhone = () => {
   try {
@@ -17,9 +17,9 @@ export default function MobileNotice() {
     <div role="dialog" aria-modal="true" aria-labelledby="vd-mn-title"
       className="fixed inset-0 z-[9500] flex items-end sm:items-center justify-center bg-black/80 p-4">
       <div className="w-full max-w-md rounded-2xl border border-violet-400/30 bg-[#160f33] p-5 text-sm text-zinc-200 shadow-2xl">
-        <h2 id="vd-mn-title" className="text-lg font-bold text-white mb-2">💻 VideoDoc is made for a computer</h2>
+        <h2 id="vd-mn-title" className="text-lg font-bold text-white mb-2">💻 ShowMeWise is made for a computer</h2>
         <p className="mb-3 leading-relaxed">
-          VideoDoc runs the AI on your own device, so the first run downloads AI models into your browser:
+          ShowMeWise runs the AI on your own device, so the first run downloads AI models into your browser:
         </p>
         <ul className="mb-3 space-y-1.5">
           <li>• <b className="text-white">Video to guide:</b> at least about <b className="text-white">2 GB</b> (speech model ~970 MB and the usual writing model ~1 GB)</li>

@@ -3,44 +3,44 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>VideoDoc · Turn screen recordings into step-by-step guides</title>
-    <meta name="description" content="Record your screen once. VideoDoc turns the video into a step-by-step guide with the clicks marked on the screen, as HTML, PDF or Word. Free, no account, and your video never leaves your computer." />
+    <title>ShowMeWise · Turn screen recordings into step-by-step guides</title>
+    <meta name="description" content="Record your screen once. ShowMeWise turns the video into a step-by-step guide with the clicks marked on the screen, as HTML, PDF or Word. Free, no account, and your video never leaves your computer." />
     <meta name="theme-color" content="#0f0b24" />
     <!-- Only our own scripts run (plus the one line below by its hash, and blob: scripts the page makes itself:
          the search model's runtime loads that way); the page talks only to Ollama and the desktop engine on this
          computer, the AI model hosts and the two search sites. Text from a video or a document can never run as code. -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'sha256-xd5o1gV5uPySgEjF579vuyNyigBXhGp41rM4D1idLQY=' https://cdn.jsdelivr.net blob:; worker-src 'self' blob:; connect-src 'self' data: blob: http://localhost:11434 http://127.0.0.1:11434 http://localhost:8080 http://127.0.0.1:8080 https://huggingface.co https://*.huggingface.co https://*.hf.co https://raw.githubusercontent.com https://cdn.jsdelivr.net https://*.wikipedia.org https://duckduckgo.com https://html.duckduckgo.com; img-src 'self' data: blob: https:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; frame-src 'self' blob: data:; object-src 'none'; base-uri 'self'; form-action 'self'" />
-    <link rel="canonical" href="https://videodoc.netlify.app/" />
+    <link rel="canonical" href="https://showmewise.netlify.app/" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="VideoDoc" />
-    <meta property="og:title" content="VideoDoc · Turn screen recordings into step-by-step guides" />
+    <meta property="og:site_name" content="ShowMeWise" />
+    <meta property="og:title" content="ShowMeWise · Turn screen recordings into step-by-step guides" />
     <meta property="og:description" content="Record your screen once. Get a guide that shows where to click. Free, and your video never leaves your computer." />
-    <meta property="og:url" content="https://videodoc.netlify.app/" />
-    <meta property="og:image" content="https://videodoc.netlify.app/og-image.png" />
+    <meta property="og:url" content="https://showmewise.netlify.app/" />
+    <meta property="og:image" content="https://showmewise.netlify.app/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="VideoDoc: a screenshot with numbered markers on each click" />
+    <meta property="og:image:alt" content="ShowMeWise: a screenshot with numbered markers on each click" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="VideoDoc · Turn screen recordings into step-by-step guides" />
+    <meta name="twitter:title" content="ShowMeWise · Turn screen recordings into step-by-step guides" />
     <meta name="twitter:description" content="Record your screen once. Get a guide that shows where to click. Free, and your video never leaves your computer." />
-    <meta name="twitter:image" content="https://videodoc.netlify.app/og-image.png" />
+    <meta name="twitter:image" content="https://showmewise.netlify.app/og-image.png" />
 
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
-      "name": "VideoDoc",
-      "url": "https://videodoc.netlify.app/",
+      "name": "ShowMeWise",
+      "url": "https://showmewise.netlify.app/",
       "applicationCategory": "ProductivityApplication",
       "operatingSystem": "Web browser (Chrome, Edge), Windows desktop app",
       "description": "Turns a screen recording into a step-by-step guide with the clicks marked on the screen. Exports HTML, PDF and Word. Runs on your own computer.",
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
       "author": { "@type": "Person", "name": "Aryan Bajaj", "url": "https://github.com/Aryan-Bajaj" },
       "license": "https://opensource.org/licenses/MIT",
-      "codeRepository": "https://github.com/Aryan-Bajaj/video-docs"
+      "codeRepository": "https://github.com/Aryan-Bajaj/showmewise"
     }
     </script>
   </head>
@@ -50,12 +50,12 @@
     <div id="root">
       <!-- Shown until the app loads, and to readers without JavaScript. React replaces it. -->
       <main style="max-width:760px;margin:0 auto;padding:80px 24px;color:#ece9ff;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;line-height:1.6">
-        <h1 style="font-size:2.4rem;margin:0 0 12px">VideoDoc</h1>
+        <h1 style="font-size:2.4rem;margin:0 0 12px">ShowMeWise</h1>
         <p style="font-size:1.2rem;margin:0 0 18px">Turn screen recordings into step-by-step guides, with the clicks marked on the screen.</p>
-        <p>Record your screen once. VideoDoc listens to what you say, reads the text on screen and looks at every step, then writes a finished guide: a cover, the purpose, what you need, the process at a glance, numbered steps with marked screenshots, a checklist and FAQ. Export it as HTML, PDF or Word.</p>
+        <p>Record your screen once. ShowMeWise listens to what you say, reads the text on screen and looks at every step, then writes a finished guide: a cover, the purpose, what you need, the process at a glance, numbered steps with marked screenshots, a checklist and FAQ. Export it as HTML, PDF or Word.</p>
         <p>It is free, needs no account and no API key, and runs on your own computer. Your video is never uploaded.</p>
-        <p><a href="/#/app" style="color:#b9a6ff">Open VideoDoc</a> · <a href="/#/policy" style="color:#b9a6ff">Privacy, terms and credits</a> · <a href="https://github.com/Aryan-Bajaj/video-docs" style="color:#b9a6ff">Source code on GitHub</a></p>
-        <noscript><p>VideoDoc runs in your browser, so please turn on JavaScript to use it.</p></noscript>
+        <p><a href="/#/app" style="color:#b9a6ff">Open ShowMeWise</a> · <a href="/#/policy" style="color:#b9a6ff">Privacy, terms and credits</a> · <a href="https://github.com/Aryan-Bajaj/showmewise" style="color:#b9a6ff">Source code on GitHub</a></p>
+        <noscript><p>ShowMeWise runs in your browser, so please turn on JavaScript to use it.</p></noscript>
       </main>
     </div>
     <script src="/three.min.js"></script>

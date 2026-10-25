@@ -8,7 +8,7 @@ import AISettings from "./components/AISettings"
 import DocChat from "./components/DocChat"
 import PipelineStatus from "./components/PipelineStatus"
 import InsightsPanel from "./components/InsightsPanel"
-import VideoDocLogo from "./components/VideoDocLogo"
+import ShowMeWiseLogo from "./components/ShowMeWiseLogo"
 import ErrorBoundary from "./components/ErrorBoundary"
 import useFrameExtractor from "./hooks/useFrameExtractor"
 import useAudioExtractor from "./hooks/useAudioExtractor"
@@ -428,7 +428,7 @@ export default function App() {
       let finalDocs = docs
       // Every stage lists what each part holds, in the browser console, so a lost
       // action can always be traced to the stage that lost it.
-      const trace = (stage, list) => console.info(`[VideoDoc] after ${stage}: ` + list.map((d) =>
+      const trace = (stage, list) => console.info(`[ShowMeWise] after ${stage}: ` + list.map((d) =>
         `${d.label} "${d.step?.title || ""}" [${(d.step?.steps || []).map((a) => a.slice(0, 50)).join(" | ")}]`).join(" ;; "))
       trace("writing", finalDocs)
 
@@ -606,8 +606,8 @@ export default function App() {
       try { const l = JSON.parse(localStorage.getItem('vd-last-ai') || 'null'); if (l) handleStartAnnotation(...l) } catch { /* none saved */ }
     }
     const fresh = () => { if (!busy) handleNewVideo() }
-    window.addEventListener('videodoc:generate', gen); window.addEventListener('videodoc:new', fresh)
-    return () => { window.removeEventListener('videodoc:generate', gen); window.removeEventListener('videodoc:new', fresh) }
+    window.addEventListener('showmewise:generate', gen); window.addEventListener('showmewise:new', fresh)
+    return () => { window.removeEventListener('showmewise:generate', gen); window.removeEventListener('showmewise:new', fresh) }
   })
 
   return (
@@ -634,8 +634,8 @@ export default function App() {
           className="flex items-center gap-2.5 text-lg font-bold tracking-tight group"
           title="Back to home"
         >
-          <VideoDocLogo size={26} />
-          <span className="bg-gradient-to-r from-indigo-300 to-violet-300 bg-clip-text text-transparent group-hover:from-violet-200 group-hover:to-cyan-200 transition-colors">VideoDoc</span>
+          <ShowMeWiseLogo size={26} />
+          <span className="bg-gradient-to-r from-indigo-300 to-violet-300 bg-clip-text text-transparent group-hover:from-violet-200 group-hover:to-cyan-200 transition-colors">ShowMeWise</span>
         </button>
         <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] text-emerald-300/90 bg-emerald-500/10 border border-emerald-400/20 rounded-full px-2.5 py-0.5">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> Runs on your computer

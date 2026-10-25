@@ -1,4 +1,4 @@
-# VideoDoc Desktop — What's inside, how it works, what it downloads
+# ShowMeWise Desktop — What's inside, how it works, what it downloads
 
 A transparency / "software bill of materials" sheet for IT & security review.
 **Summary:** everything runs on the user's machine. The only data that ever crosses
@@ -57,7 +57,7 @@ There are **two ways to ship** — IT chooses:
 - Downloads: **nothing.** The installer already contains the AI models (gemma3 12B).
 - The app makes **zero network connections** (with auto-update disabled).
 - Because the bundle is large (~7.6 GB with the 12B model), the installer ships as
-  `VideoDoc-Setup.exe` plus a few sibling `.bin` parts that must stay in the same
+  `ShowMeWise-Setup.exe` plus a few sibling `.bin` parts that must stay in the same
   folder — this is one package to distribute (e.g. as a zip, or via a network
   share/USB), and running the `.exe` installs everything in one step.
 
@@ -76,7 +76,7 @@ There are **two ways to ship** — IT chooses:
 
 ## 4. One-line summary for security
 
-> VideoDoc is a self-contained, on-device app. It bundles open-source AI engines
+> ShowMeWise is a self-contained, on-device app. It bundles open-source AI engines
 > (llama.cpp, Whisper, Tesseract) and the gemma3 model. User content is processed
 > 100% locally and is **never transmitted**. The only network traffic is an optional
 > one-time model download and an optional update check — both of which can be
@@ -84,7 +84,7 @@ There are **two ways to ship** — IT chooses:
 
 ## 5. The website and the browser plugin (not part of the desktop build)
 
-For teams that use the website (videodoc.netlify.app) and the Chrome / Edge plugin instead of the desktop app.
+For teams that use the website (showmewise.netlify.app) and the Chrome / Edge plugin instead of the desktop app.
 
 | What | Where it stays | What goes out |
 |---|---|---|
@@ -96,4 +96,4 @@ For teams that use the website (videodoc.netlify.app) and the Chrome / Edge plug
 
 - **Content-Security-Policy:** the website runs only its own scripts and can only connect to Ollama and the desktop engine on this computer, the model hosts and the two search sites.
 - **Plugin permissions:** reading other pages is optional and asked once. The pet never presses Submit, never reads, fills or saves passwords, PINs or card numbers, and a web page cannot read its chat or send it commands.
-- Tested on 25 Oct 2026 with attack text in every box, a page with hidden orders for the AI, and a page pretending to be the VideoDoc site (see `FEATURE-TESTS.md`).
+- Tested on 25 Oct 2026 with attack text in every box, a page with hidden orders for the AI, and a page pretending to be the ShowMeWise site (see `FEATURE-TESTS.md`).

@@ -1,15 +1,15 @@
-# VideoDoc Desktop
+# ShowMeWise Desktop
 
-Run VideoDoc fully offline with built in vision and speech models. No Ollama, no browser AI downloads, no admin rights needed. Made for office laptops.
+Run ShowMeWise fully offline with built in vision and speech models. No Ollama, no browser AI downloads, no admin rights needed. Made for office laptops.
 
 ## Easiest path: the installer
 
-Run `VideoDoc-Setup.exe` (built from `VideoDoc.iss` with Inno Setup). It installs everything, engine and model included, to your user folder, no admin rights needed, and adds a Start Menu and desktop shortcut. Nothing is downloaded during install or at run time.
+Run `ShowMeWise-Setup.exe` (built from `ShowMeWise.iss` with Inno Setup). It installs everything, engine and model included, to your user folder, no admin rights needed, and adds a Start Menu and desktop shortcut. Nothing is downloaded during install or at run time.
 
 For software deployment tools (Matrix42, Intune, SCCM), it supports a silent switch:
 
 ```
-VideoDoc-Setup.exe /VERYSILENT /NORESTART /SUPPRESSMSGBOXES
+ShowMeWise-Setup.exe /VERYSILENT /NORESTART /SUPPRESSMSGBOXES
 ```
 
 ## Manual one time setup (if not using the installer)
@@ -33,7 +33,7 @@ VideoDoc-Setup.exe /VERYSILENT /NORESTART /SUPPRESSMSGBOXES
 
 ## Daily use
 
-Double click `VideoDoc.bat` (or the Start Menu / desktop shortcut from the installer). It starts the local engine, opens the browser, and you can drop a video straight in. Keep the black window open while you work, or use the shortcut that installs as `VideoDoc-quiet.vbs` to hide it. Use `Stop-VideoDoc.bat` (or its Start Menu shortcut) to shut the engine down when you are done.
+Double click `ShowMeWise.bat` (or the Start Menu / desktop shortcut from the installer). It starts the local engine, opens the browser, and you can drop a video straight in. Keep the black window open while you work, or use the shortcut that installs as `ShowMeWise-quiet.vbs` to hide it. Use `Stop-ShowMeWise.bat` (or its Start Menu shortcut) to shut the engine down when you are done.
 
 ## What runs where
 
@@ -48,10 +48,10 @@ Double click `VideoDoc.bat` (or the Start Menu / desktop shortcut from the insta
 
 ```
 desktop/
-  VideoDoc.bat          launcher
-  VideoDoc-quiet.vbs    launcher, no console window
-  Stop-VideoDoc.bat     shuts the engine down
-  VideoDoc.iss          Inno Setup installer script
+  ShowMeWise.bat          launcher
+  ShowMeWise-quiet.vbs    launcher, no console window
+  Stop-ShowMeWise.bat     shuts the engine down
+  ShowMeWise.iss          Inno Setup installer script
   get-engine.ps1        one time downloader (manual path only)
   llama/                engine binaries
   models/                gemma 3 model + vision projector

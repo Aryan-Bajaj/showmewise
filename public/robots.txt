@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://videodoc.netlify.app/sitemap.xml
+Sitemap: https://showmewise.netlify.app/sitemap.xml

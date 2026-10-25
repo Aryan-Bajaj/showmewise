@@ -1,4 +1,4 @@
-# VideoDoc desktop, one time setup.
+# ShowMeWise desktop, one time setup.
 # Downloads the llama.cpp server (Vulkan build: NVIDIA, AMD and Intel graphics,
 # CPU fallback) and a gemma 3 vision model.
 # Sources are official: github.com/ggml-org and huggingface.co/ggml-org.
@@ -92,9 +92,9 @@ Get-Whisper "whisper-small.en" "English"
 if ($AllLanguages) { Get-Whisper "whisper-small" "multilingual" }
 
 Write-Host ""
-Write-Host "Setup complete ($Model model). Start VideoDoc with VideoDoc.bat"
+Write-Host "Setup complete ($Model model). Start ShowMeWise with ShowMeWise.bat"
 if ($Model -eq "12b") {
-    Write-Host "VideoDoc.bat will auto-detect the 12B model and load it. First generation"
+    Write-Host "ShowMeWise.bat will auto-detect the 12B model and load it. First generation"
     Write-Host "is slower than 4B (larger model, partial GPU offload) but reads dense UIs"
     Write-Host "far more accurately."
 }

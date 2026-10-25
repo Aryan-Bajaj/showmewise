@@ -29,10 +29,10 @@ export async function gpuInfo() {
 export function pluginSystem(timeout = 1500) {
   return new Promise((res) => {
     const id = Math.random().toString(36).slice(2)
-    const on = (e) => { if (e.detail?.id === id) { removeEventListener("videodoc:system-info", on); clearTimeout(t); res(e.detail) } }
-    const t = setTimeout(() => { removeEventListener("videodoc:system-info", on); res(null) }, timeout)
-    addEventListener("videodoc:system-info", on)
-    window.postMessage({ source: "videodoc-app", type: "need-system-info", id }, location.origin)
+    const on = (e) => { if (e.detail?.id === id) { removeEventListener("showmewise:system-info", on); clearTimeout(t); res(e.detail) } }
+    const t = setTimeout(() => { removeEventListener("showmewise:system-info", on); res(null) }, timeout)
+    addEventListener("showmewise:system-info", on)
+    window.postMessage({ source: "showmewise-app", type: "need-system-info", id }, location.origin)
   })
 }
 

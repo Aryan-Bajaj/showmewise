@@ -1,11 +1,11 @@
-// Talks to the VideoDoc browser plugin. The plugin uses this website as its
+// Talks to the ShowMeWise browser plugin. The plugin uses this website as its
 // engine: its helper script on this page passes commands in (record, stop,
 // generate, chat) and carries the live status out to the plugin's side panel.
 // Only messages from this same page are accepted (the plugin's helper script
 // runs inside it); other sites and frames cannot reach it. Without the plugin
 // nothing happens.
 
-const OUT = "videodoc-app", IN = "videodoc-ext"
+const OUT = "showmewise-app", IN = "showmewise-ext"
 let last = null
 
 export function post(type, data = {}) {
@@ -35,6 +35,6 @@ export function listen() {
     const { type, ...data } = e.data
     if (type === "hello") { post("hello", { version: 1, page: location.hash }); window.postMessage(last || { source: OUT, type: "status", state: "idle", steps: [] }, location.origin); return }
     // the page parts that can act listen for these
-    window.dispatchEvent(new CustomEvent(`videodoc:${type}`, { detail: data }))
+    window.dispatchEvent(new CustomEvent(`showmewise:${type}`, { detail: data }))
   })
 }

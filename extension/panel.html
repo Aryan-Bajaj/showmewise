@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>VideoDoc</title>
+<title>ShowMeWise</title>
 <style>
 :root{--bg:#0f0b24;--card:#17113a;--line:rgba(255,255,255,.1);--ink:#f1eeff;--ink2:#b9b3d8;--ink3:#8a84ad;--acc:#7c5cff;--ok:#34d399;--rec:#ef4444;--warn:#fbbf24}
 *{box-sizing:border-box}
@@ -74,9 +74,9 @@ footer a{color:var(--ink2)}
 <body>
 <header>
   <img src="icons/icon32.png" alt="">
-  <b>VideoDoc</b>
-  <a id="site" href="https://videodoc.netlify.app/" target="_blank" rel="noopener">Website ↗</a>
-  <button id="side" title="Keep VideoDoc open on the side of this window" style="padding:3px 8px;font-size:12px">Open on the side</button>
+  <b>ShowMeWise</b>
+  <a id="site" href="https://showmewise.netlify.app/" target="_blank" rel="noopener">Website ↗</a>
+  <button id="side" title="Keep ShowMeWise open on the side of this window" style="padding:3px 8px;font-size:12px">Open on the side</button>
 </header>
 <main>
   <section class="card" id="recCard">
@@ -114,10 +114,10 @@ footer a{color:var(--ink2)}
   <section class="card">
     <h2>Ask Vidi</h2>
     <div class="tabs" role="tablist">
-      <button class="on" data-scope="video" role="tab" title="Your video in VideoDoc">My video</button>
+      <button class="on" data-scope="video" role="tab" title="Your video in ShowMeWise">My video</button>
       <button data-scope="page" role="tab" title="The page you are on">This page</button>
       <button data-scope="doc" role="tab" title="A PDF, Word, web page or text file">Document</button>
-      <button data-scope="help" role="tab" title="How VideoDoc works, its limits, the plugin">Help</button>
+      <button data-scope="help" role="tab" title="How ShowMeWise works, its limits, the plugin">Help</button>
     </div>
     <div class="ctx" id="ctx"></div>
     <label class="chk" id="linksWrap" hidden><input type="checkbox" id="links" checked> If it is not on the page, also read links on it that match my question (same site)</label>
@@ -129,7 +129,7 @@ footer a{color:var(--ink2)}
   <details class="card" id="petCard">
     <summary style="cursor:pointer;font-weight:600"><span id="petIcon">🐉</span> Your pet <span id="petTitle">Vidi</span> <span style="color:var(--ink3);font-weight:400;font-size:11.5px">BETA</span></summary>
     <p class="note">A little friend at the edge of your web pages. Click it to chat, ask about the page, fill forms from your CV, set timers and reminders, or search the web. It moves away from buttons and text by itself; drag it anywhere to give it a fixed spot.</p>
-    <p class="note"><a id="petTraining" href="https://videodoc.netlify.app/#/pet-training" target="_blank" rel="noopener" style="color:#c4b5fd">🎓 Pet training: learn and try every skill ↗</a></p>
+    <p class="note"><a id="petTraining" href="https://showmewise.netlify.app/#/pet-training" target="_blank" rel="noopener" style="color:#c4b5fd">🎓 Pet training: learn and try every skill ↗</a></p>
     <div class="me-pet" style="margin-top:8px">
       <div class="big-pet vp" id="petBig" data-mood="happy"></div>
       <label class="fld">Name<input id="petName" maxlength="20" autocomplete="off"></label>
@@ -155,8 +155,8 @@ footer a{color:var(--ink2)}
 </main>
 <footer>
   <label class="chk"><input type="checkbox" id="auto" checked> Start writing the guide by itself after a recording (with the AI used last time)</label>
-  <p><a href="https://videodoc.netlify.app/#/check" target="_blank" rel="noopener" id="check">🖥 Test my computer</a>: which AI size runs best on it.</p>
-  <p>Everything runs on your computer through the VideoDoc website. Nothing is uploaded, unless you turn on Ollama cloud models in the website's AI settings. <a href="https://videodoc.netlify.app/#/policy" target="_blank" rel="noopener" id="privacy">Privacy</a> · <a href="https://videodoc.netlify.app/#/legal" target="_blank" rel="noopener" id="legal">Legal notice</a></p>
+  <p><a href="https://showmewise.netlify.app/#/check" target="_blank" rel="noopener" id="check">🖥 Test my computer</a>: which AI size runs best on it.</p>
+  <p>Everything runs on your computer through the ShowMeWise website. Nothing is uploaded, unless you turn on Ollama cloud models in the website's AI settings. <a href="https://showmewise.netlify.app/#/policy" target="_blank" rel="noopener" id="privacy">Privacy</a> · <a href="https://showmewise.netlify.app/#/legal" target="_blank" rel="noopener" id="legal">Legal notice</a></p>
 </footer>
 <script src="pet/i18n.js"></script>
 <script src="pet/pets.js"></script>

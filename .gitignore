@@ -12,7 +12,7 @@ desktop/llama/
 desktop/models/
 desktop/app/
 
-# Built installer output (several GB, produced locally by ISCC from VideoDoc.iss)
+# Built installer output (several GB, produced locally by ISCC from ShowMeWise.iss)
 desktop/Output/
 
 # Logs

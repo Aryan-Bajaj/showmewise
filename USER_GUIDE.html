@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VideoDoc — How to use it</title>
+<title>ShowMeWise — How to use it</title>
 <style>
   :root{
     --bg:#0a0a0b; --bg2:#0f0f11; --card:#161618; --card2:#1c1c20;
@@ -83,9 +83,9 @@
 
 <header>
   <div class="wrap">
-    <div class="logo"><span class="dot"></span> VideoDoc</div>
+    <div class="logo"><span class="dot"></span> ShowMeWise</div>
     <h1>Turn a screen recording into<br><span>a step-by-step guide</span></h1>
-    <p>Upload a recording, VideoDoc watches it and writes the documentation for you — runs on your own computer, nothing leaves your device.</p>
+    <p>Upload a recording, ShowMeWise watches it and writes the documentation for you — runs on your own computer, nothing leaves your device.</p>
     <div class="who"><span>👋 <b>For everyone</b> — no tech skills needed</span><span>🛠️ <b>For tech folks</b> — how it works under each step</span></div>
   </div>
 </header>
@@ -94,9 +94,9 @@
 
   <!-- 1 -->
   <div class="step">
-    <h2><span class="num">1</span> <span>Open VideoDoc<small>The home screen</small></span></h2>
-    <div class="shot"><img src="guide-assets/guide-01-landing.png" alt="VideoDoc home screen">
-      <div class="cap">The VideoDoc home page</div></div>
+    <h2><span class="num">1</span> <span>Open ShowMeWise<small>The home screen</small></span></h2>
+    <div class="shot"><img src="guide-assets/guide-01-landing.png" alt="ShowMeWise home screen">
+      <div class="cap">The ShowMeWise home page</div></div>
     <div class="do"><span class="ic">→</span><div>Click <b>“Video → Docs”</b> to begin. (The other button, “Doc → Chat”, lets you ask questions about a finished guide.)</div></div>
     <div class="tech"><b>Under the hood:</b> a static React + Vite app. The badges at the bottom — <i>0 bytes uploaded · ~96% · Offline</i> — reflect that everything runs in your browser; no server, no account.</div>
   </div>
@@ -121,7 +121,7 @@
         <div class="bar" style="flex-basis:100%;margin-top:0;margin-left:10px;max-width:90px"><i style="width:60%"></i></div></div>
       <div style="font-size:11px;color:var(--ink3);margin-top:8px">Overall progress only moves <b style="color:var(--emerald)">forward</b> — it never jumps backward.</div>
     </div>
-    <div class="do"><span class="ic">→</span><div>Nothing to do here — grab a coffee. VideoDoc pulls out screenshots, cleans the audio, writes the transcript, and reads the on-screen text.</div></div>
+    <div class="do"><span class="ic">→</span><div>Nothing to do here — grab a coffee. ShowMeWise pulls out screenshots, cleans the audio, writes the transcript, and reads the on-screen text.</div></div>
     <div class="tech"><b>Under the hood:</b> frame sampling adapts to video length; audio is denoised before <i>Whisper</i> transcribes it; <i>Tesseract</i> OCR reads the actual UI text so the AI names buttons correctly.</div>
   </div>
 
@@ -172,7 +172,7 @@
           <span class="pill ok">Replace all</span></div>
       </div>
     </div>
-    <div class="annot" data-n="A">Click any <b>highlighted code</b> (like <span class="chip">KPI</span>) — VideoDoc flags acronyms it isn’t sure about so you can confirm them.</div>
+    <div class="annot" data-n="A">Click any <b>highlighted code</b> (like <span class="chip">KPI</span>) — ShowMeWise flags acronyms it isn’t sure about so you can confirm them.</div>
     <div class="annot" data-n="B">Type the correct meaning and hit <b>“Replace all”</b> — it fixes that word across the <i>whole</i> document at once.</div>
     <div class="annot" data-n="C">Click <b>“✎ Edit”</b> on any step to change the title, add or remove actions, or fix wording.</div>
     <div class="do"><span class="ic">→</span><div>This is your safety net: the AI gives you a draft, you fix the few highlighted bits in a minute — no HTML, no formatting, just click and type.</div></div>
@@ -205,7 +205,7 @@
 
 </div>
 
-<footer>VideoDoc — record it, and we’ll document it. · Private · On-device · No account</footer>
+<footer>ShowMeWise — record it, and we’ll document it. · Private · On-device · No account</footer>
 
 </body>
 </html>

@@ -337,7 +337,7 @@ ${seen}`, userTerms) })
           const ch = changedNear(prev.gray, g.gray, g.w, g.h, prev.p)
           const word = ch.count >= 20 && ch.frac <= 0.5 ? wordAt((ocrFrameTexts || []).find((x) => Math.abs(x.timestamp - prev.t) < 0.6)?.words || [], prev.p) : null
           const w = word && word.length >= 3 && partAt(f.timestamp)
-          if (w && (w.restClicks = (w.restClicks || 0) + 1) <= 3) { addAction(w, f.timestamp, `Click '${word}'.`); console.info(`[VideoDoc] click at ${Math.round(f.timestamp)}s on '${word}' (pointer rested, the screen changed near it)`) }
+          if (w && (w.restClicks = (w.restClicks || 0) + 1) <= 3) { addAction(w, f.timestamp, `Click '${word}'.`); console.info(`[ShowMeWise] click at ${Math.round(f.timestamp)}s on '${word}' (pointer rested, the screen changed near it)`) }
         }
         prev = { t: f.timestamp, p, gray: g.gray, w: g.w }
       }
@@ -360,10 +360,10 @@ ${seen}`, userTerms) })
           const line = clickLine(pt, words, o.title, g.h)
           ;(w.clicks || (w.clicks = [])).push({ t: o.t, title: o.title, line })
           addAction(w, o.t, line)
-          console.info(`[VideoDoc] click at ${Math.round(o.t)}s (pointer ${pt.x},${pt.y}): ${line}`)
+          console.info(`[ShowMeWise] click at ${Math.round(o.t)}s (pointer ${pt.x},${pt.y}): ${line}`)
         }
       }
-    } catch (e) { console.info("[VideoDoc] pointer pass skipped:", e?.message || e) }
+    } catch (e) { console.info("[ShowMeWise] pointer pass skipped:", e?.message || e) }
 
     // Whole recording first: every action said, with its time, checked against
     // the speech and added to the checklist of its part (lib/plan.js).
@@ -382,18 +382,18 @@ ${seen}`, userTerms) })
           ? await callLocalEngine(batches[k], PLAN_PROMPT, null, opts)
           : await callWebLLM(batches[k], PLAN_PROMPT, null, { ...opts, model: ollamaModel })
         const got = parsePlan(raw)
-        if (!got.length) console.info(`[VideoDoc] whole transcript part ${k + 1}: no actions read from the answer (${String(raw || "").length} chars): ${String(raw || "").slice(0, 300)}`)
+        if (!got.length) console.info(`[ShowMeWise] whole transcript part ${k + 1}: no actions read from the answer (${String(raw || "").length} chars): ${String(raw || "").slice(0, 300)}`)
         items.push(...got)
       }
       plan = groundPlan(items, chunks)
-      console.info(`[VideoDoc] whole transcript: ${items.length - plan.length} actions not found in the speech`)
+      console.info(`[ShowMeWise] whole transcript: ${items.length - plan.length} actions not found in the speech`)
       resume?.save({ plan })
       }
       addPlanToWindows(windows, plan)
-      console.info(`[VideoDoc] whole transcript: ${plan.length} actions kept: ${plan.map((p) => `${p.t}s ${p.do}`).join(" | ")}`)
+      console.info(`[ShowMeWise] whole transcript: ${plan.length} actions kept: ${plan.map((p) => `${p.t}s ${p.do}`).join(" | ")}`)
       // what each part is told to cover (an action said but not on screen in its part is not added: this shows it)
-      console.info(`[VideoDoc] actions per part: ${windows.map((w) => `${Math.round(w.a)}s [${(w.actions || []).join(" | ")}]`).join(" ;; ")}`)
-    } catch (e) { console.info("[VideoDoc] whole transcript pass skipped:", e?.message || e) }
+      console.info(`[ShowMeWise] actions per part: ${windows.map((w) => `${Math.round(w.a)}s [${(w.actions || []).join(" | ")}]`).join(" ;; ")}`)
+    } catch (e) { console.info("[ShowMeWise] whole transcript pass skipped:", e?.message || e) }
 
     // "Said but not written": what was said (and shown) in this part but is not
     // in its step, for the reader to add with one click. At most 3, and only
@@ -409,8 +409,8 @@ ${seen}`, userTerms) })
 
     // Every part that is dropped says why, in the browser console: missing
     // content must always be traceable to a rule, never a mystery.
-    const why = (label, reason) => console.info(`[VideoDoc] part ${label} dropped: ${reason}`)
-    console.info(`[VideoDoc] ${windows.length} parts: ${windows.map((w) => `${formatTS(w.a)}-${formatTS(w.b)}`).join(", ")}`)
+    const why = (label, reason) => console.info(`[ShowMeWise] part ${label} dropped: ${reason}`)
+    console.info(`[ShowMeWise] ${windows.length} parts: ${windows.map((w) => `${formatTS(w.a)}-${formatTS(w.b)}`).join(", ")}`)
 
     const numberVotes = screenCounts(ocrFrameTexts) // how often each number was read on screen
     const results = []
@@ -561,7 +561,7 @@ ${seen}`, userTerms) })
         if (!secondTry.has(i)) {
           secondTry.add(i)
           order.push(i)
-          console.info(`[VideoDoc] part ${label} failed (${e?.message}), will try again at the end`)
+          console.info(`[ShowMeWise] part ${label} failed (${e?.message}), will try again at the end`)
         } else why(label, `model error, twice: ${e?.message}`)
         continue
       }
@@ -658,7 +658,7 @@ ${seen}`, userTerms) })
         list.splice(Math.max(0, Math.min(list.length, at)), 0, c.line)
         step = { ...step, steps: list }
       }
-      if (miss.length || missA.length) console.info(`[VideoDoc] part ${label} does not mention: ${[...miss, ...missA.map((a) => `"${a}"`)].join(", ")}`)
+      if (miss.length || missA.length) console.info(`[ShowMeWise] part ${label} does not mention: ${[...miss, ...missA.map((a) => `"${a}"`)].join(", ")}`)
 
       // Confidence flag for the reviewer: a step the model first skipped, one
       // written from thin evidence (little speech AND little readable screen

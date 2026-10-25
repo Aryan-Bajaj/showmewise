@@ -1,4 +1,4 @@
-# VideoDoc: every feature and its test
+# ShowMeWise: every feature and its test
 
 Nothing counts as done until its line here is checked, by an automated test or by
 reading the result (marked "read"). Tests run in a maximized browser window.

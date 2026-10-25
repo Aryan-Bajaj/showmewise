@@ -8,7 +8,7 @@
 // offers it back (recoverRecording). Nothing leaves the computer.
 import fixWebmDuration from "fix-webm-duration"
 
-const DB = "videodoc-recording", STORE = "chunks"
+const DB = "showmewise-recording", STORE = "chunks"
 const open = () => new Promise((res, rej) => {
   const r = indexedDB.open(DB, 1)
   r.onupgradeneeded = () => r.result.createObjectStore(STORE, { autoIncrement: true })

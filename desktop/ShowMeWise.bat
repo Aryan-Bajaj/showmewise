@@ -1,5 +1,5 @@
 @echo off
-REM VideoDoc desktop launcher.
+REM ShowMeWise desktop launcher.
 REM Starts the bundled AI engine (llama.cpp) which also hosts the app itself,
 REM then opens your browser. Everything runs on this machine. No cloud, no
 REM account, nothing leaves the device.
@@ -7,7 +7,7 @@ REM
 REM Model is auto-detected: if the 12B model was downloaded it is preferred
 REM (better reading of dense UIs); otherwise the 4B model is used.
 REM
-REM GPU offload (-ngl) can be overridden:  set VIDEODOC_NGL=8 & VideoDoc.bat
+REM GPU offload (-ngl) can be overridden:  set SHOWMEWISE_NGL=8 & ShowMeWise.bat
 REM   4B  : 99 layers on GPU (fits a 4 GB card).
 REM   12B : 12 layers on GPU by default, the rest on CPU/RAM. Lower it if the
 REM         engine window reports an out-of-memory / Vulkan allocation error;
@@ -16,7 +16,7 @@ setlocal
 cd /d "%~dp0"
 
 if not exist "llama\llama-server.exe" (
-  echo [VideoDoc] AI engine not found. Run the one-time setup first:
+  echo [ShowMeWise] AI engine not found. Run the one-time setup first:
   echo   powershell -ExecutionPolicy Bypass -File get-engine.ps1
   pause
   exit /b 1
@@ -47,7 +47,7 @@ if exist "models\gemma-3-4b-it-qat-Q4_0.gguf" (
   goto :have_model
 )
 
-echo [VideoDoc] No model found. Run the one-time setup first:
+echo [ShowMeWise] No model found. Run the one-time setup first:
 echo   powershell -ExecutionPolicy Bypass -File get-engine.ps1
 echo   powershell -ExecutionPolicy Bypass -File get-engine.ps1 -Model 12b
 pause
@@ -55,16 +55,16 @@ exit /b 1
 
 :have_model
 if not exist "%MMPROJ%" (
-  echo [VideoDoc] Vision projector "%MMPROJ%" missing. Re-run get-engine.ps1 for the %WHICH% model.
+  echo [ShowMeWise] Vision projector "%MMPROJ%" missing. Re-run get-engine.ps1 for the %WHICH% model.
   pause
   exit /b 1
 )
 
 set "NGL=%NGL_DEFAULT%"
-if not "%VIDEODOC_NGL%"=="" set "NGL=%VIDEODOC_NGL%"
+if not "%SHOWMEWISE_NGL%"=="" set "NGL=%SHOWMEWISE_NGL%"
 
-echo [VideoDoc] Model: %WHICH%   GPU layers: %NGL%
-echo [VideoDoc] Starting on http://localhost:8080 ... keep this window open.
+echo [ShowMeWise] Model: %WHICH%   GPU layers: %NGL%
+echo [ShowMeWise] Starting on http://localhost:8080 ... keep this window open.
 start "" http://localhost:8080
 REM --no-mmproj-offload keeps the VISION encoder on the CPU. On a 4 GB GPU the
 REM model layers already fill VRAM, so encoding a screenshot on the GPU throws

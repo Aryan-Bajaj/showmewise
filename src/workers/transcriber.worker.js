@@ -40,7 +40,7 @@ async function load(onProgress, language = 'en', accurate = false, cpuOnly = fal
       ? await self.navigator.gpu.requestAdapter({ powerPreference: 'high-performance' }).catch(() => null) : null
     if (adapter) {
       const info = adapter.info || {}
-      console.info('[VideoDoc] speech on the graphics card:', info.vendor || '', info.architecture || '', info.description || '')
+      console.info('[ShowMeWise] speech on the graphics card:', info.vendor || '', info.architecture || '', info.description || '')
     }
     const key = MODEL_ACCURATE + (adapter ? ':gpu' : ':cpu')
     if (!pipes[key] && adapter) {
@@ -51,7 +51,7 @@ async function load(onProgress, language = 'en', accurate = false, cpuOnly = fal
           new Promise((_, no) => setTimeout(() => no(new Error('graphics card did not finish loading in 3 minutes')), GPU_LOAD_LIMIT)),
         ])
       } catch (e) {
-        console.info('[VideoDoc] speech falls back to the processor:', e?.message)
+        console.info('[ShowMeWise] speech falls back to the processor:', e?.message)
         throw Object.assign(new Error(e?.message), { gpuFailed: true })
       }
     }

@@ -88,7 +88,7 @@ export default function DocChatApp() {
           <div className="w-2 h-2 rounded-full bg-emerald-400" />
           <button onClick={() => { window.location.href = "/#/" }}
             className="text-lg font-semibold tracking-tight hover:text-emerald-400 transition-colors">
-            VideoDoc
+            ShowMeWise
           </button>
           <span className="text-zinc-600">/</span>
           <span className="text-sm text-emerald-300 font-semibold">Doc Chat</span>

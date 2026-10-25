@@ -1,10 +1,10 @@
-// Runs only on the VideoDoc website. Passes the plugin's commands into the page
+// Runs only on the ShowMeWise website. Passes the plugin's commands into the page
 // and the page's status back out (the page side is src/lib/bridge.js).
 // It can be injected twice (installed while the tab was open): the second time does nothing.
 (() => {
-if (window.__videodocBridge) return
-window.__videodocBridge = true
-const IN = "videodoc-ext", OUT = "videodoc-app"
+if (window.__showmewiseBridge) return
+window.__showmewiseBridge = true
+const IN = "showmewise-ext", OUT = "showmewise-app"
 
 chrome.runtime.onMessage.addListener((msg, _from, reply) => {
   if (msg?.to !== "page") return

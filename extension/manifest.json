@@ -1,10 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "VideoDoc: record, guide, chat",
-  "short_name": "VideoDoc",
+  "name": "ShowMeWise: record, guide, chat",
+  "short_name": "ShowMeWise",
   "version": "1.0.0",
   "description": "Record your screen and get a step-by-step guide. Chat with your videos, documents and the page you are on. Runs on your computer.",
-  "homepage_url": "https://videodoc.netlify.app/",
+  "homepage_url": "https://showmewise.netlify.app/",
   "minimum_chrome_version": "116",
   "icons": {
     "16": "icons/icon16.png",
@@ -13,7 +13,7 @@
     "128": "icons/icon128.png"
   },
   "action": {
-    "default_title": "Open VideoDoc",
+    "default_title": "Open ShowMeWise",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png"
@@ -40,7 +40,7 @@
     "search"
   ],
   "host_permissions": [
-    "https://videodoc.netlify.app/*",
+    "https://showmewise.netlify.app/*",
     "http://127.0.0.1:8899/*"
   ],
   "optional_host_permissions": [
@@ -49,7 +49,7 @@
   "content_scripts": [
     {
       "matches": [
-        "https://videodoc.netlify.app/*",
+        "https://showmewise.netlify.app/*",
         "http://127.0.0.1:8899/*"
       ],
       "js": [

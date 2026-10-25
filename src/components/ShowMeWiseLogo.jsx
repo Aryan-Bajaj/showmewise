@@ -1,8 +1,8 @@
 // The mark: a page (the guide) with a mouse pointer (the click it shows) and
-// a numbered marker, the way every click is marked in a VideoDoc guide.
-export default function VideoDocLogo({ size = 30, ring = "#0f0b24" }) {
+// a numbered marker, the way every click is marked in a ShowMeWise guide.
+export default function ShowMeWiseLogo({ size = 30, ring = "#0f0b24" }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="VideoDoc">
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ShowMeWise">
       <path d="M8 3.5h11.5L26 10v15.5a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-19a3 3 0 0 1 3-3z" fill="#f4f1ff" />
       <path d="M19.5 3.5V8a2 2 0 0 0 2 2H26" fill="#c9bcff" />
       <path d="M9.6 11.2v9.4l2.3-2.2 1.5 3.3 1.7-.75-1.5-3.25h3.2z" fill="#5b3df5" stroke="#5b3df5" strokeWidth=".6" strokeLinejoin="round" />

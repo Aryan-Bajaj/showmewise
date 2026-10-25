@@ -63,7 +63,7 @@ export default function CheckPage() {
         <a href="/#/" style={{ color: C.dim, fontSize: 14, textDecoration: "none" }}>← Back</a>
         <h1 style={{ margin: 0, fontSize: "clamp(1.8rem,5vw,2.4rem)" }}>Test my computer</h1>
         <p style={{ margin: 0, color: C.dim, lineHeight: 1.6 }}>
-          VideoDoc can use an AI that runs inside your browser. This test finds the best one for your computer, so it runs well and nothing gets stuck. It takes a few minutes. The ones you do not need are deleted after the test, so they do not take space.
+          ShowMeWise can use an AI that runs inside your browser. This test finds the best one for your computer, so it runs well and nothing gets stuck. It takes a few minutes. The ones you do not need are deleted after the test, so they do not take space.
         </p>
 
         <Card>
@@ -74,7 +74,7 @@ export default function CheckPage() {
               {gpu.webgpu && <li>{gpu.builtIn ? "Your computer has built-in graphics. The AI then uses your normal memory, so free memory matters." : "Your computer has a graphics card for the AI."}</li>}
               {sys === undefined ? <li style={{ color: C.dim }}>Checking free memory...</li>
                 : sys ? <li>Free memory: <b style={{ color: tight ? C.warn : C.ok }}>{gb(sys.freeMB)} GB</b> of {gb(sys.totalMB)} GB · <b>{sys.tabs}</b> tabs open</li>
-                : <li style={{ color: C.dim }}>A website cannot see your free memory. With the VideoDoc plugin it can.</li>}
+                : <li style={{ color: C.dim }}>A website cannot see your free memory. With the ShowMeWise plugin it can.</li>}
               <li>{ollama ? <>Ollama is on this computer: <b style={{ color: C.ok }}>use it</b>. It is faster and more exact than the browser AI.</> : ollama === 0 ? "Ollama: not found (that is fine, the browser AI works without it)." : "Looking for Ollama..."}</li>
             </ul>
           )}
@@ -127,7 +127,7 @@ export default function CheckPage() {
         {best && (
           <Card style={{ borderColor: "rgba(52,211,153,.45)" }}>
             <h2 style={{ margin: "0 0 6px", fontSize: 17 }}>Best for your computer: {SIZE[CHECK_MODELS.findIndex((m) => m.id === best.id)]?.[0] || ""} ({best.name})</h2>
-            <p style={{ margin: 0, color: C.dim, lineHeight: 1.6 }}>VideoDoc uses it from now on for the browser AI. {ollama ? "Ollama is still the better choice when it is running." : ""}</p>
+            <p style={{ margin: 0, color: C.dim, lineHeight: 1.6 }}>ShowMeWise uses it from now on for the browser AI. {ollama ? "Ollama is still the better choice when it is running." : ""}</p>
             {best.id === CHECK_MODELS[0].id && (
               <p style={{ margin: "10px 0 0", color: C.warn, lineHeight: 1.6 }}>Small is fine for questions in the chats, but too weak to write guides. To write guides, install the free Ollama app, or close programs and test again: Medium may fit then.</p>
             )}

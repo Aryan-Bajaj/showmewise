@@ -1,6 +1,6 @@
 // Pet training: every skill of the plugin's pet (Vidi, BETA), explained in
 // plain words, each with a place on this page to try it. The pet itself comes
-// from the plugin: it is allowed on the VideoDoc website only on this page.
+// from the plugin: it is allowed on the ShowMeWise website only on this page.
 // The pictures are the plugin's own drawings (extension/pet), so both match.
 import { useEffect, useState } from "react"
 import "../../extension/pet/pets.js"
@@ -11,7 +11,7 @@ import { pluginSystem, gpuInfo } from "../lib/computerCheck"
 import { pullModel, ollamaState } from "../lib/ollamaSetup"
 import { callOllama } from "../lib/llm"
 import OllamaSetup from "./OllamaSetup"
-import VideoDocLogo from "./VideoDocLogo"
+import ShowMeWiseLogo from "./ShowMeWiseLogo"
 
 const C = { bg: "#0f0b24", card: "rgba(22,15,46,0.94)", line: "rgba(167,139,250,0.22)", ink: "#f1eeff", dim: "#b9b3d8", ok: "#34d399", warn: "#fbbf24", acc: "#7c5cff" }
 const Card = ({ children, style, id }) => <section id={id} style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 16, padding: 18, ...style }}>{children}</section>
@@ -126,7 +126,7 @@ export const COURSE = {
     { do: "Tell it your name and something you like.", say: ["my name is (your name)", "I love dragons"] },
     { do: "Ask for a joke in Hinglish, or ask what it can do.", say: ["mujhe ek joke sunao", "what can you do?"] }] },
   avatar: { short: "A dragon, wolf, cat, fox or owl in three colours, or your own picture.", min: 1, walk: [
-    { do: "Open the plugin (the VideoDoc icon in the toolbar), then Your pet." },
+    { do: "Open the plugin (the ShowMeWise icon in the toolbar), then Your pet." },
     { do: "Pick a pet and a colour: the pet on this page changes at once." },
     { do: "Or press My picture and choose a photo of your own pet." }] },
   page: { short: "Ask about the page you are on and see the right button marked.", min: 2, walk: [
@@ -283,10 +283,10 @@ function PetSetup({ kind, setKind, colour, setColour }) {
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value })
   const ask = (type, extra = {}) => new Promise((res) => {
     const id = Math.random().toString(36).slice(2)
-    const on = (e) => { if (e.detail?.id === id) { removeEventListener("videodoc:pet-info", on); clearTimeout(t); res(e.detail) } }
-    const t = setTimeout(() => { removeEventListener("videodoc:pet-info", on); res(null) }, 2500)
-    addEventListener("videodoc:pet-info", on)
-    window.postMessage({ source: "videodoc-app", type, id, ...extra }, location.origin)
+    const on = (e) => { if (e.detail?.id === id) { removeEventListener("showmewise:pet-info", on); clearTimeout(t); res(e.detail) } }
+    const t = setTimeout(() => { removeEventListener("showmewise:pet-info", on); res(null) }, 2500)
+    addEventListener("showmewise:pet-info", on)
+    window.postMessage({ source: "showmewise-app", type, id, ...extra }, location.origin)
   })
   useEffect(() => {
     ask("pet-info").then((i) => {
@@ -347,8 +347,8 @@ function PetSetup({ kind, setKind, colour, setColour }) {
         {STEPS.map((s, k) => (k === 5 && !needBackup) ? null : <span key={s} title={s} style={{ width: k === step ? 26 : 10, height: 10, borderRadius: 9, background: k < step ? C.ok : k === step ? C.acc : "rgba(255,255,255,.15)", transition: "all .3s" }} />)}
         <span style={{ marginLeft: "auto", color: C.dim, fontSize: 13 }}>{STEPS[step]}</span>
       </div>
-      {info === false && <p style={{ margin: "0 0 12px", padding: "8px 12px", borderRadius: 10, background: "rgba(251,191,36,.1)", color: "#fde68a", fontSize: 14 }}>The VideoDoc plugin was not found in this browser. {PLUGIN_URL ? <a href={PLUGIN_URL} target="_blank" rel="noopener" style={{ color: "#c4b5fd" }}>Add it to Chrome or Edge</a> : "Add it to Chrome or Edge"}, then reload this page.</p>}
-      {info && !info.allowed && <p style={{ margin: "0 0 12px", padding: "8px 12px", borderRadius: 10, background: "rgba(251,191,36,.1)", color: "#fde68a", fontSize: 14 }}>One more thing: open the plugin (the VideoDoc icon in the toolbar), then Your pet, and tick <b>Show my pet on web pages</b>. It asks for your OK once.</p>}
+      {info === false && <p style={{ margin: "0 0 12px", padding: "8px 12px", borderRadius: 10, background: "rgba(251,191,36,.1)", color: "#fde68a", fontSize: 14 }}>The ShowMeWise plugin was not found in this browser. {PLUGIN_URL ? <a href={PLUGIN_URL} target="_blank" rel="noopener" style={{ color: "#c4b5fd" }}>Add it to Chrome or Edge</a> : "Add it to Chrome or Edge"}, then reload this page.</p>}
+      {info && !info.allowed && <p style={{ margin: "0 0 12px", padding: "8px 12px", borderRadius: 10, background: "rgba(251,191,36,.1)", color: "#fde68a", fontSize: 14 }}>One more thing: open the plugin (the ShowMeWise icon in the toolbar), then Your pet, and tick <b>Show my pet on web pages</b>. It asks for your OK once.</p>}
       <div style={{ display: "flex", gap: 20, flexWrap: "wrap", alignItems: "flex-start" }}>
         <div style={{ flex: "0 0 auto", margin: "0 auto" }}><PetPic kind={kind} colour={colour} mood={step === 6 ? "happy" : step === 4 && test?.busy ? "think" : "idle"} size={140} /></div>
         <div style={{ flex: 1, minWidth: 250 }}>
@@ -434,13 +434,13 @@ export default function PetTraining() {
   const [colour, setColour] = useState("")
   const [done, setDone] = useState(() => { try { return JSON.parse(localStorage.getItem("vd-pet-training") || "[]") } catch { return [] } })
   useEffect(() => { try { localStorage.setItem("vd-pet-training", JSON.stringify(done)) } catch { /* private window */ } }, [done])
-  useEffect(() => { document.title = "Pet training · VideoDoc" }, [])
+  useEffect(() => { document.title = "Pet training · ShowMeWise" }, [])
   const toggle = (id) => setDone((d) => d.includes(id) ? d.filter((x) => x !== id) : [...d, id])
   // the open lesson (null: the course cards); the page goes back to the top of the lessons
   const [open, setOpen] = useState(null)
   const [setupKey, setSetupKey] = useState(0) // a new key starts the setup wizard over (↺ Reset)
   // "▶ Try it": the plugin's pet hears the sentence as if the user typed it (only on this page)
-  const tryIt = (t) => window.postMessage({ source: "videodoc-app", type: "pet-try", text: t.replace(/\s*\((it asks[^)]*|also works)\)/i, "") }, location.origin)
+  const tryIt = (t) => window.postMessage({ source: "showmewise-app", type: "pet-try", text: t.replace(/\s*\((it asks[^)]*|also works)\)/i, "") }, location.origin)
   let setUp = false; try { setUp = !!localStorage.getItem(SETUP_KEY) } catch { /* private window */ }
   const openLesson = (id) => { setOpen(id); requestAnimationFrame(() => document.getElementById("courses")?.scrollIntoView({ behavior: "smooth" })) }
   const pill = (on) => ({ font: "inherit", fontSize: 13.5, cursor: "pointer", borderRadius: 999, padding: "6px 12px", border: `1px solid ${on ? C.acc : C.line}`, background: on ? "#2b2063" : "transparent", color: "#fff" })
@@ -453,14 +453,14 @@ export default function PetTraining() {
       <div style={{ position: "relative", zIndex: 1 }}>
       <nav style={{ position: "sticky", top: 0, zIndex: 10, background: "rgba(15,11,36,0.92)", borderBottom: `1px solid ${C.line}` }}>
         <div style={{ maxWidth: 980, margin: "0 auto", padding: "14px 16px", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-          <a href="/#/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", color: C.ink, fontWeight: 700 }}><VideoDocLogo size={26} /> VideoDoc</a>
+          <a href="/#/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", color: C.ink, fontWeight: 700 }}><ShowMeWiseLogo size={26} /> ShowMeWise</a>
           <span style={{ color: C.dim, fontSize: 13 }}>· Pet training</span>
           <a href="/#/app" style={{ marginLeft: "auto", color: "#fff", fontSize: 13, textDecoration: "none", padding: "7px 14px", borderRadius: 10, background: "linear-gradient(135deg,#6d4aff,#3f62ff)" }}>Open the app</a>
         </div>
       </nav>
       <div style={{ maxWidth: 760, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16, padding: "32px 16px 80px" }}>
         <h1 style={{ margin: 0, fontSize: "clamp(1.8rem,5vw,2.4rem)" }}>Pet training <span style={{ fontSize: 14, color: C.dim, fontWeight: 400 }}>BETA</span></h1>
-        <p style={{ margin: 0, color: C.dim, lineHeight: 1.6 }}>Your pet is a small helper from the VideoDoc browser plugin. It lives at the edge of your web pages, chats with you, explains pages, fills forms, sets timers and searches the web. Learn each skill here and try it right on this page, in any order.</p>
+        <p style={{ margin: 0, color: C.dim, lineHeight: 1.6 }}>Your pet is a small helper from the ShowMeWise browser plugin. It lives at the edge of your web pages, chats with you, explains pages, fills forms, sets timers and searches the web. Learn each skill here and try it right on this page, in any order.</p>
 
         <p style={{ margin: 0, padding: "10px 14px", borderRadius: 12, background: "rgba(251,191,36,.1)", border: "1px solid rgba(251,191,36,.4)", color: "#fde68a", fontSize: 14, lineHeight: 1.5 }}>
           Everything to practise on this page is made up: the sample CV (Mira Hoffmann is not a real person), the form, the toolbar and the ads. Nothing you type here is sent anywhere.
@@ -470,11 +470,11 @@ export default function PetTraining() {
         <Card>
           <h2 style={{ margin: "0 0 8px", fontSize: 17 }}>Before you start</h2>
           <ol style={{ margin: 0, paddingLeft: 22, lineHeight: 1.9, listStyle: "decimal" }}>
-            <li>{PLUGIN_URL ? <a href={PLUGIN_URL} target="_blank" rel="noopener" style={{ color: "#c4b5fd" }}>Add the VideoDoc plugin to Chrome or Edge</a> : "Add the VideoDoc plugin to Chrome or Edge (the store link comes here soon)."}</li>
-            <li>Open the plugin (the VideoDoc icon in the toolbar), then Your pet, and tick <b>Show my pet on web pages</b>. It asks for your OK once.</li>
+            <li>{PLUGIN_URL ? <a href={PLUGIN_URL} target="_blank" rel="noopener" style={{ color: "#c4b5fd" }}>Add the ShowMeWise plugin to Chrome or Edge</a> : "Add the ShowMeWise plugin to Chrome or Edge (the store link comes here soon)."}</li>
+            <li>Open the plugin (the ShowMeWise icon in the toolbar), then Your pet, and tick <b>Show my pet on web pages</b>. It asks for your OK once.</li>
             <li>Come back to this page: your pet waits at the right edge. Click it to start.</li>
           </ol>
-          <p style={{ margin: "10px 0 0", color: C.dim, fontSize: 13.5 }}>On the rest of the VideoDoc website the pet stays away, because VideoDoc has its own Vidi there. This page is its training ground.</p>
+          <p style={{ margin: "10px 0 0", color: C.dim, fontSize: 13.5 }}>On the rest of the ShowMeWise website the pet stays away, because ShowMeWise has its own Vidi there. This page is its training ground.</p>
         </Card>
 
         <div id="courses" style={{ display: "flex", alignItems: "center", gap: 12, scrollMarginTop: 80 }}>
@@ -575,7 +575,7 @@ export default function PetTraining() {
             <li>It cannot open apps, send messages or press buttons for you, and it never presses Submit.</li>
             <li>Robot checks (“I'm not a robot”, picture puzzles) are yours to do: your pet tells you when it sees one, and never tries to get around it.</li>
           </ul>
-          <p style={{ margin: "10px 0 0" }}><a href="/#/policy" style={{ color: "#c4b5fd" }}>Privacy policy</a> · <a href="/#/legal" style={{ color: "#c4b5fd" }}>Legal notice</a> · <a href="/#/howto" style={{ color: "#c4b5fd" }}>How to use VideoDoc</a></p>
+          <p style={{ margin: "10px 0 0" }}><a href="/#/policy" style={{ color: "#c4b5fd" }}>Privacy policy</a> · <a href="/#/legal" style={{ color: "#c4b5fd" }}>Legal notice</a> · <a href="/#/howto" style={{ color: "#c4b5fd" }}>How to use ShowMeWise</a></p>
         </Card>
       </div>
       </div>

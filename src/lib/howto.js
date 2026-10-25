@@ -13,10 +13,10 @@ export const LIMIT_TEXT = LIMIT
 
 export const HOWTO = [
   {
-    id: "what", title: "What VideoDoc does",
+    id: "what", title: "What ShowMeWise does",
     body: [
       "You record your screen while you show how to do something, and you talk while you do it.",
-      "VideoDoc watches that recording. It listens to what you say, reads what is on the screen, and writes a step-by-step guide.",
+      "ShowMeWise watches that recording. It listens to what you say, reads what is on the screen, and writes a step-by-step guide.",
       "The guide has numbered steps, pictures with the clicked buttons marked, a short summary and questions and answers.",
       "You can save the guide as a web page (HTML), a PDF or a Word file.",
       "Everything happens on your own computer: your video is never uploaded anywhere.",
@@ -28,7 +28,7 @@ export const HOWTO = [
       "Use a laptop or a desktop computer with Chrome, Edge or Firefox. Phones and tablets do not work. The browser AI needs Chrome or Edge; in Firefox, use Ollama.",
       "Your computer needs at least 8 GB of memory (RAM). 16 GB is better.",
       "Plug in the laptop and close programs you do not need. Making a guide is hard work for a computer.",
-      "The first time, VideoDoc downloads the parts it needs. The speech part is about 970 MB (about 1.6 GB for Accurate). The AI that writes is 0.8 to 3.5 GB, unless you use Ollama. These downloads happen only once.",
+      "The first time, ShowMeWise downloads the parts it needs. The speech part is about 970 MB (about 1.6 GB for Accurate). The AI that writes is 0.8 to 3.5 GB, unless you use Ollama. These downloads happen only once.",
       LIMIT,
       "Your video stays on your computer. It is never uploaded. You need no account, and it is free.",
     ],
@@ -55,13 +55,13 @@ export const HOWTO = [
       { n: 5, x: 29.0, y: 92.5, dir: "left", text: "Key words (optional): names or codes from the video, separated by commas. The guide spells them exactly like this." },
     ],
     body: [
-      "First pick the language and the speech option. Then choose the video. VideoDoc starts at once.",
+      "First pick the language and the speech option. Then choose the video. ShowMeWise starts at once.",
       "No sound in your video? That is fine. The guide is then made from the screen only.",
       "Key words (optional): type names or codes from the video, separated by commas, for example QX21N, Weekly Overview. The guide spells them exactly like this, and a part where one is said or shown uses it.",
     ],
   },
   {
-    id: "progress", title: "Step 2. Wait while VideoDoc reads the video", img: "progress",
+    id: "progress", title: "Step 2. Wait while ShowMeWise reads the video", img: "progress",
     marks: [
       { n: 1, x: 86.8, y: 18.4, dir: "left", text: "How far it is. The time left shows up once the AI has written the first part." },
       { n: 2, x: 10.9, y: 34.6, dir: "left", text: "Each job, one after the other: taking pictures from the video, getting the sound, writing down the speech, reading the screen, starting the AI, writing the steps, checking the steps, tidying up, and writing the summary and questions." },
@@ -86,21 +86,21 @@ export const HOWTO = [
   {
     id: "set-title", title: "Step 3a. Name of the guide and company", img: "set-title",
     marks: [
-      { n: 1, x: 97, y: 24, dir: "left", text: "Document title: the heading of your guide, for example \"Create and share a dashboard\". Leave it empty and VideoDoc writes a title for you." },
+      { n: 1, x: 97, y: 24, dir: "left", text: "Document title: the heading of your guide, for example \"Create and share a dashboard\". Leave it empty and ShowMeWise writes a title for you." },
       { n: 2, x: 97, y: 78, dir: "left", text: "Company name (you can skip it): shown at the top right of the saved files." },
     ],
-    body: ["Detected tools: the programs VideoDoc saw in your video. Only shown when it found some."],
+    body: ["Detected tools: the programs ShowMeWise saw in your video. Only shown when it found some."],
   },
   {
     id: "set-ollama", title: "Step 3b. Which AI writes the guide: Ollama", img: "set-backend-ollama",
     marks: [
-      { n: 1, x: 86.4, y: 51.4, dir: "right", text: "Ollama. If it is running on your computer, VideoDoc finds it and picks it for you. \"Running · 6 models\" means it found 6 models." },
+      { n: 1, x: 86.4, y: 51.4, dir: "right", text: "Ollama. If it is running on your computer, ShowMeWise finds it and picks it for you. \"Running · 6 models\" means it found 6 models." },
       { n: 2, x: 15.4, y: 68.5, dir: "right", text: "Select model: the best one is already picked. You can choose a smaller one to go faster." },
     ],
     body: [
       "Models with \"cloud\" in the name are hidden unless you turn on Use Ollama cloud models (more powerful) under the model list. You must first read a short notice and tick I understand.",
       "A cloud model is bigger and better at reasoning, but it runs on Ollama's servers: the words and screenshots of your video go there. Do not use it for private or work videos. It needs internet, an Ollama sign-in (run ollama signin), and free use has limits.",
-      "To add a cloud model: in a terminal, run ollama pull with the name of a cloud model (the names end in cloud, listed on ollama.com). VideoDoc never picks a cloud model by itself. While cloud models are on and you picked one, the plugin's chats and your pet use it too, and say ☁ answered in the cloud.",
+      "To add a cloud model: in a terminal, run ollama pull with the name of a cloud model (the names end in cloud, listed on ollama.com). ShowMeWise never picks a cloud model by itself. While cloud models are on and you picked one, the plugin's chats and your pet use it too, and say ☁ answered in the cloud.",
       "Some models can also look at the pictures of your screen (for example gemma3). They give the most exact steps.",
     ],
   },
@@ -163,7 +163,7 @@ export const HOWTO = [
       "Purpose · Summary · FAQ · Flow: skipped means the AI gave no usable summary this time. Your steps are fine. Press Re-annotate to try again.",
       "\"kept from the last try\" (with 0s): you chose the same video with the same speech settings as your last run (finished or not). The speech and the screen text were saved then, so they are not read again. That is why it takes 0 seconds.",
       "\"Picking up where it stopped: ... parts already written\": parts written in the last try are kept; only the rest is written now.",
-      "VideoDoc knows it is the same video when the file name, the exact size, the time the file was last saved, the speech language and the Fast or Accurate choice all match. A new recording (even with one extra sentence) is a new file, so it starts fresh. Written parts are only kept with the same AI model, settings and key words.",
+      "ShowMeWise knows it is the same video when the file name, the exact size, the time the file was last saved, the speech language and the Fast or Accurate choice all match. A new recording (even with one extra sentence) is a new file, so it starts fresh. Written parts are only kept with the same AI model, settings and key words.",
       "\"... entries annotated\": how many parts the guide has. \"... segments\": how many pieces of speech were written down. \"... frames\": how many pictures were taken from the video.",
       "A very long time, for example 356m, or \"computer slept 5h\": the work waits while the computer sleeps and goes on when it wakes. The time the computer slept is not counted and is shown on its own. Keep the laptop open, plugged in and the tab in front.",
       "\"Ollama · gemma3...\" with 0s next to Load AI Model: Ollama loads the model itself, so this line is done at once. With the browser AI it shows the download and loading.",
@@ -242,10 +242,10 @@ export const HOWTO = [
   {
     id: "check", title: "Test my computer: which browser AI size runs best",
     body: [
-      "No Ollama? VideoDoc can use an AI that runs inside your browser. Test my computer finds the size that runs well on your computer, so nothing gets stuck. Open it from the home page, the upload page, the AI settings or the plugin.",
+      "No Ollama? ShowMeWise can use an AI that runs inside your browser. Test my computer finds the size that runs well on your computer, so nothing gets stuck. Open it from the home page, the upload page, the AI settings or the plugin.",
       "It tries the sizes one by one, small first: Small (Llama 3.2 1B), Medium (Qwen2.5 1.5B), Large (Qwen2.5 3B). For each one you see how fast it is and if it answered a test question right. You decide whether to try the next, bigger one.",
       "Bigger gives better answers but needs more free memory. Small is quick, but its answers are often weak.",
-      "Many laptops have built-in graphics: then the AI uses the normal memory. Close tabs and programs you do not need before the test. With the VideoDoc plugin, the test shows your free memory and how many tabs are open.",
+      "Many laptops have built-in graphics: then the AI uses the normal memory. Close tabs and programs you do not need before the test. With the ShowMeWise plugin, the test shows your free memory and how many tabs are open.",
       "The sizes you do not need are deleted after the test, so they do not take space. The best one is kept and used from then on.",
       "Ollama on your computer is still faster and more exact than the browser AI.",
     ],
@@ -260,15 +260,15 @@ export const HOWTO = [
     ],
   },
   {
-    id: "plugin", title: "The VideoDoc browser plugin (extension) and Vidi in the plugin",
+    id: "plugin", title: "The ShowMeWise browser plugin (extension) and Vidi in the plugin",
     body: [
-      "The VideoDoc plugin for Chrome and Edge puts VideoDoc in a small window under its icon in the toolbar. Open on the side keeps it next to your page.",
+      "The ShowMeWise plugin for Chrome and Edge puts ShowMeWise in a small window under its icon in the toolbar. Open on the side keeps it next to your page.",
       "Record your screen from the plugin: the whole screen, any app window or a tab. When you stop, the guide is written by itself with the AI you used last time, and you get a notification when it is ready.",
       "Before you record, open Key words, language and speech in the plugin (optional): type the names and codes said in the video, pick the spoken language, and Fast or Accurate speech. Same as on the upload page; the plugin remembers them.",
-      "The plugin shows the steps and the time left while VideoDoc works. It keeps the computer awake while it records or writes.",
-      "Ask Vidi in the plugin: about your video, about the page you are on, about a document (PDF, Word, web page or text), or Help for questions about VideoDoc itself.",
+      "The plugin shows the steps and the time left while ShowMeWise works. It keeps the computer awake while it records or writes.",
+      "Ask Vidi in the plugin: about your video, about the page you are on, about a document (PDF, Word, web page or text), or Help for questions about ShowMeWise itself.",
       "This page: if the answer is not on the page, Vidi reads the links on it that match your question (same site, up to 3) and says which pages it read. Reading pages needs your OK once.",
-      "The plugin uses the VideoDoc website in a tab of its own, so the models are downloaded only once and an unfinished guide picks up where it stopped. If that tab is closed, press Continue in the plugin.",
+      "The plugin uses the ShowMeWise website in a tab of its own, so the models are downloaded only once and an unfinished guide picks up where it stopped. If that tab is closed, press Continue in the plugin.",
       "Nothing is uploaded: the plugin and the website run on your computer.",
     ],
   },
@@ -277,7 +277,7 @@ export const HOWTO = [
     body: [
       "Your pet is a small animal at the edge of your web pages: a dragon, wolf, cat, fox or owl, or your own picture or 3D pet. Its name is Vidi, and you can rename it.",
       "Turn it on in the plugin under Your pet. It needs the same OK as reading pages. Turn it off there, or press Hide on this site in its chat.",
-      "Click the pet to chat. Ask about the page you are on, about VideoDoc, or anything else. Say search the web for ... and it answers from Wikipedia and DuckDuckGo with links you can open.",
+      "Click the pet to chat. Ask about the page you are on, about ShowMeWise, or anything else. Say search the web for ... and it answers from Wikipedia and DuckDuckGo with links you can open.",
       "Timers, alarms and reminders: say timer 10 minutes, alarm at 7:30 or remind me at 17:00 to call Mum. It rings with a sound and a notification, but only while the browser is open. Say show my timers or cancel the alarm.",
       "It remembers you: say my name is ... or I love .... Say your name is ... to rename it. Forget what my pet knows about me in the plugin clears it.",
       "It moves away from buttons and text by itself, hides half of itself when nobody needs it, and sleeps after two quiet minutes. Drag it anywhere: that becomes its fixed spot (Let my pet find its own spot, in the plugin, undoes it).",
@@ -306,13 +306,13 @@ export const HOWTO = [
       { n: 3, x: 74.7, y: 74.5, dir: "left", text: "Type your question, or paste an error message or a screenshot here." },
     ],
     body: [
-      "Vidi (Latin for \"I saw\") is the helper of VideoDoc. Ask it anything about using VideoDoc, in your own words.",
+      "Vidi (Latin for \"I saw\") is the helper of ShowMeWise. Ask it anything about using ShowMeWise, in your own words.",
       "It knows which page you are on, so its answers fit what you see.",
       "Not sure which AI to use? Ask \"Which model should I pick?\" or \"test my system\". Vidi checks this computer and lists the AIs as buttons: ✅ Suggested (runs well here) first, with the most accurate on top, ⚠️ Not suggested after. Each shows its size, how big or quick it is and how often it was right in our own tests (yours can differ). Use picks it for Vidi and the app; Download gets it through Ollama with a progress bar. Without Ollama, Vidi shows how to install it, step by step.",
       "It watches for error messages. When one appears, a small bubble asks: \"I can see an error on your screen. Do you need help with it?\" Press Yes and Vidi explains the error and what to do. Press No to close the bubble. You can then keep asking.",
       "Do not understand a message? Copy it into the chat, or take a screenshot (Windows key + Shift + S) and paste it with Ctrl + V. Vidi reads the text in the picture on your computer.",
       "How Vidi answers: without any AI it shows the right part of this page at once. For written answers it uses Ollama if you have it, or a small browser AI (about 1 GB, downloaded once). Change how Vidi answers is at the bottom of the chat.",
-      "Vidi only talks about VideoDoc. For questions about what is in your own video, use Vid Chat. For a document, use Doc Chat.",
+      "Vidi only talks about ShowMeWise. For questions about what is in your own video, use Vid Chat. For a document, use Doc Chat.",
       "The first time, Vidi asks what to call you (you can say No thanks). It remembers your name and what you asked about last, only in your browser on this computer, to greet you next time. Forget me (at the bottom of the chat) clears it.",
     ],
   },
@@ -321,7 +321,7 @@ export const HOWTO = [
     body: [
       "\"This video is ... MB — the online version accepts up to ... MB\" or \"This recording is ... min\": your video is too big or too long for the website. Cut it into shorter parts (any free video editor can do that), then upload the parts one by one.",
       "\"That file is not a video\" or \"This file could not be read as a video\": you picked something that is not a video, or the file is broken. Pick an MP4, MOV or WEBM recording. Can it play in your video player? If not, record it again.",
-      "\"No sound in this video\" (next to Extract Audio): the video has no sound, or the browser cannot read its sound. VideoDoc makes the guide from the screen only. Did you talk in the video? Then save it again as MP4 (most screen recorders and editors can do that) and upload it again.",
+      "\"No sound in this video\" (next to Extract Audio): the video has no sound, or the browser cannot read its sound. ShowMeWise makes the guide from the screen only. Did you talk in the video? Then save it again as MP4 (most screen recorders and editors can do that) and upload it again.",
       "\"The graphics card could not load the speech model, using the processor instead (slower)\": nothing is wrong. Your graphics card could not take the Accurate speech model, so the normal processor does it. It only takes longer.",
       "\"Processing cancelled. Whatever finished is kept below\": you pressed Cancel. The steps that were already written stay. Press Annotate to write the rest, or New video to start over.",
       "\"Annotation failed ... Check the selected model is installed (Ollama) or try WebLLM\": the AI could not write. With Ollama: is Ollama still open? Is the model installed (ollama run gemma3)? Or pick WebLLM instead.",
@@ -330,7 +330,7 @@ export const HOWTO = [
       "\"WebLLM failed to load\": the browser AI could not start. Use Chrome or Edge on a computer, close other tabs, and pick a smaller browser model (Fast). Updating your graphics driver can help.",
       "\"Not detected\" next to Ollama: see Step 3d.",
       "\"HTML export failed\" (or PDF, DOCX): saving did not work. Try again. If it fails again, try another format, or reload the page after saving what you can.",
-      "\"Leave site? Changes you made may not be saved\": the browser asks this because VideoDoc is still working. Press Cancel to stay. If you leave, the work is lost.",
+      "\"Leave site? Changes you made may not be saved\": the browser asks this because ShowMeWise is still working. Press Cancel to stay. If you leave, the work is lost.",
       "Chrome asks to let the site \"access other apps and services on this device\": this is Chrome asking if the page may talk to Ollama on your computer. Press Allow. Your data still stays on your computer.",
       "\"This copy only has the English speech model\" (desktop app): run the setup again with the option for all languages.",
       "Doc Chat says \"This file type does not work here\" or \"Could not read any text from that file\": use a .pdf, .docx, .html, .txt, .md, .csv or .json file. A scanned document (a picture of text) has no text to read.",
@@ -344,7 +344,7 @@ export const HOWTO = [
       "\"This file could not be read as a video\": the file is not a video, or it is broken. Choose an MP4, MOV or WEBM screen recording.",
       "\"Not detected\" next to Ollama: see Step 3d.",
       "It is very slow: pick a smaller model, keep Self-verify off, close other programs and plug in the laptop. Cut a long video into shorter parts.",
-      "The computer went to sleep, the tab was closed or the browser crashed: choose the same video again with the same settings. VideoDoc picks up where it stopped: speech and screen are not read again, and parts already written are kept.",
+      "The computer went to sleep, the tab was closed or the browser crashed: choose the same video again with the same settings. ShowMeWise picks up where it stopped: speech and screen are not read again, and parts already written are kept.",
       "A step is wrong or missing: change it with Edit. Next time, try a bigger model or Accurate speech.",
       "The video is too big: the website takes up to the size shown on the upload page. Cut the video into parts.",
     ],
@@ -352,10 +352,10 @@ export const HOWTO = [
   {
     id: "limits", title: "Limits, limitations and accuracy: how accurate is it, mistakes, why it works this way (free and private)",
     body: [
-      "Why it works this way: VideoDoc is free and runs completely on your own computer. No cloud, no account, no cost per video. The AI is an open model on your machine, so the speed and the result depend on your computer and the model you pick.",
+      "Why it works this way: ShowMeWise is free and runs completely on your own computer. No cloud, no account, no cost per video. The AI is an open model on your machine, so the speed and the result depend on your computer and the model you pick.",
       "How accurate is it? We test every release against manuals written by hand for real screen recordings and read each guide step by step. With gemma3 12B on a normal 16 GB laptop (Accurate speech, key words typed in), 60 to 67.5 % of all actions came out fully right in the first draft.",
       "A bigger model gives a better guide: a small 4B model got about 30 % in our tests. Pick the biggest model your computer can run. The browser AI is quick to start but smaller than Ollama. In the browser, on our 1-minute demo video: Medium found 11 of 15 steps (6 fully right) in about 10 minutes; Small found only 2, so it is too weak for guides.",
-      "Big paid cloud AIs are usually faster and stronger, but your video would have to leave your computer. VideoDoc keeps it with you.",
+      "Big paid cloud AIs are usually faster and stronger, but your video would have to leave your computer. ShowMeWise keeps it with you.",
       "Your computer sets the speed: with the biggest model a 10 minute video took about 1¾ hours on a normal 16 GB laptop. A stronger computer or a smaller model is faster. Keep the computer awake while it works.",
       "So a guide is a strong first draft that you finish. Read it and fix it with Edit before you share it. Start with the steps that need a quick look.",
       "Often missed: a click where nothing visible changes, and a button with only an icon and no text. Small clicks that were seen go to the checklist, not into the guide.",
@@ -378,22 +378,22 @@ export const HOWTO = [
       "Search the web only runs when you click it. It opens Perplexity in a new tab with just your question.",
       "Vidi reads error messages and pasted screenshots on your computer only.",
       "Stored in your browser: downloaded models, checklist ticks of a saved HTML guide, how Vidi answers, and the transcript and screen text of the last video, so the same video starts faster (another video replaces them; parts of an unfinished guide are kept until it is done). Clear the site data in your browser settings to remove it all.",
-      "Under data protection law (GDPR) you have rights over your data. VideoDoc holds no personal data about you. For hosting logs, contact Netlify.",
+      "Under data protection law (GDPR) you have rights over your data. ShowMeWise holds no personal data about you. For hosting logs, contact Netlify.",
       "The full text is on the Privacy, terms and credits page (Privacy in the top bar).",
     ],
   },
   {
     id: "terms", title: "Terms of use and rules (short version)",
     body: [
-      "VideoDoc is free. It is a personal portfolio project, provided as it is, without any warranty. It may change, pause or stop at any time.",
+      "ShowMeWise is free. It is a personal portfolio project, provided as it is, without any warranty. It may change, pause or stop at any time.",
       "The AI can be wrong or incomplete. Check every guide before you share it or rely on it. You are responsible for the guides you make and share.",
       "Only use recordings you are allowed to use. Remove personal or confidential information before you share a guide.",
-      "Do not use VideoDoc for anything illegal or to harm others.",
+      "Do not use ShowMeWise for anything illegal or to harm others.",
       "Making a guide works your computer hard for a long time. Plug in the laptop, close programs you do not need, and save your other work first.",
       LIMIT,
-      "As far as the law allows, there is no liability for any loss or damage from using VideoDoc.",
+      "As far as the law allows, there is no liability for any loss or damage from using ShowMeWise.",
       "The AI models have their own licenses (for example Gemma by Google, Qwen by Alibaba Cloud, Phi by Microsoft, Llama by Meta). Using a model means you accept its license.",
-      "VideoDoc is open source. Questions, ideas or problems: open an issue on GitHub.",
+      "ShowMeWise is open source. Questions, ideas or problems: open an issue on GitHub.",
       "The terms can change; the date on the Privacy, terms and credits page shows the latest version.",
     ],
   },
@@ -403,7 +403,7 @@ export const HOWTO = [
       "Is it free? Yes. No account, no payment.",
       "Is my video uploaded? No. Everything happens on your computer.",
       "Can I close the laptop lid while it works? No. The computer goes to sleep and the work stops. Keep it open and plugged in.",
-      "Can I use another tab meanwhile? Yes, but keep the VideoDoc tab open. It works best when its tab is in front.",
+      "Can I use another tab meanwhile? Yes, but keep the ShowMeWise tab open. It works best when its tab is in front.",
       "Which languages? The video can be in English, Hindi or Hinglish, German, Spanish, French or another language. The guide is in English.",
       "Can I change the guide after it is written? Yes, with Edit on every step, before you save it.",
       "Why does it say Skipped? A job that is switched off (Self-verify is off by default) or not needed. See The progress list.",
@@ -412,8 +412,8 @@ export const HOWTO = [
   },
 ]
 
-// Words that mean the question is about VideoDoc at all (anything else is off topic)
-const TOPIC = /video|record|guide|step|upload|file|mp4|mov|webm|ollama|model|ai\b|llm|webllm|speech|language|transcri|screen|export|save|pdf|docx|word|html|chat|limit|size|mb|gb|minute|long|slow|fast|time|error|fail|stuck|sleep|install|download|browser|chrome|edge|privacy|free|account|edit|title|company|start|use|how|help|work|gpu|graphics|memory|ram|computer|laptop|lid|phone|mobile|sound|audio|desktop|accurate|cancel|new|vidi|videodoc|setting|option|verify|consolidat|accura|ocr|annotat|procedure|frame|clip|gif|checklist|faq|summary|flow|tip|result|marker|picture|screenshot|button|click|tab|ctrl|error|message|wrong|missing|skip|kept|resum|progress|segment|entr|annotat|pet\b|dragon|wolf|alarm|remind|timer|cloud|plugin|extension/i
+// Words that mean the question is about ShowMeWise at all (anything else is off topic)
+const TOPIC = /video|record|guide|step|upload|file|mp4|mov|webm|ollama|model|ai\b|llm|webllm|speech|language|transcri|screen|export|save|pdf|docx|word|html|chat|limit|size|mb|gb|minute|long|slow|fast|time|error|fail|stuck|sleep|install|download|browser|chrome|edge|privacy|free|account|edit|title|company|start|use|how|help|work|gpu|graphics|memory|ram|computer|laptop|lid|phone|mobile|sound|audio|desktop|accurate|cancel|new|vidi|showmewise|setting|option|verify|consolidat|accura|ocr|annotat|procedure|frame|clip|gif|checklist|faq|summary|flow|tip|result|marker|picture|screenshot|button|click|tab|ctrl|error|message|wrong|missing|skip|kept|resum|progress|segment|entr|annotat|pet\b|dragon|wolf|alarm|remind|timer|cloud|plugin|extension/i
 
 const STOP = new Set("the and for you your can how what which does with this that are not from into when then there here will have use using about its just get got want need".split(" "))
 const words = (t) => ((t || "").toLowerCase().match(/[a-z0-9]{3,}/g) || []).filter((w) => !STOP.has(w)).map((w) => w.replace(/(ing|ed|es|s)$/, ""))
@@ -429,7 +429,7 @@ export function findHelp(question, top = 2) {
     const score = q.reduce((sum, w) => sum + (docs[i].has(w) ? weight(w) * (title.has(w) ? 2 : 1) : 0), 0)
     return { s, score: score * (s.rank ?? 1), n: q.filter((w) => docs[i].has(w)).length }
   }).filter((x) => x.score > 0.2).sort((a, b) => b.score - a.score)
-  // on topic: it uses VideoDoc words, or it clearly matches a part of the help
+  // on topic: it uses ShowMeWise words, or it clearly matches a part of the help
   return { onTopic: TOPIC.test(question || "") || ((scored[0]?.score || 0) > 1.2 && scored[0].n >= 2), sections: scored.slice(0, top).map((x) => x.s) }
 }
 

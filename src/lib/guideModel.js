@@ -96,7 +96,7 @@ export function buildGuide(docs, meta = {}) {
     ...(meta.duration ? [["Recording", fmtTime(meta.duration)]] : []),
     ...(meta.company ? [["Team", meta.company]] : []),
     ["Created", new Date().toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })],
-    ["Made with", "VideoDoc"],
+    ["Made with", "ShowMeWise"],
   ]
 
   return {

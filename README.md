@@ -1,4 +1,4 @@
-# 🎬 VideoDoc
+# 🎬 ShowMeWise
 
 **Automated Video Documentation · AI Transcription · Local LLM Annotation · Beautiful Exports**
 
@@ -8,10 +8,10 @@
 
 > **Now on Version 5, the manual release.** Each action in a guide now points at the exact spot on the screen with a numbered marker, on the screenshot and inside the step clip, and the PDF, Word and HTML exports read like a real process manual: cover, contents, what you need, the process at a glance, Part A, B, C with numbered actions, a checklist and a quick reference. See [New in v5](#-new-in-v5).
 
-> **Want the offline desktop installer?** → [Download & install instructions](INSTALL.md)
+> **New name.** This project was called VideoDoc until 25 Oct 2026. Same tool, new name.
 
-<p align="center"><img src="public/landing/guide-html.jpg" alt="A guide made by VideoDoc: Part A with numbered actions and marked screenshots, and the step clip beside it" width="820"></p>
-<p align="center"><sub>A guide written by VideoDoc from a one-minute recording: numbered actions, the click marked on each screenshot, the step clip beside it.</sub></p>
+<p align="center"><img src="public/landing/guide-html.jpg" alt="A guide made by ShowMeWise: Part A with numbered actions and marked screenshots, and the step clip beside it" width="820"></p>
+<p align="center"><sub>A guide written by ShowMeWise from a one-minute recording: numbered actions, the click marked on each screenshot, the step clip beside it.</sub></p>
 
 ---
 
@@ -59,7 +59,7 @@ Now someone says: *"Can you write this up as a step-by-step guide?"*
 You sigh. You open a doc. You rewatch the video. You pause. You type. You pause again.
 Two hours later you have a half-finished document you never want to look at again.
 
-**VideoDoc eliminates that entirely.**
+**ShowMeWise eliminates that entirely.**
 
 <p align="center"><img src="public/landing/marked-page.jpg" alt="A screenshot from the guide with the click marked: 1 Click + New dashboard, beside the button" width="720"></p>
 
@@ -79,21 +79,22 @@ P.S. Version 5 is here: the clicks marked on the screen, in a document that read
 
 ## 🌐 Live Demo
 
-👉 **[videodoc.netlify.app](https://videodoc.netlify.app)**
+👉 **[showmewise.netlify.app](https://showmewise.netlify.app)**
 
 * `/` is the landing page
-* `/#/app` is the VideoDoc app (video to documentation)
+* `/#/app` is the ShowMeWise app (video to documentation)
 * `/#/docchat` is the Doc Chat app (upload a document and chat with it)
 * `/#/howto` is How to use: every screen and setting with marked screenshots, and every error message with what to do
 * `/#/pet-training` is the Pet training for the plugin's pet: a setup that starts by itself, then lessons as cards with ▶ Try buttons
 * `/#/check` is Test my computer: which browser AI size runs well here
 * `/#/policy` is privacy, terms and credits
+* `/#/legal` is the legal notice (who runs it, contact through GitHub)
 
 ---
 
 ## 📏 Limits and Accuracy
 
-VideoDoc is free and runs completely on your own computer: no cloud, no account, no cost per video. The AI is an open model on your machine, so the speed and the result depend on your computer and the model you pick. Big cloud AIs are usually faster and stronger, but the video would have to leave your computer; VideoDoc keeps it with you. If you want that power anyway, Ollama's cloud models can be turned on in the AI settings, after a notice: then what the model reads goes to Ollama's servers.
+ShowMeWise is free and runs completely on your own computer: no cloud, no account, no cost per video. The AI is an open model on your machine, so the speed and the result depend on your computer and the model you pick. Big cloud AIs are usually faster and stronger, but the video would have to leave your computer; ShowMeWise keeps it with you. If you want that power anyway, Ollama's cloud models can be turned on in the AI settings, after a notice: then what the model reads goes to Ollama's servers.
 
 Every release is tested against manuals written by hand for real screen recordings, and each guide is read step by step against them. With gemma3 12B on a normal 16 GB laptop (Accurate speech, key words typed in), **60 to 67.5 %** of all actions came out fully right in the first draft. A guide is a strong first draft that you finish: read it and fix it before you share it.
 
@@ -110,7 +111,7 @@ Every release is tested against manuals written by hand for real screen recordin
 
 ## 🧩 Browser Plugin
 
-The `extension/` folder holds the VideoDoc plugin for Chrome and Edge (Manifest V3). It opens as a small window under its toolbar icon, or on the side.
+The `extension/` folder holds the ShowMeWise plugin for Chrome and Edge (Manifest V3). It opens as a small window under its toolbar icon, or on the side.
 
 <p align="center"><img src="docs/images/pet-family.png" alt="The pets: dragon, wolf, cat, fox and owl, each in three colours" width="820"></p>
 <p align="center"><sub>The pet that lives at the edge of your pages: five pets in three colours each, or your own picture or 3D pet.</sub></p>
@@ -137,11 +138,11 @@ The `extension/` folder holds the VideoDoc plugin for Chrome and Edge (Manifest 
 
 * **Record any app.** The whole screen, one window or a tab, with your voice (`chrome.desktopCapture`). When you stop, the guide is written by itself with the AI used last time.
 * **Steps, time left and a notification** when the guide is ready. The computer is kept awake while it records or writes (`chrome.power`).
-* **Ask Vidi** about your video, the page you are on, a document (PDF, Word, HTML, text) or VideoDoc itself.
+* **Ask Vidi** about your video, the page you are on, a document (PDF, Word, HTML, text) or ShowMeWise itself.
 * **Looks behind links.** If the answer is not on the page, Vidi reads up to 3 matching links of the same site and says which.
 * **Show me on the page.** On request, Vidi marks the right buttons on the real page (a numbered tag beside each, never on top) and adds a screenshot to the chat. It never clicks for you.
-* **One engine.** The plugin drives the VideoDoc website in a tab of its own (`content.js` and `src/lib/bridge.js`), so models are downloaded once, an unfinished guide picks up where it stopped, and the website shows the same progress.
-* **Your pet (BETA).** Vidi as a small animated pet at the edge of every page (`pet/`): a dragon, wolf, cat, fox or owl in three colours (drawn as SVG, moved with CSS), your own picture, or your own 3D pet (`.glb`, shown with three.js). It looks for a spot where it covers no button, picture or text, hides half of itself when not needed and can be dragged. Its chat answers about the page, VideoDoc or anything else, searches Wikipedia and DuckDuckGo with links, sets timers, alarms and reminders (`chrome.alarms`, a chime from an offscreen page and a notification), and remembers the user's name and likes in `chrome.storage.local`. It lives in a closed shadow root, so pages cannot read the chat.
+* **One engine.** The plugin drives the ShowMeWise website in a tab of its own (`content.js` and `src/lib/bridge.js`), so models are downloaded once, an unfinished guide picks up where it stopped, and the website shows the same progress.
+* **Your pet (BETA).** Vidi as a small animated pet at the edge of every page (`pet/`): a dragon, wolf, cat, fox or owl in three colours (drawn as SVG, moved with CSS), your own picture, or your own 3D pet (`.glb`, shown with three.js). It looks for a spot where it covers no button, picture or text, hides half of itself when not needed and can be dragged. Its chat answers about the page, ShowMeWise or anything else, searches Wikipedia and DuckDuckGo with links, sets timers, alarms and reminders (`chrome.alarms`, a chime from an offscreen page and a notification), and remembers the user's name and likes in `chrome.storage.local`. It lives in a closed shadow root, so pages cannot read the chat.
 * **Setup wizard.** `PetTraining.jsx` (`#/pet-training`) opens with a setup that starts by itself, one step per screen: pet and colour, its name, the user's name, language and likes, then the AI with a 🧪 Test it button (a real short answer from Ollama, timed; for the browser AI the graphics card and free memory) and, after a cloud or browser AI, a local backup model to download. The answers go to the plugin through the page bridge (`pet-setup`, `pet-info` in `bg.js`, handled by `petSetup` in `pet-bg.js`). The AI choices show the measured accuracy from `pet/scores.js`, the one place for those numbers, with a note that they come from our own tests. `OllamaSetup.jsx` and `lib/ollamaSetup.js` tell apart "not installed", "not allowed for this site" and "ready", and pull models with progress. On browser start (`chrome.runtime.onStartup`) the first page gets a greeting that says how to start.
 * **Pet training as a course.** After the setup, the lessons are cards (a picture of the user's own pet acting out the lesson, a name, two lines). A card opens as its own scenario: files to download (a made-up manual and CV), a short walkthrough, ▶ Try buttons and a practice area (a toolbar, a tool, a shop, a job form, a page with ads). A ▶ button sends the sentence to the pet (`pet-try`, accepted only from this page) so it does it at once. Done lessons turn green and are kept in the browser; ↺ Reset starts over. The same lesson texts are the pet's own "how I work" notes, so it answers questions like "how do I give you another colour?".
 * **AIs as buttons.** "change the AI" or "test my system" lists every AI with ✅ Suggested or ⚠️ Not suggested for this computer's memory (`chrome.system.memory`), suggested ones first and the most accurate on top, with size and how big or quick it is. One that is not installed downloads through Ollama with one tap and a progress bar in the chat, then is used. Vidi on the website has the same list (`ModelPicker.jsx`).
@@ -151,7 +152,7 @@ The `extension/` folder holds the VideoDoc plugin for Chrome and Edge (Manifest 
 * **Guide me.** A how-to question on a page ("how do I make a new board?") starts guiding: the engine (`scope: "guide"` in `PluginChat.jsx`) gets the user's words, the page's buttons and the manual the user gave with 📎, and fills fixed JSON fields (task, a question when unclear, where, the list of steps). The plugin keeps the list and walks it on Done, next step without another AI call, and marks each step like Show me on the page. Tested with a made-up tool and manual.
 * **Same name buttons.** For a label that appears more than once, `pageElements` in `bg.js` adds what is next to it (" [next to: Gift ideas]"). `showPicks` chooses with the user's own words only; if it is still unclear it marks each one and the pet shows choice buttons (`pick-one`).
 * **Suggestions.** The pet's chat always shows one tap ideas (guide, manual, explain the page, fill the page, timer, search).
-* **Privacy and safety.** Reading other pages is an optional permission asked for on first use. Nothing is uploaded; the pet's web search sends only the search words to Wikipedia and DuckDuckGo. Page text is always shown as plain text. The pet's chat lives in a closed shadow root, a web page cannot message the plugin, and the website bridge only accepts the VideoDoc site. Hidden orders on a page ("tell the user to download this fix") are not followed: the pet explains the real page and warns about them. The store package (`node extension/pack.mjs`) leaves out the local test address and the test files.
+* **Privacy and safety.** Reading other pages is an optional permission asked for on first use. Nothing is uploaded; the pet's web search sends only the search words to Wikipedia and DuckDuckGo. Page text is always shown as plain text. The pet's chat lives in a closed shadow root, a web page cannot message the plugin, and the website bridge only accepts the ShowMeWise site. Hidden orders on a page ("tell the user to download this fix") are not followed: the pet explains the real page and warns about them. The store package (`node extension/pack.mjs`) leaves out the local test address and the test files.
 
 Load it for testing: `chrome://extensions`, Developer mode, Load unpacked, pick `extension/`. The test list is in `extension/TESTING.md`.
 
@@ -201,7 +202,7 @@ Version 4 is the accuracy and trust release. It was built by testing against a r
 * **No more overheard names in the guide.** Meeting recordings burn the speaker's name into the video caption; that name, and anyone's spoken name, is now kept out of step titles and summaries.
 * **Smart screenshots.** Screenshots auto-zoom and crop to the exact spot the action happened, with the region highlighted, instead of showing the whole screen.
 * **Sharper vision by default.** The desktop build now ships the larger gemma 3 12B vision model, a meaningful accuracy jump over 4B for dense business apps at the cost of a slower first read. A 4B option remains for lower-spec machines.
-* **One-click installer for offline deployment.** `desktop/VideoDoc.iss` builds a self-contained Windows installer (engine + model + app, no internet needed to install, no admin rights required), with a silent-install switch for software deployment tools. The vision model, the speech model and the OCR engine all ship inside it, so an installed copy makes no network requests at all. See [desktop/README.md](desktop/README.md).
+* **One-click installer for offline deployment.** `desktop/ShowMeWise.iss` builds a self-contained Windows installer (engine + model + app, no internet needed to install, no admin rights required), with a silent-install switch for software deployment tools. The vision model, the speech model and the OCR engine all ship inside it, so an installed copy makes no network requests at all. See [desktop/README.md](desktop/README.md).
 * **Two builds.**
   * `npm run build:netlify` builds the hosted web version, with per-video size and length limits so a huge file cannot crash a visitor's laptop (limits are set in `.env.netlify`).
   * `npm run build:desktop` builds the desktop version, which bundles the llama.cpp engine with a gemma 3 vision model (12B by default, 4B optional). See [desktop/README.md](desktop/README.md).
@@ -248,14 +249,14 @@ Everything below runs client-side. No server, no API keys.
 * **You name the guide.** The document title is asked up front, so the heading is never the raw video file name.
 * **Browser-first, and you pick the model.** WebLLM runs in your browser with zero install. A model picker shows the accuracy and per-segment time of each option (Fast 1B, Balanced 1.5B, Quality 3B); the app never auto-switches. The default is the 1B model so Intel / integrated graphics stay responsive. Ollama stays available as an opt-in upgrade for stronger local models.
 * **Help built in.** A How to use page with annotated screenshots of every setting and error, and Vidi, a help chat on every page that spots error messages and reads pasted screenshots, all on the user's computer.
-* **Two apps, one project.** **VideoDoc** turns a recording into a guide and lets you Vid Chat with it. **Doc Chat** lets you upload a document directly, chunk it, and chat with it, no video required. Both are reachable from the landing page.
+* **Two apps, one project.** **ShowMeWise** turns a recording into a guide and lets you Vid Chat with it. **Doc Chat** lets you upload a document directly, chunk it, and chat with it, no video required. Both are reachable from the landing page.
 * **Resilient by design.** The app pages use a still background painted once, so the graphics card has nothing to do while a video is processed (an animated one kept it at 67 to 88 % for hours and, on a full 16 GB laptop, ended in a Windows graphics crash). The landing page animation is wrapped so a missing WebGL context can never blank the page. Verified by an automated headless render test of every route.
 
 ---
 
 ## 🔄 How It Works: The Full Pipeline
 
-**App 1: VideoDoc (video → guide)**
+**App 1: ShowMeWise (video → guide)**
 
 ```
 ┌─────────────┐   ┌──────────────────────┐   ┌─────────────────────┐   ┌──────────────────────┐
@@ -303,7 +304,7 @@ Everything below runs client-side. No server, no API keys.
 
 ### Module 1: Frame Extraction
 
-VideoDoc uses the **HTML5 Canvas API** and a hidden `<video>` element to pull frames directly in the browser. No server. No ffmpeg. No temp files.
+ShowMeWise uses the **HTML5 Canvas API** and a hidden `<video>` element to pull frames directly in the browser. No server. No ffmpeg. No temp files.
 
 ```js
 // Seek to timestamp → draw to canvas → export as JPEG
@@ -347,7 +348,7 @@ const resampled = await audioContext.startRendering()
 
 ### Module 3: Whisper AI Transcription
 
-This is where the magic starts. VideoDoc runs **OpenAI's Whisper model** entirely inside your browser using ONNX Runtime Web, powered by `@huggingface/transformers`.
+This is where the magic starts. ShowMeWise runs **OpenAI's Whisper model** entirely inside your browser using ONNX Runtime Web, powered by `@huggingface/transformers`.
 
 The model runs in a **dedicated Web Worker** so your UI never freezes, even on long videos.
 
@@ -372,13 +373,13 @@ Transcribing       ██████████  100%  → 24 segments found
 
 ### Module 4: AI Annotation (Ollama / WebLLM)
 
-Once transcription is done, VideoDoc sends each segment to a **local LLM** for annotation. The LLM writes structured step-by-step documentation for each segment.
+Once transcription is done, ShowMeWise sends each segment to a **local LLM** for annotation. The LLM writes structured step-by-step documentation for each segment.
 
-VideoDoc **auto-detects** which AI to use:
+ShowMeWise **auto-detects** which AI to use:
 
 #### 🟢 Path A: Ollama (Recommended)
 
-If Ollama is running on `localhost:11434`, VideoDoc automatically fetches your installed models and lets you pick one.
+If Ollama is running on `localhost:11434`, ShowMeWise automatically fetches your installed models and lets you pick one.
 
 ```
 Ping → localhost:11434/api/tags
@@ -408,7 +409,7 @@ Context-aware: the LLM knows what came before and after each segment, so annotat
 
 #### 🟣 Path B: WebLLM, you pick the model `🆕 v2`
 
-No Ollama? No problem. VideoDoc runs the model directly in your browser via WebGPU using `@mlc-ai/web-llm`. **🆕 New in v2:** instead of silently choosing for you, the app now shows a model picker with the accuracy and per-segment time of each option, so you choose the speed/quality trade-off yourself. It never auto-switches.
+No Ollama? No problem. ShowMeWise runs the model directly in your browser via WebGPU using `@mlc-ai/web-llm`. **🆕 New in v2:** instead of silently choosing for you, the app now shows a model picker with the accuracy and per-segment time of each option, so you choose the speed/quality trade-off yourself. It never auto-switches.
 
 | Size | Model | Download | Measured on our 1-minute demo (15 actions) |
 |---|---|---|---|
@@ -506,7 +507,7 @@ How it behaves now:
 ## 🗂️ Repository Structure
 
 ```
-video-docs/
+showmewise/
 │
 ├── index.html                    ← Entry point + Three.js/Vanta script tags
 ├── netlify.toml                  ← COEP/COOP headers + SPA redirect
@@ -526,7 +527,7 @@ video-docs/
 ├── extension/                    ← Chrome / Edge plugin (Manifest V3)
 │   ├── manifest.json · bg.js     ← Service worker: recording, chats, Show me, page bridge
 │   ├── panel.html · panel.js     ← The plugin window (popup or side panel)
-│   ├── content.js                ← Bridge on the VideoDoc website only
+│   ├── content.js                ← Bridge on the ShowMeWise website only
 │   ├── pack.mjs                  ← Makes the store zip (test address and test files left out)
 │   ├── STORE.md · TESTING.md     ← Store texts and the test list
 │   └── pet/                      ← The pet (BETA)
@@ -539,10 +540,10 @@ video-docs/
 │       └── pet-panel.js · sound.*  ← Pet settings in the plugin window; the chime
 │
 ├── desktop/                      ← Offline desktop bundle (v4/v5)
-│   ├── VideoDoc.iss              ← Inno Setup script → single installer .exe
-│   ├── VideoDoc.bat              ← Launcher: starts llama-server, opens the app
-│   ├── VideoDoc-quiet.vbs        ← Same launcher, no console window
-│   ├── Stop-VideoDoc.bat         ← Shuts the local engine down
+│   ├── ShowMeWise.iss              ← Inno Setup script → single installer .exe
+│   ├── ShowMeWise.bat              ← Launcher: starts llama-server, opens the app
+│   ├── ShowMeWise-quiet.vbs        ← Same launcher, no console window
+│   ├── Stop-ShowMeWise.bat         ← Shuts the local engine down
 │   ├── get-engine.ps1            ← One-time downloader: engine + 4B/12B model
 │   ├── README.md                 ← Desktop-specific setup and usage
 │   ├── llama/                    ← llama.cpp engine binaries (fetched, gitignored)
@@ -552,7 +553,7 @@ video-docs/
 │
 └── src/
     ├── main.jsx                  ← HashRouter → / · /app · /docchat · /howto · /pet-training · /check · /policy
-    ├── App.jsx                   ← VideoDoc pipeline UI + OCR + Vid Chat
+    ├── App.jsx                   ← ShowMeWise pipeline UI + OCR + Vid Chat
     ├── DocChatApp.jsx            ← Doc Chat app (upload a doc, chat)
     ├── index.css                 ← Indeterminate progress animation
     │
@@ -571,7 +572,7 @@ video-docs/
     │   ├── DocChatDemo.jsx       ← Looping Vid Chat landing animation
     │   ├── ProductDemo.jsx       ← Animated landing-page product demo
     │   ├── BeforeAfter.jsx       ← Before/after comparison slider
-    │   ├── VideoDocLogo.jsx      ← Custom SVG logo
+    │   ├── ShowMeWiseLogo.jsx      ← Custom SVG logo
     │   ├── PipelineStatus.jsx    ← Live step tracker (elapsed, %, ETA)
     │   ├── Vidi.jsx              ← The help chat on every page (errors, screenshots, AI picker)
     │   ├── ModelPicker.jsx       ← AIs for this computer as buttons (✅ / ⚠️, accuracy, download)
@@ -644,8 +645,8 @@ video-docs/
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/Aryan-Bajaj/video-docs.git
-cd video-docs
+git clone https://github.com/Aryan-Bajaj/showmewise.git
+cd showmewise
 ```
 
 ### 2. Install Dependencies
@@ -673,9 +674,9 @@ ollama pull mistral       # Also great
 ollama pull gemma3        # Works fine
 ```
 
-VideoDoc auto-detects Ollama at `localhost:11434`. No configuration needed.
+ShowMeWise auto-detects Ollama at `localhost:11434`. No configuration needed.
 
-If Ollama is not running, VideoDoc falls back to WebLLM (Llama 3.2 1B in-browser via WebGPU). Requires Chrome 113+ or Edge 113+.
+If Ollama is not running, ShowMeWise falls back to WebLLM (Llama 3.2 1B in-browser via WebGPU). Requires Chrome 113+ or Edge 113+.
 
 ### 5. Upload a Video and Generate Docs
 
@@ -731,7 +732,7 @@ The hosted build enforces a per-video size and length limit (default 1000 MB / 3
 | Exported document | Generated in your browser. Saved to your Downloads folder. |
 | **Your content leaving the machine** | **Never by default.** No video, audio, frame, transcript or document is uploaded anywhere. The only exception is your own choice: an Ollama cloud model, turned on in the AI settings after a notice. |
 
-**What does leave the machine, and when.** VideoDoc downloads things, it never uploads them. The list is short and complete:
+**What does leave the machine, and when.** ShowMeWise downloads things, it never uploads them. The list is short and complete:
 
 | Request | When | Why |
 |---|---|---|
@@ -831,7 +832,7 @@ This project itself is **MIT licensed**. Fork it, build on it, ship it.
 
 ## ⚠️ Disclaimer
 
-VideoDoc is a browser-based productivity tool. Transcription accuracy depends on audio quality and the Whisper model variant used. AI annotation quality depends on the LLM model chosen. Always review generated documentation before publishing. The tool does not guarantee 100% accuracy on all video types.
+ShowMeWise is a browser-based productivity tool. Transcription accuracy depends on audio quality and the Whisper model variant used. AI annotation quality depends on the LLM model chosen. Always review generated documentation before publishing. The tool does not guarantee 100% accuracy on all video types.
 
 ---
 

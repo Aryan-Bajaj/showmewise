@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import VideoDocLogo from './VideoDocLogo'
+import ShowMeWiseLogo from './ShowMeWiseLogo'
 import { MAX_VIDEO_MB, MAX_VIDEO_MIN } from '../lib/limits'
 import ProductDemo from './ProductDemo'
 import LimitBanner from './LimitBanner'
@@ -121,7 +121,7 @@ const PERSONAS = [
     icon: '👨‍💻',
     role: 'Developers',
     hook: 'Stop re-explaining your codebase.',
-    desc: 'Record a walkthrough once. VideoDoc turns it into onboarding docs your whole team can follow. You only check and fix it.',
+    desc: 'Record a walkthrough once. ShowMeWise turns it into onboarding docs your whole team can follow. You only check and fix it.',
     color: '#3f62ff',
   },
   {
@@ -135,7 +135,7 @@ const PERSONAS = [
     icon: '📋',
     role: 'Operations & PMs',
     hook: "Document before it lives only in your head.",
-    desc: 'Screen-record any workflow. VideoDoc produces an SOP your team can follow: formatted, visual, and ready to share.',
+    desc: 'Screen-record any workflow. ShowMeWise produces an SOP your team can follow: formatted, visual, and ready to share.',
     color: '#06b6d4',
   },
   {
@@ -303,12 +303,12 @@ export default function LandingPage() {
           borderBottom: '1px solid rgba(63,98,255,0.12)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <VideoDocLogo size={30} />
+            <ShowMeWiseLogo size={30} />
             <span style={{
               fontSize: 19, fontWeight: 700, letterSpacing: '-0.02em',
               background: 'linear-gradient(90deg, #7b96ff, #a78bfa)',
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-            }}>VideoDoc</span>
+            }}>ShowMeWise</span>
           </div>
 
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -373,7 +373,7 @@ export default function LandingPage() {
             backgroundSize: '200% auto',
             animation: 'lp-shimmer 4.5s linear infinite',
           }}>
-            VideoDoc
+            ShowMeWise
           </h1>
 
           <p style={{
@@ -389,7 +389,7 @@ export default function LandingPage() {
             color: 'rgba(255,255,255,0.68)',
             maxWidth: 540, lineHeight: 1.75, marginBottom: 52,
           }}>
-            Record your screen once. VideoDoc listens, reads and looks at every step, then hands you a
+            Record your screen once. ShowMeWise listens, reads and looks at every step, then hands you a
             finished guide with the clicks marked on the screen. Your video never leaves your computer.
             No account, no subscription.
           </p>
@@ -449,7 +449,7 @@ export default function LandingPage() {
               See how it works ↓
             </button>
 
-            {/* a finished guide, made by VideoDoc from our public demo video: see the result before waiting for a run */}
+            {/* a finished guide, made by ShowMeWise from our public demo video: see the result before waiting for a run */}
             <a href="/example/" target="_blank" rel="noopener" className="lp-ghost"
               style={{
                 padding: '15px 32px', borderRadius: 100,
@@ -508,9 +508,9 @@ export default function LandingPage() {
               <span style={{ background: 'linear-gradient(90deg, #a78bfa, #3f62ff, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>marked on the screen</span>
             </h2>
             <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '1.06rem', maxWidth: 680, margin: '0 auto', lineHeight: 1.7 }}>
-              VideoDoc finds the exact button for each action and marks it with a number. No more hunting for "which button?".
+              ShowMeWise finds the exact button for each action and marks it with a number. No more hunting for "which button?".
               The same marks appear in the step clips, the PDF and the Word file. And when a button can't be read on screen,
-              VideoDoc leaves that action unmarked instead of guessing.
+              ShowMeWise leaves that action unmarked instead of guessing.
             </p>
           </div>
           <div className="lp-out-grid">
@@ -542,10 +542,10 @@ export default function LandingPage() {
             <span style={{ background: 'linear-gradient(90deg, #3f62ff, #06b6d4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               vs
             </span>
-            {' '}VideoDoc output
+            {' '}ShowMeWise output
           </h2>
           <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.6)', fontSize: '0.95rem', marginBottom: 28 }}>
-            Drag to compare. Left: the raw one-minute recording. Right: the guide VideoDoc made from it.
+            Drag to compare. Left: the raw one-minute recording. Right: the guide ShowMeWise made from it.
           </p>
           <BeforeAfter />
         </section>
@@ -580,7 +580,7 @@ export default function LandingPage() {
             }}>
               "Documentation is the one thing everyone agrees must be done, and the first thing no one actually wants to do.
               Training done. Process notes pending. Motivation missing.
-              VideoDoc gets it done before you even think twice."
+              ShowMeWise gets it done before you even think twice."
             </p>
           </div>
         </section>
@@ -605,7 +605,7 @@ export default function LandingPage() {
             fontSize: '1.05rem', marginBottom: 52,
           }}>
             If you've ever recorded something and thought "I should write this up",
-            VideoDoc is for you.
+            ShowMeWise is for you.
           </p>
 
           <div style={{
@@ -846,7 +846,7 @@ export default function LandingPage() {
                   }}>RECOMMENDED</span>
                 </div>
                 <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.66)', lineHeight: 1.6, marginBottom: 16 }}>
-                  VideoDoc pings <code style={{ fontSize: 11, background: 'rgba(255,255,255,0.08)', padding: '1px 5px', borderRadius: 4 }}>localhost:11434</code> at startup.
+                  ShowMeWise pings <code style={{ fontSize: 11, background: 'rgba(255,255,255,0.08)', padding: '1px 5px', borderRadius: 4 }}>localhost:11434</code> at startup.
                   If Ollama is running, it auto-lists your installed models.
                   Best results with a vision model like gemma3, so the AI can see the screen.
                 </p>
@@ -898,7 +898,7 @@ export default function LandingPage() {
                   }}>NO INSTALL</span>
                 </div>
                 <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.66)', lineHeight: 1.6, marginBottom: 14 }}>
-                  No Ollama? VideoDoc runs the model right in your browser via WebGPU, including a Vision model that reads the screen. Test my computer picks the size that fits, and you can change it; nothing changes behind your back. Needs a WebGPU browser (Chrome 113+).
+                  No Ollama? ShowMeWise runs the model right in your browser via WebGPU, including a Vision model that reads the screen. Test my computer picks the size that fits, and you can change it; nothing changes behind your back. Needs a WebGPU browser (Chrome 113+).
                 </p>
                 {/* In-browser model picker — user chooses speed vs accuracy */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginBottom: 14 }}>
@@ -1135,19 +1135,19 @@ export default function LandingPage() {
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#22d3ee', marginBottom: 12 }}>
               New · browser plugin
             </div>
-            <h2 style={{ fontSize: 'clamp(1.8rem, 4.2vw, 2.8rem)', fontWeight: 700, letterSpacing: '-0.025em' }}>VideoDoc, one click away</h2>
+            <h2 style={{ fontSize: 'clamp(1.8rem, 4.2vw, 2.8rem)', fontWeight: 700, letterSpacing: '-0.025em' }}>ShowMeWise, one click away</h2>
             <p style={{ maxWidth: 620, margin: '14px auto 0', fontSize: '0.98rem', lineHeight: 1.7, color: 'rgba(255,255,255,0.64)' }}>
-              A small window under the VideoDoc icon in your browser bar. For Chrome and Edge, coming soon to the Chrome Web Store.
+              A small window under the ShowMeWise icon in your browser bar. For Chrome and Edge, coming soon to the Chrome Web Store.
             </p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14 }}>
             {[
               ['⏺', 'Record any app', 'The whole screen, one window or a tab, with your voice. Press Stop and the guide writes itself.'],
               ['🔔', 'Small and quiet', 'The steps and the time left in a small window, and a notification when your guide is ready.'],
-              ['💬', 'Ask Vidi anything', 'About your video, the page you are on, a PDF or Word file, or VideoDoc itself.'],
+              ['💬', 'Ask Vidi anything', 'About your video, the page you are on, a PDF or Word file, or ShowMeWise itself.'],
               ['🔗', 'Looks behind links', 'Not on the page? Vidi reads the links that match your question (same site) and tells you which.'],
               ['📍', 'Show me on the page', 'Vidi marks the right button on the real page and puts a screenshot in the chat. It never clicks for you.'],
-              ['🔒', 'Same privacy', 'It runs on your computer through the VideoDoc website. One model download for both.'],
+              ['🔒', 'Same privacy', 'It runs on your computer through the ShowMeWise website. One model download for both.'],
             ].map(([ic, title, desc], i) => (
               <div key={i} style={{ borderRadius: 16, padding: '22px 20px', background: 'rgba(34,211,238,0.04)', border: '1px solid rgba(34,211,238,0.18)' }}>
                 <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'rgba(255,255,255,0.92)', marginBottom: 8 }}><span style={{ marginRight: 8 }}>{ic}</span>{title}</div>
@@ -1165,10 +1165,10 @@ export default function LandingPage() {
             </div>
             <h2 style={{ fontSize: 'clamp(1.8rem, 4.2vw, 2.8rem)', fontWeight: 700, letterSpacing: '-0.025em' }}>Free and private: what that means</h2>
             <p style={{ maxWidth: 640, margin: '14px auto 0', fontSize: '0.98rem', lineHeight: 1.7, color: 'rgba(255,255,255,0.64)' }}>
-              VideoDoc is free and runs completely on your own computer: no cloud, no account, no cost per video. The AI is an open model
+              ShowMeWise is free and runs completely on your own computer: no cloud, no account, no cost per video. The AI is an open model
               that works on your machine, so the speed and the result depend on your computer and the model you pick. With gemma3 12B on a
               normal 16 GB laptop, <b style={{ color: '#fff' }}>60 to 67.5 %</b> of all actions came out fully right in the first draft, in our tests against manuals written by hand.
-              Big paid cloud AIs are usually faster and stronger, but your video would have to leave your computer. VideoDoc keeps it with you.
+              Big paid cloud AIs are usually faster and stronger, but your video would have to leave your computer. ShowMeWise keeps it with you.
             </p>
             <a href="/#/check" style={{ display: 'inline-block', marginTop: 18, padding: '11px 22px', borderRadius: 100, border: '1px solid rgba(52,211,153,0.5)', color: '#a7f3d0', textDecoration: 'none', fontWeight: 600 }}>
               🖥 Test my computer: which AI runs best on it?
@@ -1244,7 +1244,7 @@ export default function LandingPage() {
             color: 'rgba(255,255,255,0.64)', fontSize: '1.05rem',
             maxWidth: 480, margin: '0 auto 50px', lineHeight: 1.75,
           }}>
-            VideoDoc is free, open, and runs entirely on your computer.
+            ShowMeWise is free, open, and runs entirely on your computer.
             No account. No cloud. No more putting it off.
           </p>
 
@@ -1291,12 +1291,12 @@ export default function LandingPage() {
               textShadow: '0 0 8px rgba(63,98,255,0.9), 0 0 20px rgba(63,98,255,0.5)',
               fontSize: '1.1rem',
             }}>♥</span>
-            {' '}from VideoDoc
+            {' '}from ShowMeWise
           </span>
           <span style={{ display: 'flex', gap: 18, alignItems: 'center', flexWrap: 'wrap' }}>
             <a href="/#/policy" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none' }}>Privacy, terms and credits</a>
             <a href="/#/legal" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none' }}>Legal notice</a>
-            <a href="https://github.com/Aryan-Bajaj/video-docs" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none' }}>GitHub</a>
+            <a href="https://github.com/Aryan-Bajaj/showmewise" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none' }}>GitHub</a>
           </span>
         </footer>
       </div>

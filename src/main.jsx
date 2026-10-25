@@ -24,7 +24,7 @@ createRoot(document.getElementById('root')).render(
     <HashRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/app" element={<ErrorBoundary name="VideoDoc"><App /></ErrorBoundary>} />
+        <Route path="/app" element={<ErrorBoundary name="ShowMeWise"><App /></ErrorBoundary>} />
         <Route path="/docchat" element={<DocChatApp />} />
         <Route path="/policy" element={<PolicyPage />} />
         <Route path="/legal" element={<LegalNotice />} />
