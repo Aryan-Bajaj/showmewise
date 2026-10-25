@@ -5,6 +5,8 @@ All notable changes to ShowMeWise, version by version. Newest first.
 ## New name: ShowMeWise (25 Oct 2026)
 
 * **VideoDoc is now ShowMeWise.** The old name was close to other registered names. Website: [showmewise.netlify.app](https://showmewise.netlify.app), code: [github.com/Aryan-Bajaj/showmewise](https://github.com/Aryan-Bajaj/showmewise). The plugin only talks to the new website address.
+* **Sharper recordings.** The recorder keeps the screen size up to 2560 x 1440 at up to 4 Mbps (it was Full HD at 1.5 Mbps), and screenshots are saved at a higher quality, so small text and markers read well. A screen recording is about 13 to 30 MB a minute.
+* **Save recording.** A recording made on the website can now be downloaded as a video file, with the button under the video.
 * **New logo.** A page with a mouse pointer and a numbered marker, the way every click is marked in a guide.
 * **Legal notice page** (`/#/legal`): who runs it and how to reach me (through GitHub).
 * **New license: Attribution Assurance License (AAL).** Still free to use and change. Whoever shares or publishes a version must show the credit to Aryan Bajaj where their app starts. Copies taken before this change keep the MIT license. The LICENSE file is signed with a GPG key; the public key is in public-key.asc.

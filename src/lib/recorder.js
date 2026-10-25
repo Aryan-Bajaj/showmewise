@@ -26,7 +26,8 @@ const run = async (mode, fn) => {
 }
 const clearSaved = () => run("readwrite", (s) => s.clear()).catch(() => {})
 
-// small, clear video: text on screen stays sharp at 15 frames a second
+// sharp screen text for the screenshots: up to 2560 x 1440 at 4 Mbps (about 30 MB a minute);
+// 15 frames a second is enough, a screenshot is one frame
 const TYPES = ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm", "video/mp4"]
 const pickType = () => TYPES.find((t) => window.MediaRecorder?.isTypeSupported?.(t)) || ""
 
@@ -35,12 +36,12 @@ export const canRecord = () => !!(navigator.mediaDevices?.getDisplayMedia && win
 async function screenStream(streamId) {
   if (!streamId) {
     return navigator.mediaDevices.getDisplayMedia({
-      video: { frameRate: 15, width: { ideal: 1920 }, height: { ideal: 1080 } },
+      video: { frameRate: 15, width: { max: 2560 }, height: { max: 1440 } },
       audio: true, systemAudio: "include", selfBrowserSurface: "exclude", surfaceSwitching: "include", monitorTypeSurfaces: "include",
     })
   }
   // the plugin chose the screen with chrome.desktopCapture; ask with its sound first
-  const video = { mandatory: { chromeMediaSource: "desktop", chromeMediaSourceId: streamId, maxWidth: 1920, maxHeight: 1080, maxFrameRate: 15 } }
+  const video = { mandatory: { chromeMediaSource: "desktop", chromeMediaSourceId: streamId, maxWidth: 2560, maxHeight: 1440, maxFrameRate: 15 } }
   try {
     return await navigator.mediaDevices.getUserMedia({ video, audio: { mandatory: { chromeMediaSource: "desktop", chromeMediaSourceId: streamId } } })
   } catch {
@@ -70,7 +71,7 @@ export async function startRecording({ streamId = null, mic = true, onEnd, onTic
   const hasSound = !!(voice || screen.getAudioTracks().length)
   const tracks = [...screen.getVideoTracks(), ...(hasSound ? mix.stream.getAudioTracks() : [])]
   const type = pickType()
-  const rec = new MediaRecorder(new MediaStream(tracks), { mimeType: type || undefined, videoBitsPerSecond: 1_500_000 })
+  const rec = new MediaRecorder(new MediaStream(tracks), { mimeType: type || undefined, videoBitsPerSecond: 4_000_000 })
   await clearSaved()
   rec.ondataavailable = (e) => { if (e.data?.size) run("readwrite", (s) => s.add({ type: rec.mimeType, blob: e.data })).catch(() => {}) }
   const t0 = Date.now()

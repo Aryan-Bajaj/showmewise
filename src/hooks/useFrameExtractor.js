@@ -89,7 +89,7 @@ export default function useFrameExtractor() {
                 ctx.drawImage(video, C.x, C.y, C.w, C.h, 0, 0, canvas.width, canvas.height)
                 frames.push({
                   timestamp: timestamps[index],
-                  imageData: canvas.toDataURL("image/jpeg", 0.7),
+                  imageData: canvas.toDataURL("image/jpeg", 0.85), // small screen text stays crisp in the guide
                   width: canvas.width,
                   crop, // the part of the video this frame shows (null = all of it)
                   label: formatTime(timestamps[index]),
