@@ -120,7 +120,7 @@ export default function PolicyPage() {
         </Section>
 
         <Section id="credits" n="3" title="Open source and credits">
-          <p style={{ margin: '0 0 10px' }}>The ShowMeWise code is open source under the <A href={`${REPO}/blob/main/LICENSE`}>MIT license</A>. It is built on the work of these projects, each under its own license:</p>
+          <p style={{ margin: '0 0 10px' }}>The ShowMeWise code is open source under the <A href={`${REPO}/blob/main/LICENSE`}>Attribution Assurance License (AAL)</A>: free to use, change and share, but anyone who shares or publishes it must show the credit "Aryan Bajaj, AI and automation developer, github.com/Aryan-Bajaj/showmewise" where their app starts. It is built on the work of these projects, each under its own license:</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 8 }}>
             {[
               ['Whisper', 'OpenAI', 'MIT'], ['Transformers.js', 'Hugging Face', 'Apache 2.0'], ['Tesseract.js', 'Tesseract.js contributors', 'Apache 2.0'],

@@ -7,6 +7,7 @@ All notable changes to ShowMeWise, version by version. Newest first.
 * **VideoDoc is now ShowMeWise.** The old name was close to other registered names. Website: [showmewise.netlify.app](https://showmewise.netlify.app), code: [github.com/Aryan-Bajaj/showmewise](https://github.com/Aryan-Bajaj/showmewise). The plugin only talks to the new website address.
 * **New logo.** A page with a mouse pointer and a numbered marker, the way every click is marked in a guide.
 * **Legal notice page** (`/#/legal`): who runs it and how to reach me (through GitHub).
+* **New license: Attribution Assurance License (AAL).** Still free to use and change. Whoever shares or publishes a version must show the credit to Aryan Bajaj where their app starts. Copies taken before this change keep the MIT license.
 
 ## v5 (current)
 

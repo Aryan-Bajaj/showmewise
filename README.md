@@ -2,7 +2,7 @@
 
 **Automated Video Documentation · AI Transcription · Local LLM Annotation · Beautiful Exports**
 
-`React` `Whisper AI` `Vision` `llama.cpp` `Ollama` `WebLLM` `RAG` `Three.js` `Vite` `License: MIT` `Version 5`
+`React` `Whisper AI` `Vision` `llama.cpp` `Ollama` `WebLLM` `RAG` `Three.js` `Vite` `License: AAL` `Version 5`
 
 > Turn any screen recording into polished, step-by-step documentation, entirely on your own machine. No server. No uploads. No subscription. Ever.
 
@@ -824,7 +824,7 @@ All npm dependencies are MIT, Apache 2.0, or BSD licensed, fully compatible with
 | WebLLM / Llama 3.2 | ⚠️ Meta Community License. Commercial use allowed under 700M MAU. Must accept [Meta's terms](https://llama.meta.com). |
 | Ollama models | User's responsibility. Llama 3.2, Mistral, and Gemma all allow commercial use. |
 
-This project itself is **MIT licensed**. Fork it, build on it, ship it.
+This project itself is under the **Attribution Assurance License (AAL)**. Use it, change it, build on it. If you share or publish your version, show the credit "Aryan Bajaj, AI and automation developer, https://github.com/Aryan-Bajaj/showmewise" where your app starts (splash screen or banner), and keep the [LICENSE](LICENSE) text with it.
 
 ---
 
@@ -842,6 +842,6 @@ ShowMeWise is a browser-based productivity tool. Transcription accuracy depends 
 
 ## 📄 License
 
-MIT License. See [LICENSE](LICENSE) for details.
+Attribution Assurance License (AAL). See [LICENSE](LICENSE). Free to use for yourself; when you share or publish it, show the credit to Aryan Bajaj where your app starts.
 
 ---
