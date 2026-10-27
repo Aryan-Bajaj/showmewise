@@ -4,6 +4,7 @@ All notable changes to ShowMeWise, version by version. Newest first.
 
 ## New name: ShowMeWise (25 Oct 2026)
 
+* **Video limits on the website again.** One video can be up to 1000 MB and 30 minutes, as before (a wrong build had left them out for a day). The help answer about long videos now says the same.
 * **VideoDoc is now ShowMeWise.** The old name was close to other registered names. Website: [showmewise.netlify.app](https://showmewise.netlify.app), code: [github.com/Aryan-Bajaj/showmewise](https://github.com/Aryan-Bajaj/showmewise). The plugin only talks to the new website address.
 * **Sharper recordings.** The recorder keeps the screen size up to 2560 x 1440 at up to 4 Mbps (it was Full HD at 1.5 Mbps), and screenshots are saved at a higher quality, so small text and markers read well. A screen recording is about 13 to 30 MB a minute.
 * **Check before the guide.** After Stop, the recording is shown first: watch it, save it as a video file, record again, or press Make a guide. A recording started from the plugin still goes straight to the guide.
