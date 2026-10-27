@@ -109,7 +109,7 @@ export default function DocChatApp() {
                 <span className="text-xs text-zinc-600">.pdf · .docx · .html · .txt · .md · .csv · .json</span>
               </button>
               {error && <p role="alert" className="text-sm text-red-400 max-w-md text-center">{error}</p>}
-              <p className="text-xs text-zinc-600 max-w-md text-center">Everything runs in your browser. Nothing is uploaded. Big docs are chunked automatically.</p>
+              <p className="text-xs text-zinc-600 max-w-md text-center">Everything runs in your browser. Nothing is uploaded, unless you pick a cloud AI. Big docs are chunked automatically.</p>
             </div>
           ) : (
             <>

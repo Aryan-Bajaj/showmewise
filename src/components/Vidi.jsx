@@ -38,6 +38,20 @@ export function vidiPrompt(q, sections, page, seen = []) {
 }
 
 const PAGES = { '/': 'the home page', '/app': 'the app (video to guide)', '/howto': 'the How to use page', '/docchat': 'Doc Chat', '/policy': 'the privacy and terms page', '/check': 'Test my computer' }
+// "Questions people ask": a question that clearly matches one is answered with our own
+// written answer, not by the AI (a small model mixed up the numbers in long answers)
+const WORD = (t) => (t.toLowerCase().match(/[a-z0-9]+/g) || []).filter((w) => w.length > 2 && !/^(can|the|and|for|you|your|does|what|how|any|anywhere|use|like|this|that|with)$/.test(w))
+const FAQ = (HOWTO.find((x) => x.id === 'faq')?.body || []).map((l) => { const i = l.indexOf('?'); return { q: WORD(l.slice(0, i)), a: l.slice(i + 1).trim() } }).filter((f) => f.q.length)
+const faqAnswer = (q) => {
+  const ws = new Set(WORD(q).map((w) => w.replace(/s$/, '')))
+  let best = null
+  for (const f of FAQ) {
+    const hit = f.q.filter((w) => ws.has(w.replace(/s$/, ''))).length
+    const s = Math.max(hit / f.q.length, hit / Math.max(1, ws.size)) // most of the FAQ question, or most of what was asked
+    if (hit >= Math.min(2, f.q.length) && s >= 0.6 && (!best || s > best.s)) best = { s, a: f.a }
+  }
+  return best?.a || null
+}
 // the help part that belongs to each page, for "what can I do here?"
 const PAGE_HELP = { '/': 'what', '/app': 'upload', '/howto': 'what', '/docchat': 'docchat', '/policy': 'privacy', '/check': 'check' }
 // error and warning boxes the user can see right now (outside this chat)
@@ -152,7 +166,15 @@ export default function Vidi() {
     // "which model should I pick?", "Ollama is not detected", "test my system": the AIs for this computer
     // as buttons (ready to use, or to download with a progress bar), Ollama's setup steps when it is missing
     if (/\b(ollama|which model|what model|best model|pick (a |the )?model|choose (a |an |the )?(model|ai)|download (a |the |an )?(model|ai)|install (an? )?(model|ai)|test my (system|computer|pc|laptop)|system check|llm|change the ai)\b/i.test(q)) {
-      setMsgs((m) => [...m, (intro ? { who: 'vidi', text: intro } : { who: 'you', text: q }), { who: 'vidi', text: "Here are the AIs for this computer. Tap one to use it, or download one: the ✅ ones run well here.", models: true }])
+      const trouble = /not (detected|found|working|running)|can'?t find|doesn'?t (work|run)|error|problem/i.test(q)
+      setMsgs((m) => [...m, (intro ? { who: 'vidi', text: intro } : { who: 'you', text: q }), { who: 'vidi', text: trouble
+        ? "I checked Ollama on this computer. If it is missing or blocked, the steps to fix it are below. If it runs, your AIs are listed: tap one to use it."
+        : "Here are the AIs for this computer. Tap one to use it, or download one: the ✅ ones run well here.", models: true }])
+      return
+    }
+    const faq = faqAnswer(q)
+    if (faq) {
+      setMsgs((m) => [...m, (intro ? { who: 'vidi', text: intro } : { who: 'you', text: q }), { who: 'vidi', text: faq, section: HOWTO.find((x) => x.id === 'faq') }])
       return
     }
     // Ollama is still being looked for (Vidi was just opened by the error bubble): wait a moment
