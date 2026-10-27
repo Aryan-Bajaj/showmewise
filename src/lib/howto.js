@@ -99,8 +99,8 @@ export const HOWTO = [
     ],
     body: [
       "Models with \"cloud\" in the name are hidden unless you turn on Use Ollama cloud models (more powerful) under the model list. You must first read a short notice and tick I understand.",
-      "A cloud model is bigger and better at reasoning, but it runs on Ollama's servers: the words and screenshots of your video go there. Do not use it for private or work videos. It needs internet, an Ollama sign-in (run ollama signin), and free use has limits.",
-      "To add a cloud model: in a terminal, run ollama pull with the name of a cloud model (the names end in cloud, listed on ollama.com). ShowMeWise never picks a cloud model by itself. While cloud models are on and you picked one, the plugin's chats and your pet use it too, and say ☁ answered in the cloud.",
+      "A cloud model is bigger and better at reasoning, but it runs on Ollama's servers: the words and screenshots of your video go there. Do not use it for private or work videos. It needs internet and a free Ollama account (a Sign in button opens Ollama's page when needed), and free use has limits.",
+      "The free cloud model is Gemma 4 (gemma4:31b-cloud): Use this adds it with one click, no terminal. Most other Ollama cloud models need paid Ollama credits. ShowMeWise never picks a cloud model by itself. While cloud models are on and you picked one, the plugin's chats and your pet use it too, and say ☁ answered in the cloud.",
       "Some models can also look at the pictures of your screen (for example gemma3). They give the most exact steps.",
     ],
   },
@@ -118,10 +118,10 @@ export const HOWTO = [
     id: "set-ollama-missing", title: "Step 3d. Ollama says \"Not detected\"", img: "set-ollama-missing",
     marks: [
       { n: 1, x: 71, y: 21.4, dir: "right", text: "Not detected: Ollama is not running, or it does not allow this website yet." },
-      { n: 2, x: 66, y: 31.1, dir: "right", text: "Do these 4 steps once: open PowerShell, paste setx OLLAMA_ORIGINS \"*\" and press Enter, close Ollama (right-click its icon at the bottom right of the screen, Quit) and open it again, then run ollama run gemma3." },
+      { n: 2, x: 66, y: 31.1, dir: "right", text: "Follow the lit step in the Set up Ollama box: Download Ollama for your computer, open it, then Connect (one click with the ShowMeWise plugin, no terminal)." },
       { n: 3, x: 50, y: 96, dir: "up", text: "Retry detection now checks again. The page also finds Ollama by itself after a few seconds." },
     ],
-    body: ["You do not have Ollama? Get it free from ollama.com, install it, then do step 4. Or just use the browser AI."],
+    body: ["You do not have Ollama? The Download Ollama button gets it for Windows or Mac. After installing, open Ollama (Windows key or Cmd + Space, type Ollama, Enter); you can minimise it. Check if it worked tells you. Still not found? Look for the llama icon, open 127.0.0.1:11434 (it should say Ollama is running), restart the computer, or allow Ollama in your antivirus. Or just use the browser AI."],
   },
   {
     id: "set-output", title: "Step 3e. What the guide will contain", img: "set-output",
@@ -263,6 +263,8 @@ export const HOWTO = [
     id: "plugin", title: "The ShowMeWise browser plugin (extension) and Vidi in the plugin",
     body: [
       "The ShowMeWise plugin for Chrome and Edge puts ShowMeWise in a small window under its icon in the toolbar. Open on the side keeps it next to your page.",
+      "Online or offline: the top right of the website shows 🟢 Online or ⚪ Offline. After the first visit the website opens without internet too. If you chose a cloud model and there is no internet, or its free amount is used up, the AI on your computer answers instead and a note says so (the pet tells you too). A model on your computer never switches to the cloud by itself. Tell your pet “change the AI” (or “AI badlo”) to pick one yourself: ☁ Online or 💻 Offline.",
+      "Get the plugin free on the Chrome Web Store: search ShowMeWise there, or use the Get the browser plugin link on the home page. Press Add to Chrome (in Edge: Allow extensions from other stores, then Add to Chrome).",
       "Record your screen from the plugin: the whole screen, any app window or a tab. When you stop, the guide is written by itself with the AI you used last time, and you get a notification when it is ready.",
       "Before you record, open Key words, language and speech in the plugin (optional): type the names and codes said in the video, pick the spoken language, and Fast or Accurate speech. Same as on the upload page; the plugin remembers them.",
       "The plugin shows the steps and the time left while ShowMeWise works. It keeps the computer awake while it records or writes.",

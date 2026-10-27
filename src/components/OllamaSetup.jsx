@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react"
-import { ollamaState, downloadFor, FIRST_MODEL, pullModel } from "../lib/ollamaSetup"
+import { ollamaState, downloadFor, DOWNLOADS, FIRST_MODEL, pullModel } from "../lib/ollamaSetup"
+import { post, hasPlugin, ollamaBridge } from "../lib/bridge"
+import { PLUGIN_URL } from "../lib/links"
 
 // Ollama in three steps for someone who never used a terminal: install it,
 // let this site in, get the first model. Each step ticks by itself (checked every
@@ -9,7 +11,19 @@ export default function OllamaSetup({ onReady }) {
   const [pull, setPull] = useState(null) // { p: 0..1 } while downloading, { error } when it failed
   const [copied, setCopied] = useState("")
   const ready = useRef(false)
-  const dl = downloadFor()
+  const [os, setOs] = useState(null) // the user can switch Windows / Mac if we guessed wrong
+  const dl = os ? DOWNLOADS[os] : downloadFor()
+  const [checked, setChecked] = useState(false)
+  const recheck = async () => { const now = await ollamaState(); setS(now); setChecked(now.state === "missing") }
+  // the plugin's one click connection: asked while step 2 is open (it answers "on" once allowed)
+  const [bridge, setBridge] = useState("none")
+  useEffect(() => {
+    if (s.state !== "blocked") return
+    let alive = true
+    const ask = () => ollamaBridge().then((b) => alive && setBridge(b))
+    ask(); const id = setInterval(ask, 4000)
+    return () => { alive = false; clearInterval(id) }
+  }, [s.state])
 
   useEffect(() => {
     let alive = true
@@ -54,15 +68,49 @@ export default function OllamaSetup({ onReady }) {
       <p className="text-zinc-200 font-semibold text-sm">Set up Ollama (free, the AI runs on your computer)</p>
       <p className="text-xs text-zinc-500 mt-0.5 mb-2.5">Do the lit step. This box notices by itself when a step is done.</p>
       <ol className="space-y-2">
-        <Row n={1} title="Install Ollama">
-          <a href={dl.url} target="_blank" rel="noreferrer" className="inline-block px-3 py-2 rounded-lg bg-blue-500 text-white font-semibold hover:bg-blue-400">⬇ Download Ollama for {dl.os}</a>
-          {dl.command ? <p>On Linux, paste this in a terminal instead:{code(dl.command)}</p> : <p>Open the file you downloaded and click through it, like any app. Ollama then starts by itself.</p>}
+        <Row n={1} title="Install Ollama (free)">
+          <a href={dl.url} className="inline-block px-3 py-2 rounded-lg bg-blue-500 text-white font-semibold hover:bg-blue-400">⬇ Download Ollama for {dl.os}</a>
+          {dl.os !== "Linux" && <button type="button" onClick={() => setOs(dl.os === "Mac" ? "Windows" : "Mac")} className="ml-2 underline text-zinc-400">Not on {dl.os}? Get it for {dl.os === "Mac" ? "Windows" : "Mac"}</button>}
+          {dl.command ? <p>On Linux, paste this in a terminal instead:{code(dl.command)}</p> : <ol className="list-decimal pl-4 space-y-1 text-zinc-300">
+            {dl.os === "Windows" ? <>
+              <li>Open the file you just downloaded, <b>OllamaSetup.exe</b>: click the <b>⬇ arrow at the top right</b> of Chrome, or look in your <b>Downloads</b> folder.</li>
+              <li>Click <b>Install</b> and wait until it finishes.</li>
+              <li>Press the <b>Windows key</b>, type <b>Ollama</b> and press <b>Enter</b>. A small llama icon appears at the bottom right, next to the clock. You can close or minimise any Ollama window: it keeps running.</li>
+            </> : <>
+              <li>Open the file you just downloaded, <b>Ollama.dmg</b>: click the <b>⬇ arrow at the top right</b> of Chrome, or look in <b>Downloads</b>.</li>
+              <li><b>Drag the llama</b> into the <b>Applications</b> folder.</li>
+              <li>Press <b>Cmd + Space</b>, type <b>Ollama</b> and press <b>Enter</b>. If the Mac asks “Are you sure?”, click <b>Open</b>. A small llama icon appears in the menu bar at the top. You can close any Ollama window: it keeps running.</li>
+            </>}
+          </ol>}
+          <button type="button" onClick={recheck} className="px-3 py-1.5 rounded-lg border border-zinc-600 text-zinc-200 hover:bg-zinc-700">🔍 Check if it worked</button>
+          {checked && <p className="text-amber-300">Not found yet. This box keeps checking by itself.</p>}
+          <details className="text-zinc-400"><summary className="cursor-pointer">Still not found?</summary>
+            <ul className="list-disc pl-4 mt-1 space-y-1">
+              <li>Is the llama icon there ({dl.os === "Mac" ? "menu bar at the top" : "bottom right, maybe under the ^ arrow"})? If not, open Ollama again as in step 3.</li>
+              <li>Open <a href="http://127.0.0.1:11434" target="_blank" rel="noreferrer" className="underline">this link</a>: it should say “Ollama is running”.</li>
+              <li>Restart the computer once, then open Ollama.</li>
+              <li>Some antivirus programs block it: allow Ollama there.</li>
+            </ul>
+          </details>
         </Row>
-        <Row n={2} title="Let this website use Ollama">
+        <Row n={2} title="Connect ShowMeWise to Ollama">
+          {bridge === "off" ? <>
+            <p className="text-zinc-300">One click: a small window opens. Click <b>Connect</b> there, then <b>Allow</b>.</p>
+            <button type="button" onClick={() => post("ollama-connect")} className="px-3 py-2 rounded-lg bg-blue-500 text-white font-semibold hover:bg-blue-400">🔌 Connect</button>
+            <p className="text-zinc-300">Chrome then shows this. Click <b>Allow</b>:</p>
+            <img src="/setup/08-connect-allow.png" alt="Chrome asks to read and change data on 127.0.0.1 and localhost: click Allow" loading="lazy" className="w-full max-w-md rounded border border-zinc-700" />
+          </> : bridge === "on" ? <>
+            <p className="text-zinc-300">The plugin is connected, but Ollama does not answer yet. Quit Ollama ({dl.os === "Mac" ? "llama icon in the menu bar" : "right-click the llama icon at the bottom right"}, Quit) and open it again. This box notices by itself.</p>
+          </> : <>
+            <p className="text-zinc-300">The free ShowMeWise plugin connects Ollama with one click, no terminal. {hasPlugin() ? "Your plugin is an older version: Chrome updates it by itself, or restart Chrome." : "Add it to Chrome, then come back here."}</p>
+            {!hasPlugin() && <a href={PLUGIN_URL} target="_blank" rel="noopener" className="inline-block px-3 py-2 rounded-lg bg-blue-500 text-white font-semibold hover:bg-blue-400">🧩 Add the free plugin</a>}
+          </>}
+          <details className="text-zinc-400"><summary className="cursor-pointer">Without the plugin (needs a terminal)</summary>
           <p>Ollama is running, but it only talks to websites you allow. Once:</p>
           <p>{dl.os === "Windows" ? <>Press the Windows key, type <b className="text-zinc-200">PowerShell</b>, press Enter, paste this and press Enter:</> : <>Open the Terminal app, paste this and press Enter:</>}</p>
           {code(dl.os === "Windows" ? `setx OLLAMA_ORIGINS "${location.origin}"` : dl.os === "Mac" ? `launchctl setenv OLLAMA_ORIGINS "${location.origin}"` : `sudo systemctl edit ollama  # add: Environment="OLLAMA_ORIGINS=${location.origin}"`)}
           <p>Then quit Ollama ({dl.os === "Windows" ? "right-click its icon at the bottom right of the taskbar, Quit" : "its icon in the menu bar, Quit"}) and open it again.</p>
+          </details>
         </Row>
         <Row n={3} title="Get the AI model">
           <p>One download of {FIRST_MODEL.size} ({FIRST_MODEL.name}). It stays on your computer.</p>

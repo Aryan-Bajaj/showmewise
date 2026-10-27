@@ -8,7 +8,8 @@
 // stay in this browser (chrome.storage.local).
 
 const PET_DEFAULT = { on: true, kind: "dragon", colour: "", name: "Vidi", picture: null, use3d: false, pos: { side: "right", y: 0.72 }, hiddenSites: [] }
-const petGet = async () => ({ ...PET_DEFAULT, ...((await chrome.storage.local.get("pet")).pet || {}) })
+// (a pet saved with the browser AI from before 1.1 answers with Ollama's automatic choice now)
+const petGet = async () => { const p = { ...PET_DEFAULT, ...((await chrome.storage.local.get("pet")).pet || {}) }; if (p.model === "webllm") p.model = ""; return p }
 const petSet = async (patch) => { const pet = { ...(await petGet()), ...patch }; await chrome.storage.local.set({ pet }); return pet }
 const memGet = async () => (await chrome.storage.local.get("petMem")).petMem || { user: "", likes: [], good: 0, bad: 0, chats: 0 }
 const memSet = async (patch) => chrome.storage.local.set({ petMem: { ...(await memGet()), ...patch } })
@@ -199,7 +200,8 @@ async function petSetup(s = {}) {
   if (/^[A-Za-z]{2,12}$/.test(s.colour || "")) patch.colour = s.colour
   if (text(s.name, 20)) patch.name = text(s.name, 20)
   if (s.lang === "auto" || VidiI18n.LANGS[s.lang]) { patch.lang = s.lang; VidiI18n.setLang(s.lang) }
-  if (typeof s.model === "string" && /^(|webllm|[\w.:/-]{1,60})$/.test(s.model)) patch.model = s.model
+  // Ollama only (on this computer or its cloud): the browser AI is never the pet's AI
+  if (typeof s.model === "string" && s.model !== "webllm" && /^(|[\w.:/-]{1,60})$/.test(s.model)) patch.model = s.model
   await petSet(patch)
   const mem = {}
   if (text(s.user, 20)) mem.user = text(s.user, 20)
@@ -401,6 +403,21 @@ async function petHear(text, tabId, noGuide) {
   }
 }
 
+// the offline AI that fits this computer's memory (the same sizes as the Pet training setup)
+let OFFLINE_PICK = "gemma3:4b"
+chrome.system.memory.getInfo().then((i) => { OFFLINE_PICK = i.capacity / 1048576 >= 15000 ? "gemma3:4b" : "gemma3:1b" }).catch(() => {})
+// an error the user can fix with one tap: no AI on this computer for the switch -> download it;
+// no Ollama at all -> the setup on the Pet training page
+const errHelp = (err = "") => /no AI on this computer yet/i.test(err) ? { modelChoices: [{ name: `pull:${OFFLINE_PICK}`, label: tr("dlOffline", { model: OFFLINE_PICK }) }] }
+  : /I need Ollama/i.test(err) ? { trainingLink: true } : {}
+
+// the setup page downloaded the offline AI: the pet asks once which one to use (the cloud or this computer)
+async function petBackupReady({ model, cloud }) {
+  if (!/^[\w.:/-]{1,60}$/.test(model || "")) return
+  const choices = [...(isCloudModel(cloud) ? [{ name: cloud, label: `☁ ${tr("online")} · ${cloud}` }] : []), { name: model, label: `💻 ${tr("offline")} · ${model}` }]
+  return petSay(tr("askWhich", { model }), { modelChoices: choices, mood: "happy" })
+}
+
 // answers from the engine tab (called by bg.js for ids that start with "pet-")
 function petFromEngine(m) {
   if (m.type === "chat-status") return petUpdate(m.id, { label: m.label })
@@ -412,7 +429,7 @@ function petFromEngine(m) {
       const plan = (petLog || []).find((x) => x.id === m.id)?.fillPlan
       if (plan && !(petLog.find((x) => x.id === m.id).fillForm)) return fillReady(m.id, plan, m.fills || [])
       if (m.fills) return
-      return petUpdate(m.id, { state: "error", text: m.error })
+      return petUpdate(m.id, { state: "error", text: m.error, ...errHelp(m.error) })
     })
   }
   if (m.type === "chat-answer") return petEdit((log) => {
@@ -420,7 +437,7 @@ function petFromEngine(m) {
     const x = log[i]
     // a guide's "not about this page": the normal chat answers it next (guideAnswered); the code word is never shown
     if (x.scope === "guide" && !m.error && /^\W*OFF TOPIC/i.test(String(m.answer || ""))) return
-    log[i] = { ...x, state: m.error ? "error" : "done", text: m.error || String(m.answer || "").trim() || tr("noAnswer"), sources: (m.sources || []).filter((s) => s.url).slice(0, 4), model: m.model, label: "", offerSearch: !m.error && !x.searchFor && x.scope !== "help" }
+    log[i] = { ...x, state: m.error ? "error" : "done", text: m.error || String(m.answer || "").trim() || tr("noAnswer"), sources: (m.sources || []).filter((s) => s.url).slice(0, 4), model: m.model, label: "", offerSearch: !m.error && !x.searchFor && x.scope !== "help", ...(m.error ? errHelp(m.error) : {}) }
     // now and then, a fun check that Vidi helped (it learns what works for you):
     // after every 5th AI answer, one question open at a time
     const answers = log.filter((y) => y.who === "pet" && y.state === "done" && y.model).length
@@ -737,6 +754,7 @@ async function ollamaModels() {
   try { return (await fetch("http://localhost:11434/api/tags", { signal: AbortSignal.timeout(3000) }).then((r) => r.json())).models || [] } catch { return [] }
 }
 const isCloudModel = (n) => /cloud$/.test(n || "")
+const FREE_CLOUD = "gemma4:31b-cloud" // in Ollama's free plan (tested 26 Oct 2026); the others need paid credits
 const bestLocal = (ms) => ms.find((m) => /^gemma3:12b$/.test(m.name)) || ms.find((m) => /^gemma3:4b/.test(m.name)) || ms[0]
 const freeCloud = (ms) => ms.find((m) => /^gemma4:31b-cloud$/.test(m.name)) || ms.find((m) => isCloudModel(m.name))
 // how often it was right in our tests (pet/scores.js); a model not listed was not tested
@@ -752,11 +770,14 @@ async function petModels(check = false) {
   const fits = (needMB) => total == null ? null : needMB <= total * 0.5
   const tag = (ok) => ok == null ? "" : ok ? `${tr("tagOk")} · ` : `${tr("tagNo")} · `
   const acc = (n) => VidiScore(n) ?? -1
+  // two groups: ☁ Online (Ollama's servers, needs internet) and 💻 Offline (on this computer, private)
+  const online = navigator.onLine !== false
   const items = [
-    ...local.map((m) => { const ok = fits((m.size || 0) / 1048576 * 1.25); return { name: m.name, ok, acc: acc(m.name), label: `${tag(ok)}${m.name}${m.details?.parameter_size ? ` · ${m.details.parameter_size}` : ""}${score(m.name)}` } }),
-    ...cloud.map((m) => ({ name: m.name, ok: true, acc: acc(m.name), label: `${tag(true)}☁ ${m.name} (cloud)${score(m.name)}` })),
-    { name: "webllm", ok: total == null ? null : total >= 8000, acc: acc("webllm"), label: `${tag(total == null ? null : total >= 8000)}${tr("browserAI")}${score("webllm")}` },
-  ]
+    ...local.map((m) => { const ok = fits((m.size || 0) / 1048576 * 1.25); return { name: m.name, ok, acc: acc(m.name), label: `💻 ${tr("offline")} · ${tag(ok)}${m.name}${m.details?.parameter_size ? ` · ${m.details.parameter_size}` : ""}${score(m.name)}` } }),
+    ...cloud.map((m) => ({ name: m.name, ok: online, acc: acc(m.name), label: `☁ ${tr("online")} · ${m.name}${score(m.name)}` })),
+    // the free cloud model, one tap away when it is not added yet
+    ...(!cloud.some((m) => m.name === FREE_CLOUD) && (models.length || await ollamaUp()) ? [{ name: `pull:${FREE_CLOUD}`, ok: online, acc: acc(FREE_CLOUD), label: `☁ ${tr("online")} · ${tr("addCloud", { model: FREE_CLOUD })}${score(FREE_CLOUD)}` }] : []),
+  ] // (no browser AI: the pet runs on Ollama only)
   // [name, download size, memory it needs, how it is: small and quick / medium / big and best]
   const GET = [["gemma3:1b", "0.8 GB", 7500, 0], ["gemma3:4b", "3.3 GB", 15000, 1], ["gemma3:12b", "8.1 GB", 31000, 2]]
   const HOW = { en: ["small, fastest, simple answers", "medium, quick, good answers", "big, slower, best answers"], de: ["klein, am schnellsten, einfache Antworten", "mittel, schnell, gute Antworten", "groß, langsamer, beste Antworten"],
@@ -766,12 +787,12 @@ async function petModels(check = false) {
   if (models.length || await ollamaUp()) for (const [name, size, needMB, how] of GET) {
     if (local.some((m) => m.name === name)) continue
     const ok = total == null ? null : total >= needMB
-    items.push({ name: `pull:${name}`, ok, acc: acc(name), label: tag(ok) + tr("dlLabel", { model: name, size, how: (HOW[VidiI18n.lang] || HOW.en)[how] }) + score(name) })
+    items.push({ name: `pull:${name}`, ok, acc: acc(name), label: `💻 ${tr("offline")} · ` + tag(ok) + tr("dlLabel", { model: name, size, how: (HOW[VidiI18n.lang] || HOW.en)[how] }) + score(name) })
   }
   // suggested first, then by accuracy (highest first); "automatic" always on top
   const rank = (x) => (x.ok === false ? 1 : 0)
   const choices = [{ name: "", label: tr("auto") }, ...items.sort((a, b) => rank(a) - rank(b) || b.acc - a.acc)]
-  const head = check && total ? tr("sysChecked", { total: Math.round(total / 1024), free: Math.round((free || 0) / 1024 * 10) / 10 }) + "\n" : ""
+  const head = (online ? tr("netOn") : tr("netOff")) + "\n" + (check && total ? tr("sysChecked", { total: Math.round(total / 1024), free: Math.round((free || 0) / 1024 * 10) / 10 }) + "\n" : "")
   const now = !pet.model ? tr("autoNow") : pet.model === "webllm" ? tr("browserAINow") : `${isCloudModel(pet.model) ? "☁ " : ""}${pet.model}`
   const rec = mem.notConfidential && freeCloud(cloud) ? tr("recCloud", { model: freeCloud(cloud).name })
     : bestLocal(local) ? `For private things I recommend ${bestLocal(local).name}${/12b/.test(bestLocal(local).name) ? " (better answers, a bit slower)" : " (quick)"}.` : ""
@@ -802,11 +823,21 @@ async function petPull(name) {
         if (pct != null && pct >= shown + 2) { shown = pct; await petUpdate(id, { label: tr("pulling", { model: name, pct }), text: tr("pulling", { model: name, pct }), progress: pct }) }
       }
     }
+    // a cloud model (a tiny file): picked like any other, so its "is it confidential?" question comes first
+    if (isCloudModel(name)) { await petUpdate(id, { state: "done", label: "", text: tr("pulled", { model: name }), progress: null }); return petPickModel(name) }
     await petSet({ model: name })
     return petUpdate(id, { state: "done", label: "", text: tr("pulled", { model: name }), mood: "happy", progress: null })
   } catch (e) {
     return petUpdate(id, { state: "done", label: "", text: tr("pullFail", { model: name, err: String(e.message || e).slice(0, 120) }), progress: null })
   }
+}
+// the website answered a cloud question with the AI on this computer (offline, or the free amount
+// used up): the pet says so, once in 10 minutes, only when the pet itself uses a cloud model
+async function petSwitched({ to, why }) {
+  const pet = await petGet(), { petSwitchAt = 0 } = await chrome.storage.local.get("petSwitchAt")
+  if (!pet.on || !isCloudModel(pet.model) || Date.now() - petSwitchAt < 600000) return
+  await chrome.storage.local.set({ petSwitchAt: Date.now() })
+  return petSay(tr(why === "limit" ? "switchLimit" : "switchOff", { model: to }))
 }
 async function petPickModel(name) {
   if (name.startsWith("pull:")) return petPull(name.slice(5))
@@ -822,9 +853,9 @@ async function petConfidential(answer, model) {
   if (answer === "no") {
     if (model) return petPickModel(model)
     const rec = freeCloud(models)
-    return petSay(rec ? tr("confThanks", { model: rec.name })
-      : "Thanks! A cloud AI could help even more: in a terminal run “ollama signin” and “ollama pull gemma4:31b-cloud”, then say “change the AI”.",
-    rec ? { modelChoices: [{ name: rec.name, label: tr("useCloud", { model: rec.name }) }, { name: (await petGet()).model || "", label: tr("stayAsIs") }] } : {})
+    // not added yet: one tap adds the free one (no terminal)
+    return petSay(rec ? tr("confThanks", { model: rec.name }) : tr("cloudOffer", { model: FREE_CLOUD }),
+      { modelChoices: [{ name: rec ? rec.name : `pull:${FREE_CLOUD}`, label: tr("useCloud", { model: rec ? rec.name : FREE_CLOUD }) }, { name: (await petGet()).model || "", label: tr("stayAsIs") }] })
   }
   if (isCloudModel((await petGet()).model)) await petSet({ model: "" })
   const best = bestLocal(models.filter((m) => !isCloudModel(m.name)))

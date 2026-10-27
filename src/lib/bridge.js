@@ -26,6 +26,21 @@ let docsNow = []
 export const setVideoDocs = (d) => { docsNow = d || [] }
 export const videoDocs = () => docsNow
 
+// the plugin said hello on this page (its helper script runs here)
+let pluginHere = false
+export const hasPlugin = () => pluginHere
+
+// Ollama through the plugin (1.1 and newer): "on", "off" (one click away) or "none"
+// (no plugin, or an older one that does not know this yet)
+export function ollamaBridge(ms = 1500) {
+  return new Promise((res) => {
+    const on = (e) => { removeEventListener("showmewise:ollama-bridge", on); clearTimeout(t); res(e.detail?.on ? "on" : "off") }
+    const t = setTimeout(() => { removeEventListener("showmewise:ollama-bridge", on); res("none") }, ms)
+    addEventListener("showmewise:ollama-bridge", on)
+    post("ollama-bridge-ask")
+  })
+}
+
 let started = false
 export function listen() {
   if (started) return
@@ -33,7 +48,7 @@ export function listen() {
   window.addEventListener("message", (e) => {
     if (e.source !== window || e.origin !== location.origin || e.data?.source !== IN) return
     const { type, ...data } = e.data
-    if (type === "hello") { post("hello", { version: 1, page: location.hash }); window.postMessage(last || { source: OUT, type: "status", state: "idle", steps: [] }, location.origin); return }
+    if (type === "hello") { pluginHere = true; post("hello", { version: 1, page: location.hash }); window.postMessage(last || { source: OUT, type: "status", state: "idle", steps: [] }, location.origin); return }
     // the page parts that can act listen for these
     window.dispatchEvent(new CustomEvent(`showmewise:${type}`, { detail: data }))
   })

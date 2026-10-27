@@ -143,6 +143,30 @@ chrome.tabs.onRemoved.addListener(async (id) => {
   toPanel({ type: "status", status: null, closed })
 })
 
+// ---- Ollama without a terminal ----------------------------------------------------
+// Ollama only answers the websites its owner allowed (a setting typed in a terminal).
+// With the user's OK to reach Ollama, the plugin takes the browser's "which site is asking"
+// note off the requests to Ollama that come from the ShowMeWise website or from the plugin
+// itself, so Ollama answers them. No other website gets through.
+const OLLAMA = ["http://localhost:11434/*", "http://127.0.0.1:11434/*"]
+const TO_OLLAMA = "^http://(localhost|127\\.0\\.0\\.1):11434/"
+async function ollamaBridge() {
+  const on = await chrome.permissions.contains({ origins: OLLAMA }).catch(() => false)
+  const unsign = { header: "origin", operation: "remove" }
+  const rules = !on ? [] : [
+    { id: 900, priority: 1, condition: { regexFilter: TO_OLLAMA, initiatorDomains: [chrome.runtime.id], resourceTypes: ["xmlhttprequest"] }, action: { type: "modifyHeaders", requestHeaders: [unsign] } },
+    ...SITES.map((s, i) => ({ id: 901 + i, priority: 1, condition: { regexFilter: TO_OLLAMA, initiatorDomains: [new URL(s).hostname], resourceTypes: ["xmlhttprequest"] },
+      action: { type: "modifyHeaders", requestHeaders: [unsign], responseHeaders: [{ header: "access-control-allow-origin", operation: "set", value: s }] } })),
+  ]
+  const old = (await chrome.declarativeNetRequest.getDynamicRules()).map((r) => r.id).filter((id) => id >= 900 && id < 920)
+  await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: old, addRules: rules })
+  return on
+}
+ollamaBridge().catch(() => {})
+chrome.permissions.onAdded.addListener(() => ollamaBridge().then((on) => on && tellSites({ type: "ollama-bridge", on })).catch(() => {}))
+chrome.permissions.onRemoved.addListener(() => ollamaBridge().catch(() => {}))
+const tellSites = async (msg) => { for (const t of await chrome.tabs.query({ url: SITES.map((s) => s + "/*") })) send(t.id, msg).catch(() => {}) }
+
 // ---- messages ------------------------------------------------------------------
 chrome.runtime.onMessage.addListener((m, from, reply) => {
   if (m?.from === "page") {
@@ -157,6 +181,11 @@ chrome.runtime.onMessage.addListener((m, from, reply) => {
     else if (m.type === "pet-try" && from.tab?.id != null && /#\/pet-training/.test(from.tab.url || from.url || "")) chrome.tabs.sendMessage(from.tab.id, { to: "pet-page", type: "open" }).catch(() => {}).then(() => petHear(String(m.text || "").slice(0, 300), from.tab.id))
     else if (m.type === "pet-setup") petSetup(m.setup).then((info) => from.tab?.id && send(from.tab.id, { type: "pet-info", id: m.id, ...info })).catch(() => {})
     else if (m.type === "need-system-info") systemInfo().then((info) => from.tab?.id && send(from.tab.id, { type: "system-info", id: m.id, ...info })).catch(() => {})
+    // the website's Ollama setup: is the plugin's connection on, and the one click to turn it on
+    else if (m.type === "ollama-bridge-ask") ollamaBridge().then((on) => from.tab?.id && send(from.tab.id, { type: "ollama-bridge", on })).catch(() => {})
+    else if (m.type === "ai-switch") petSwitched(m).catch(() => {})
+    else if (m.type === "pet-backup-ready") petBackupReady(m).catch(() => {})
+    else if (m.type === "ollama-connect") chrome.windows.create({ url: "connect.html", type: "popup", width: 440, height: 420 })
     else if (m.type === "chat-status") chatUpdate(m.id, { label: m.label })
     else if (m.type === "chat-partial") chatUpdate(m.id, { partial: m.text })
     else if (m.type === "chat-answer" && String(m.id).startsWith("pick-")) showPicks(m.id.slice(5), m)

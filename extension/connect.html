@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Connect ShowMeWise to Ollama</title>
+<style>
+body { margin: 0; padding: 22px; background: #0f0b24; color: #ece9ff; font: 15px/1.55 "Segoe UI", system-ui, sans-serif; }
+h1 { font-size: 19px; margin: 0 0 10px; }
+p { margin: 0 0 12px; color: #cfc8ff; }
+button { width: 100%; padding: 13px; border: 0; border-radius: 12px; background: linear-gradient(135deg, #6d4aff, #3f62ff); color: #fff; font: 700 16px "Segoe UI", system-ui, sans-serif; cursor: pointer; }
+.small { font-size: 13px; color: #a8a2c8; }
+.ok { color: #6ee7b7; font-weight: 700; }
+</style>
+</head>
+<body>
+<h1>🦙 Connect ShowMeWise to Ollama</h1>
+<p>One click, then ShowMeWise and your pet can use the AI on your computer. No terminal needed.</p>
+<p class="small">Chrome then asks “Read and change your data on 127.0.0.1 and localhost”: click <b>Allow</b>. That is Ollama on your own computer, nothing on the internet.</p>
+<button id="go">Connect</button>
+<p id="msg" class="small" style="margin-top:12px"></p>
+<script src="connect.js"></script>
+</body>
+</html>

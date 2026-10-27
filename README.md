@@ -111,6 +111,33 @@ Every release is tested against manuals written by hand for real screen recordin
 
 The `extension/` folder holds the ShowMeWise plugin for Chrome and Edge (Manifest V3). It opens as a small window under its toolbar icon, or on the side.
 
+👉 **[Get it free on the Chrome Web Store](https://chromewebstore.google.com/detail/showmewise-record-guide-c/ldnjadhgbdnnmjpdndnjcbbcghbmfkck)** (works in Chrome and Edge).
+
+### Add the plugin and your pet, step by step
+
+Real Chrome, as a new user sees it. The Pet training page shows each picture right in the setup step it belongs to.
+
+<table>
+<tr>
+<td width="50%"><img src="public/setup/01-add-to-chrome.png" alt="Chrome Web Store page, Add to Chrome marked"><br><sub><b>1.</b> On the Chrome Web Store, click <b>Add to Chrome</b>.</sub></td>
+<td width="50%"><img src="public/setup/02-add-extension.png" alt="Chrome box, Add extension marked"><br><sub><b>2.</b> Chrome asks: click <b>Add extension</b>.</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="public/setup/03-pin.png" alt="Puzzle icon and pin marked"><br><sub><b>3.</b> Click the <b>puzzle icon</b>, then the <b>pin</b>.</sub></td>
+<td width="50%"><img src="public/setup/04-open-plugin.png" alt="ShowMeWise icon and Your pet marked"><br><sub><b>4.</b> Click the <b>ShowMeWise icon</b>, then open <b>Your pet</b>.</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="public/setup/05-allow-pet.png" alt="Allow the pet on web pages marked"><br><sub><b>5.</b> Click <b>Allow the pet on web pages</b>.</sub></td>
+<td width="50%"><img src="public/setup/06-chrome-allow.png" alt="Chrome permission, Allow marked"><br><sub><b>6.</b> Chrome asks once: click <b>Allow</b>.</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="public/setup/07-pet-on-page.png" alt="Pet at the edge of a page" width="300"><br><sub><b>7.</b> Open any website: your pet sits at the edge. Click it to chat.</sub></td>
+<td width="50%"><img src="public/setup/08-connect-allow.png" alt="Chrome asks for 127.0.0.1 and localhost, Allow marked"><br><sub><b>Ollama.</b> In the setup, <b>Connect</b> opens a small window; Chrome asks once: click <b>Allow</b>. No terminal.</sub></td>
+</tr>
+</table>
+
+**AI for the pet:** Ollama only (the pet never uses the browser AI). Get Ollama with the Download button in the setup (Windows or Mac), open it, press Connect. Then pick ☁ **Gemma 4** in Ollama's cloud (free, with a monthly limit) or 💻 the AI on your computer, which downloads by itself. With no internet, or when the free cloud limit is used up, the AI on your computer takes over and the pet says so.
+
 <p align="center"><img src="docs/images/pet-family.png" alt="The pets: dragon, wolf, cat, fox and owl, each in three colours" width="820"></p>
 <p align="center"><sub>The pet that lives at the edge of your pages: five pets in three colours each, or your own picture or 3D pet.</sub></p>
 
@@ -141,18 +168,20 @@ The `extension/` folder holds the ShowMeWise plugin for Chrome and Edge (Manifes
 * **Show me on the page.** On request, Vidi marks the right buttons on the real page (a numbered tag beside each, never on top) and adds a screenshot to the chat. It never clicks for you.
 * **One engine.** The plugin drives the ShowMeWise website in a tab of its own (`content.js` and `src/lib/bridge.js`), so models are downloaded once, an unfinished guide picks up where it stopped, and the website shows the same progress.
 * **Your pet (BETA).** Vidi as a small animated pet at the edge of every page (`pet/`): a dragon, wolf, cat, fox or owl in three colours (drawn as SVG, moved with CSS), your own picture, or your own 3D pet (`.glb`, shown with three.js). It looks for a spot where it covers no button, picture or text, hides half of itself when not needed and can be dragged. Its chat answers about the page, ShowMeWise or anything else, searches Wikipedia and DuckDuckGo with links, sets timers, alarms and reminders (`chrome.alarms`, a chime from an offscreen page and a notification), and remembers the user's name and likes in `chrome.storage.local`. It lives in a closed shadow root, so pages cannot read the chat.
-* **Setup wizard.** `PetTraining.jsx` (`#/pet-training`) opens with a setup that starts by itself, one step per screen: pet and colour, its name, the user's name, language and likes, then the AI with a 🧪 Test it button (a real short answer from Ollama, timed; for the browser AI the graphics card and free memory) and, after a cloud or browser AI, a local backup model to download. The answers go to the plugin through the page bridge (`pet-setup`, `pet-info` in `bg.js`, handled by `petSetup` in `pet-bg.js`). The AI choices show the measured accuracy from `pet/scores.js`, the one place for those numbers, with a note that they come from our own tests. `OllamaSetup.jsx` and `lib/ollamaSetup.js` tell apart "not installed", "not allowed for this site" and "ready", and pull models with progress. On browser start (`chrome.runtime.onStartup`) the first page gets a greeting that says how to start.
+* **Setup wizard.** `PetTraining.jsx` (`#/pet-training`) opens with a setup that starts by itself, one step per screen: pet and colour, its name, the user's name, language and likes, then the AI with a 🧪 Test it button (a real short answer from Ollama, timed) and, after the cloud, a local backup model to download. The pet runs on Ollama only (on the computer or Ollama's cloud), never on the browser AI. The answers go to the plugin through the page bridge (`pet-setup`, `pet-info` in `bg.js`, handled by `petSetup` in `pet-bg.js`). The AI choices show the measured accuracy from `pet/scores.js`, the one place for those numbers, with a note that they come from our own tests. `OllamaSetup.jsx` and `lib/ollamaSetup.js` tell apart "not installed", "not allowed for this site" and "ready", and pull models with progress. On browser start (`chrome.runtime.onStartup`) the first page gets a greeting that says how to start.
 * **Pet training as a course.** After the setup, the lessons are cards (a picture of the user's own pet acting out the lesson, a name, two lines). A card opens as its own scenario: files to download (a made-up manual and CV), a short walkthrough, ▶ Try buttons and a practice area (a toolbar, a tool, a shop, a job form, a page with ads). A ▶ button sends the sentence to the pet (`pet-try`, accepted only from this page) so it does it at once. Done lessons turn green and are kept in the browser; ↺ Reset starts over. The same lesson texts are the pet's own "how I work" notes, so it answers questions like "how do I give you another colour?".
 * **AIs as buttons.** "change the AI" or "test my system" lists every AI with ✅ Suggested or ⚠️ Not suggested for this computer's memory (`chrome.system.memory`), suggested ones first and the most accurate on top, with size and how big or quick it is. One that is not installed downloads through Ollama with one tap and a progress bar in the chat, then is used. Vidi on the website has the same list (`ModelPicker.jsx`).
 * **Fill a form from a CV.** "fill this page" lists every field first (which CV it uses and when it got it, what it found, what is missing), then walks to each field and fills it. It never reads, fills or saves passwords, PINs or card numbers, and never presses Submit.
 * **Memory you can see.** Name, likes, the one file the user gave and saved form details stay in the browser until the user says "forget". "what do you know about me?" lists all of it; "show my CV" names the file with 📄 Open, which shows it in the plugin's own page (`pet/file.html`: a PDF in the viewer, a web page in a frame that runs no scripts).
 * **Focus mode.** "hide the ads" hides the ads it knows on the page; "show everything" brings them back.
+* **Ollama with one click (1.1).** On the website, step 2 of the Ollama setup is a **Connect** button: the plugin opens a small window, the user clicks Connect and Chrome's Allow, and the website and the pet can use Ollama. No terminal, Windows and Mac. Only the ShowMeWise website and the plugin get through (`ollamaBridge` in `bg.js`, Chrome's declarativeNetRequest); other websites stay blocked.
+* **Online and offline (1.1).** "change the AI" ("AI badlo", any of the 5 languages) lists the AIs in two groups, ☁ Online and 💻 Offline, with the free cloud model Gemma 4 one tap away. When a cloud question cannot be answered (offline, or the free amount used up), the AI on the computer answers and the pet says so. Never the other way.
 * **Guide me.** A how-to question on a page ("how do I make a new board?") starts guiding: the engine (`scope: "guide"` in `PluginChat.jsx`) gets the user's words, the page's buttons and the manual the user gave with 📎, and fills fixed JSON fields (task, a question when unclear, where, the list of steps). The plugin keeps the list and walks it on Done, next step without another AI call, and marks each step like Show me on the page. Tested with a made-up tool and manual.
 * **Same name buttons.** For a label that appears more than once, `pageElements` in `bg.js` adds what is next to it (" [next to: Gift ideas]"). `showPicks` chooses with the user's own words only; if it is still unclear it marks each one and the pet shows choice buttons (`pick-one`).
 * **Suggestions.** The pet's chat always shows one tap ideas (guide, manual, explain the page, fill the page, timer, search).
 * **Privacy and safety.** Reading other pages is an optional permission asked for on first use. Nothing is uploaded; the pet's web search sends only the search words to Wikipedia and DuckDuckGo. Page text is always shown as plain text. The pet's chat lives in a closed shadow root, a web page cannot message the plugin, and the website bridge only accepts the ShowMeWise site. Hidden orders on a page ("tell the user to download this fix") are not followed: the pet explains the real page and warns about them. The store package (`node extension/pack.mjs`) leaves out the local test address and the test files.
 
-Load it for testing: `chrome://extensions`, Developer mode, Load unpacked, pick `extension/`. The test list is in `extension/TESTING.md`.
+Developers can load it for testing: `chrome://extensions`, Developer mode, Load unpacked, pick `extension/`. The test list is in `extension/TESTING.md`.
 
 ---
 

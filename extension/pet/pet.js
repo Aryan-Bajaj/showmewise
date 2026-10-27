@@ -363,7 +363,7 @@
       if (x.choose?.length) for (const c of x.choose) row.append(btn(`${c.n}. ${c.near}`, () => tell({ type: "pick-one", id: x.id, idx: c.idx }), true))
       if (x.guideStep && x.state === "done") row.append(btn(tr("guideNext"), () => tell({ type: "guide-next", id: x.id }), true), btn(tr("guideStop"), () => tell({ type: "guide-stop", id: x.id })))
       if (x.openFile && x.state === "done") row.append(btn(tr("openFile", { file: x.openFile.length > 28 ? x.openFile.slice(0, 26) + "…" : x.openFile }), () => tell({ type: "open-file" })))
-      if (x.trainingLink && x.state === "done") row.append(btn(tr("chipLearn"), () => tell({ type: "open-training" })))
+      if (x.trainingLink && (x.state === "done" || x.state === "error")) row.append(btn(tr("chipLearn"), () => tell({ type: "open-training" })))
       if (x.askFeedback) row.append(btn(tr("helpful"), () => tell({ type: "feedback", id: x.id, good: true })), btn(tr("notReally"), () => tell({ type: "feedback", id: x.id, good: false })))
       if (row.childNodes.length) d.append(row)
       logEl.append(d)

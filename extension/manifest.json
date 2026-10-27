@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "ShowMeWise: record, guide, chat",
   "short_name": "ShowMeWise",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Record your screen and get a step-by-step guide. Chat with your videos, documents and the page you are on. Runs on your computer.",
   "homepage_url": "https://showmewise.netlify.app/",
   "minimum_chrome_version": "116",
@@ -37,14 +37,17 @@
     "system.memory",
     "alarms",
     "offscreen",
-    "search"
+    "search",
+    "declarativeNetRequestWithHostAccess"
   ],
   "host_permissions": [
     "https://showmewise.netlify.app/*",
     "http://127.0.0.1:8899/*"
   ],
   "optional_host_permissions": [
-    "<all_urls>"
+    "<all_urls>",
+    "http://localhost:11434/*",
+    "http://127.0.0.1:11434/*"
   ],
   "content_scripts": [
     {

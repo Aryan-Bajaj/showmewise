@@ -2,12 +2,12 @@
 // plain words, each with a place on this page to try it. The pet itself comes
 // from the plugin: it is allowed on the ShowMeWise website only on this page.
 // The pictures are the plugin's own drawings (extension/pet), so both match.
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import "../../extension/pet/pets.js"
 import "../../extension/pet/pet-css.js"
 import "../../extension/pet/scores.js"
 import { PLUGIN_URL } from "../lib/links"
-import { pluginSystem, gpuInfo } from "../lib/computerCheck"
+import { pluginSystem } from "../lib/computerCheck"
 import { pullModel, ollamaState } from "../lib/ollamaSetup"
 import { callOllama } from "../lib/llm"
 import OllamaSetup from "./OllamaSetup"
@@ -35,7 +35,7 @@ function PetPic({ kind, colour, mood, size = 120 }) {
 // the lessons: what it does, why it helps, what to try (and a place to try it)
 export const LESSONS = [
   { id: "hello", icon: "👋", title: "Say hi and give it a name",
-    what: "Click your pet at the edge of the page: its chat opens. It answers like a friend, in your language (English, Hinglish, German, Spanish, French). The small browser AI often answers Hinglish in English; Ollama answers it in Hinglish.",
+    what: "Click your pet at the edge of the page: its chat opens. It answers like a friend, in your language (English, Hinglish, German, Spanish, French).",
     why: "It greets you by name and remembers what you like, on every page. Not sure what to ask? “what can you do?” gives a short list of its skills and a button back to this training.",
     tryIt: ["your name is Draco", "my name is (your name)", "I love dragons", "mujhe ek joke sunao", "what can you do?"] },
   { id: "avatar", icon: "🎨", title: "Choose your pet",
@@ -74,7 +74,7 @@ export const LESSONS = [
     why: "Long documents answered in seconds. The file is read on your computer.",
     tryIt: ["What is in this file?", "Which university is in my CV?"] },
   { id: "ai", icon: "🧠", title: "Choose the AI",
-    what: "Say “change the AI”: your pet lists the models on your computer, the cloud ones (☁) and the browser AI, with a recommendation. Once, after the first answer, it asks if you use it for confidential or work things.",
+    what: "Say “change the AI”: your pet lists the AIs in two groups, 💻 Offline (on your computer) and ☁ Online (Ollama's cloud), with a recommendation. Once, after the first answer, it asks if you use it for confidential or work things.",
     why: "Private things stay on your computer. For other things a free cloud model (like gemma4:31b-cloud) is much stronger at reasoning, and switching is one tap.",
     tryIt: ["change the AI", "which model do you use?", "LLM badlo"],
     safe: ["A cloud model sends what you ask, and the page or file you ask about, to Ollama's servers. It is used only after you said “No, not confidential”, and those answers are marked ☁."] },
@@ -261,7 +261,7 @@ function PracticeForm() {
 
 // the AI choices of the intro, with how often each was right in our tests (extension/pet/scores.js)
 const AIS = [
-  { id: "webllm", title: "Browser AI", what: "Nothing to install. Runs inside the browser, on this computer.", note: "Slower, the weakest of the three, and it needs a lot of free memory: on a busy computer it can stop. Ollama is better then." },
+  // (no browser AI: it froze this laptop's graphics once; the pet runs on Ollama only)
   { id: "gemma3:4b", title: "Ollama on your computer (private)", what: "A free app: the AI runs on your computer, nothing leaves it.", note: "Best for private and work things." },
   { id: "gemma4:31b-cloud", title: "Ollama cloud (strongest)", what: "A free cloud model through the Ollama app, with daily limits.", note: "What you ask goes to Ollama's servers: not for private or work things." },
 ]
@@ -272,6 +272,24 @@ const backupFor = (totalMB) => totalMB == null ? null : totalMB >= 15000 ? { nam
 // follows along. Pet, colour, name, about you, the AI (tested right here), a backup for offline use.
 // Everything goes to the plugin in this browser, nowhere else.
 const SETUP_KEY = "vd-pet-setup-done"
+// a real Chrome picture right inside the setup step it belongs to (a marker beside each button)
+const Shot = ({ n }) => {
+  const [file, text] = SETUP_SHOTS[n - 1]
+  return <figure style={{ margin: "10px 0 0" }}>
+    <figcaption style={{ margin: "0 0 5px", fontWeight: 600, fontSize: 14 }}>{text}</figcaption>
+    <img src={`/setup/${file}.png`} alt={text} loading="lazy" style={{ width: "100%", maxWidth: 560, borderRadius: 10, border: "1px solid rgba(255,255,255,.15)", display: "block" }} />
+  </figure>
+}
+// "Show me with pictures": real Chrome screenshots (public/setup), in the order a new user meets them
+const SETUP_SHOTS = [
+  ["01-add-to-chrome", "1. On the Chrome Web Store, click Add to Chrome."],
+  ["02-add-extension", "2. Chrome asks: click Add extension."],
+  ["03-pin", "3. Click the puzzle icon at the top right, then the pin, so ShowMeWise stays in the bar."],
+  ["04-open-plugin", "4. Click the ShowMeWise icon, then open Your pet."],
+  ["05-allow-pet", "5. Click Allow the pet on web pages."],
+  ["06-chrome-allow", "6. Chrome asks once: click Allow."],
+  ["07-pet-on-page", "7. Open any website: your pet sits at the edge. Click it to chat."],
+]
 function PetSetup({ kind, setKind, colour, setColour }) {
   const [info, setInfo] = useState(null) // the plugin's pet, or false: no plugin
   const [f, setF] = useState({ user: "", name: "", lang: "auto", likes: "", ai: "gemma3:4b" })
@@ -296,28 +314,49 @@ function PetSetup({ kind, setKind, colour, setColour }) {
     pluginSystem().then(setSys)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const bk = backupFor(sys?.totalMB)
-  // 🧪 does the chosen AI run here? a real short answer, timed (the browser AI: graphics card and memory)
+  // The offline AI: already here (for example the one just tested) is not fetched again; else it
+  // downloads by itself, so the switch to it always works (offline, or the free cloud limit used up).
+  // "Not now" stops it (on mobile data or a full disk).
+  const pullStop = useRef(null)
+  useEffect(() => {
+    if (step !== 5 || !bk || backup) return
+    ollamaState().then((st) => {
+      if (st.models?.includes(bk.name)) setBackup({ name: bk.name, done: true })
+      else if (st.state === "ok") getModel(bk.name)
+    })
+  }, [step, bk?.name]) // eslint-disable-line react-hooks/exhaustive-deps
+  const notNow = () => { pullStop.current?.abort(); setBackup({ name: bk.name, skipped: true }) }
+  // 🧪 does the chosen AI run here? a real short answer, timed (the pet runs on Ollama only)
   const runTest = async () => {
     setTest({ busy: true, msg: "Checking..." })
-    if (f.ai === "webllm") {
-      const g = await gpuInfo(), free = sys?.freeMB
-      if (!g.webgpu) return setTest({ bad: true, msg: "This browser cannot run the browser AI here (no WebGPU).", fix: "Choose Ollama on your computer instead." })
-      if (free != null && free < 2600) return setTest({ bad: true, msg: `Only ${Math.round(free / 1024 * 10) / 10} GB of memory is free now; the browser AI needs about 2.5 GB.`, fix: "Close some tabs or programs, or choose Ollama." })
-      return setTest({ ok: true, msg: `✓ It can run here${g.vendor ? ` (graphics: ${g.vendor})` : ""}. The first answer downloads it once (about 1 GB).` })
-    }
     const st = await ollamaState()
     if (st.state !== "ok") return setTest({ bad: true, msg: st.state === "missing" ? "Ollama is not installed or not running yet." : "Ollama runs, but does not allow this website yet.", fix: "Follow the steps below, then press Test it again." })
-    if (!st.models.includes(f.ai)) return setTest({ bad: true, need: true, msg: `Ollama is ready, but ${f.ai} is not on this computer yet.`, fix: isCloudName(f.ai) ? `In a terminal: ollama signin, then ollama pull ${f.ai}.` : "Press the button below to download it." })
+    // a cloud model is only a tiny file here: added by itself, no terminal
+    if (!st.models.includes(f.ai) && isCloudName(f.ai)) {
+      setTest({ busy: true, msg: `Adding ${f.ai}...` })
+      try { await pullModel(f.ai) } catch { return setTest({ bad: true, msg: `${f.ai} could not be added.`, fix: "Check your internet and press Test it again." }) }
+    } else if (!st.models.includes(f.ai)) return setTest({ bad: true, need: true, msg: `Ollama is ready, but ${f.ai} is not on this computer yet.`, fix: "Press the button below to download it." })
     const t0 = performance.now()
     try {
       const a = await callOllama("Say hello in three words.", "You are a friendly pet. Answer in at most five words.", f.ai, { maxTokens: 20 })
       const s = ((performance.now() - t0) / 1000).toFixed(1)
       setTest({ ok: true, msg: `✓ It works: “${String(a).trim().slice(0, 60)}” in ${s} s.` })
-    } catch (e) { setTest({ bad: true, msg: `It did not answer: ${String(e.message || e).slice(0, 140)}`, fix: isCloudName(f.ai) ? "Sign in once in a terminal: ollama signin. Free cloud use has daily limits." : "Try again, or choose a smaller model." }) }
+    } catch (e) {
+      const m = String(e.message || e), signin = m.match(/https:\/\/ollama\.com\/\S+/)?.[0]
+      if (signin) return setTest({ bad: true, signin, msg: "One more step: sign in to Ollama once (free).", fix: "Press Sign in, then Connect on the Ollama page, then Test it again." })
+      setTest({ bad: true, msg: `It did not answer: ${m.slice(0, 140)}`, fix: isCloudName(f.ai) ? "Sign in once in a terminal: ollama signin. Free cloud use has daily limits." : "Try again, or choose a smaller model." })
+    }
   }
   const getModel = async (name) => {
     setBackup({ name, p: 0 })
-    try { await pullModel(name, (p) => setBackup({ name, p })); setBackup({ name, done: true }); if (name === f.ai) runTest() } catch (e) { setBackup({ name, error: e.message }) }
+    const stop = pullStop.current = new AbortController()
+    try {
+      await pullModel(name, (p) => setBackup((b) => b?.skipped ? b : { name, p }), stop.signal); setBackup({ name, done: true })
+      // the pet then asks once: the cloud or the AI on your computer? (plugin 1.1, pet-bg.js)
+      if (name !== f.ai) window.postMessage({ source: "showmewise-app", type: "pet-backup-ready", model: name, cloud: f.ai }, location.origin)
+      if (name === f.ai) runTest()
+    }
+    catch (e) { if (!stop.signal.aborted) setBackup({ name, error: e.message }) }
   }
   const save = async () => {
     const r = await ask("pet-setup", { setup: { user: f.user, name: f.name || "Vidi", kind, colour, lang: f.lang, likes: f.likes.split(","), model: f.ai } })
@@ -329,7 +368,7 @@ function PetSetup({ kind, setKind, colour, setColour }) {
   const pill = (on) => ({ font: "inherit", fontSize: 14, cursor: "pointer", borderRadius: 999, padding: "8px 14px", border: `1px solid ${on ? C.acc : C.line}`, background: on ? "#2b2063" : "transparent", color: "#fff" })
   const big = (on = true) => ({ font: "inherit", fontWeight: 700, padding: "11px 20px", borderRadius: 12, border: 0, cursor: on ? "pointer" : "default", opacity: on ? 1 : 0.45, background: "linear-gradient(90deg,#7c5cff,#22d3ee)", color: "#fff" })
   const colours = Object.keys(window.VidiPets.colours[kind])
-  const needBackup = f.ai === "webllm" || isCloudName(f.ai)
+  const needBackup = isCloudName(f.ai)
   const STEPS = ["Welcome", "Your pet", "Its name", "About you", "Its AI", "Backup", "Done"]
   const last = needBackup ? 5 : 4
 
@@ -347,8 +386,16 @@ function PetSetup({ kind, setKind, colour, setColour }) {
         {STEPS.map((s, k) => (k === 5 && !needBackup) ? null : <span key={s} title={s} style={{ width: k === step ? 26 : 10, height: 10, borderRadius: 9, background: k < step ? C.ok : k === step ? C.acc : "rgba(255,255,255,.15)", transition: "all .3s" }} />)}
         <span style={{ marginLeft: "auto", color: C.dim, fontSize: 13 }}>{STEPS[step]}</span>
       </div>
-      {info === false && <p style={{ margin: "0 0 12px", padding: "8px 12px", borderRadius: 10, background: "rgba(251,191,36,.1)", color: "#fde68a", fontSize: 14 }}>The ShowMeWise plugin was not found in this browser. {PLUGIN_URL ? <a href={PLUGIN_URL} target="_blank" rel="noopener" style={{ color: "#c4b5fd" }}>Add it to Chrome or Edge</a> : "Add it to Chrome or Edge"}, then reload this page.</p>}
-      {info && !info.allowed && <p style={{ margin: "0 0 12px", padding: "8px 12px", borderRadius: 10, background: "rgba(251,191,36,.1)", color: "#fde68a", fontSize: 14 }}>One more thing: open the plugin (the ShowMeWise icon in the toolbar), then Your pet, and tick <b>Show my pet on web pages</b>. It asks for your OK once.</p>}
+      {info === false && <div style={{ margin: "0 0 12px", padding: "10px 12px", borderRadius: 10, background: "rgba(251,191,36,.1)", color: "#fde68a", fontSize: 14 }}>
+        The ShowMeWise plugin was not found in this browser. Add it (free), then reload this page.
+        {PLUGIN_URL && <div style={{ margin: "8px 0 2px" }}><a href={PLUGIN_URL} target="_blank" rel="noopener" style={{ display: "inline-block", padding: "10px 18px", borderRadius: 10, background: "linear-gradient(135deg,#6d4aff,#3f62ff)", color: "#fff", fontWeight: 700, textDecoration: "none" }}>🧩 Add ShowMeWise to Chrome</a></div>}
+        This is how it looks:
+        <Shot n={1} /><Shot n={2} /><Shot n={3} />
+      </div>}
+      {info && !info.allowed && <div style={{ margin: "0 0 12px", padding: "10px 12px", borderRadius: 10, background: "rgba(251,191,36,.1)", color: "#fde68a", fontSize: 14 }}>
+        One more thing: open the plugin (the ShowMeWise icon in the toolbar), then Your pet, and tick <b>Show my pet on web pages</b>. It asks for your OK once:
+        <Shot n={4} /><Shot n={5} /><Shot n={6} />
+      </div>}
       <div style={{ display: "flex", gap: 20, flexWrap: "wrap", alignItems: "flex-start" }}>
         <div style={{ flex: "0 0 auto", margin: "0 auto" }}><PetPic kind={kind} colour={colour} mood={step === 6 ? "happy" : step === 4 && test?.busy ? "think" : "idle"} size={140} /></div>
         <div style={{ flex: 1, minWidth: 250 }}>
@@ -397,22 +444,32 @@ function PetSetup({ kind, setKind, colour, setColour }) {
             </div>
             {test?.need && !isCloudName(f.ai) && !backup && <button type="button" style={{ ...pill(true), marginTop: 10 }} onClick={() => getModel(f.ai)}>⬇ Download {f.ai} (3.3 GB)</button>}
             {backup?.name === f.ai && backup.p != null && !backup.done && <p style={{ margin: "8px 0 0" }}>Downloading {f.ai}... {Math.round(backup.p * 100)}%</p>}
-            {test?.bad && f.ai !== "webllm" && /Ollama/.test(test.msg) && <OllamaSetup />}
+            {test?.signin && <a href={test.signin} target="_blank" rel="noopener" style={{ ...pill(true), display: "inline-block", marginTop: 10, textDecoration: "none" }}>🔑 Sign in to Ollama</a>}
+            {test?.bad && /not installed|does not allow/.test(test.msg) && <OllamaSetup />}
           </>}
           {step === 5 && <>
-            <h2 style={{ margin: "0 0 6px", fontSize: 19 }}>A backup for offline use</h2>
-            <p style={{ margin: 0, color: C.dim, lineHeight: 1.6 }}>{f.ai === "webllm" ? "The browser AI is the weakest of the three." : "The cloud needs internet and has daily limits."} A small AI on your computer keeps your pet working offline, when the free limit is used up, and for private things.</p>
+            <h2 style={{ margin: "0 0 6px", fontSize: 19 }}>Your pet also works offline</h2>
+            <p style={{ margin: 0, color: C.dim, lineHeight: 1.6 }}>The cloud needs internet and has a free limit. A small AI on your computer takes over by itself when you are offline or the free limit is used up, and it is private.</p>
             {bk ? <>
               <p style={{ margin: "10px 0 0" }}><b>{bk.name}</b> ({bk.size}) fits this computer{sys?.totalMB ? ` (${Math.round(sys.totalMB / 1024)} GB memory)` : ""}. It needs the free Ollama app.</p>
-              {!backup?.done && backup?.p == null && <button type="button" style={{ ...big(), marginTop: 10 }} onClick={() => getModel(bk.name)}>⬇ Get the backup ({bk.size})</button>}
-              {backup?.p != null && !backup.done && <p style={{ margin: "8px 0 0" }}>Downloading the backup... {Math.round(backup.p * 100)}%</p>}
+              {backup?.p != null && !backup.done && <>
+                <p style={{ margin: "8px 0 0" }}>⬇ Downloading the offline AI ({bk.size}), so your pet also works without internet... {Math.round(backup.p * 100)}%</p>
+                <div style={{ height: 8, borderRadius: 4, background: "rgba(255,255,255,.12)", marginTop: 6, overflow: "hidden" }}><div style={{ width: `${Math.round(backup.p * 100)}%`, height: "100%", background: "#7c5cff" }} /></div>
+                <p style={{ margin: "6px 0 0", fontSize: 13.5, color: C.dim }}>You can press Finish now: it keeps downloading. <button type="button" onClick={notNow} style={{ background: "none", border: 0, color: "#c4b5fd", textDecoration: "underline", cursor: "pointer", padding: 0, font: "inherit" }}>Not now</button></p>
+              </>}
+              {(backup?.skipped || !backup) && <>
+                <button type="button" style={{ ...big(), marginTop: 10 }} onClick={() => getModel(bk.name)}>⬇ Download it ({bk.size})</button>
+                <p style={{ margin: "8px 0 0", color: C.dim, fontSize: 13.5 }}>Or later: tell your pet “change the AI”.</p>
+              </>}
               {backup?.done && <p style={{ margin: "8px 0 0", color: C.ok }}>✓ The backup is ready. Your pet uses it when the cloud cannot answer.</p>}
               {backup?.error && <><p style={{ margin: "8px 0 0", color: "#fca5a5" }}>{backup.error}</p><OllamaSetup /></>}
-            </> : <p style={{ margin: "10px 0 0" }}>{sys ? "This computer has little memory, so the browser AI is the backup." : "The plugin checks this computer's memory first."}</p>}
+            </> : <p style={{ margin: "10px 0 0" }}>{sys ? "This computer has too little memory for an AI of its own, so your pet uses the cloud (it needs internet)." : "The plugin checks this computer's memory first."}</p>}
           </>}
           {step === 6 && <>
             <h2 style={{ margin: "0 0 6px", fontSize: 21 }}>🎉 {f.name || "Vidi"} is ready{f.user ? `, ${f.user}` : ""}!</h2>
             <p style={{ margin: 0, lineHeight: 1.6 }}>It waits at the right edge of the page: click it to say hi.</p>
+            <Shot n={7} />
+            {backup?.p != null && !backup.done && !backup.skipped && <p style={{ margin: "8px 0 0", color: C.dim }}>⬇ The offline AI is still downloading ({Math.round(backup.p * 100)}%). Keep this page open until it is done.</p>}
             <p style={{ margin: "10px 0 0", padding: "10px 12px", borderRadius: 10, background: "rgba(124,92,255,.12)", lineHeight: 1.6 }}>💡 Want another AI later? Just tell your pet <Say>change the AI</Say>: it shows the ones ready to use and the ones to download, as buttons.</p>
           </>}
         </div>
@@ -465,8 +522,6 @@ export default function PetTraining() {
         <p style={{ margin: 0, padding: "10px 14px", borderRadius: 12, background: "rgba(251,191,36,.1)", border: "1px solid rgba(251,191,36,.4)", color: "#fde68a", fontSize: 14, lineHeight: 1.5 }}>
           Everything to practise on this page is made up: the sample CV (Mira Hoffmann is not a real person), the form, the toolbar and the ads. Nothing you type here is sent anywhere.
         </p>
-        <PetSetup key={setupKey} kind={kind} setKind={setKind} colour={colour} setColour={setColour} />
-
         <Card>
           <h2 style={{ margin: "0 0 8px", fontSize: 17 }}>Before you start</h2>
           <ol style={{ margin: 0, paddingLeft: 22, lineHeight: 1.9, listStyle: "decimal" }}>
@@ -474,8 +529,21 @@ export default function PetTraining() {
             <li>Open the plugin (the ShowMeWise icon in the toolbar), then Your pet, and tick <b>Show my pet on web pages</b>. It asks for your OK once.</li>
             <li>Come back to this page: your pet waits at the right edge. Click it to start.</li>
           </ol>
+          {/* the same steps as real Chrome shows them, a marker beside each button */}
+          <details style={{ marginTop: 10 }}>
+            <summary style={{ cursor: "pointer", color: "#c4b5fd", fontWeight: 700 }}>📸 Show me with pictures</summary>
+            {SETUP_SHOTS.map(([file, text]) => (
+              <figure key={file} style={{ margin: "14px 0 0" }}>
+                <figcaption style={{ margin: "0 0 6px", fontWeight: 600 }}>{text}</figcaption>
+                <img src={`/setup/${file}.png`} alt={text} loading="lazy" style={{ width: "100%", maxWidth: 760, borderRadius: 10, border: "1px solid rgba(255,255,255,.15)" }} />
+              </figure>
+            ))}
+          </details>
           <p style={{ margin: "10px 0 0", color: C.dim, fontSize: 13.5 }}>On the rest of the ShowMeWise website the pet stays away, because ShowMeWise has its own Vidi there. This page is its training ground.</p>
         </Card>
+
+        <PetSetup key={setupKey} kind={kind} setKind={setKind} colour={colour} setColour={setColour} />
+
 
         <div id="courses" style={{ display: "flex", alignItems: "center", gap: 12, scrollMarginTop: 80 }}>
           <div style={{ flex: 1, height: 8, background: "rgba(255,255,255,.08)", borderRadius: 9, overflow: "hidden" }}><div style={{ width: `${(done.length / LESSONS.length) * 100}%`, height: "100%", background: "linear-gradient(90deg,#7c5cff,#22d3ee)", transition: "width .4s" }} /></div>

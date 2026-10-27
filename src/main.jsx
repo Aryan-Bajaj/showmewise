@@ -15,8 +15,14 @@ import PetTraining from './components/PetTraining.jsx'
 import Vidi from './components/Vidi.jsx'
 import { listen } from './lib/bridge'
 import PluginChat from './components/PluginChat.jsx'
+import NetStatus from './components/NetStatus.jsx'
 
 listen() // the browser plugin, if installed, talks to the page through this
+
+// the hosted website keeps itself on this computer (opens fast, works offline): public/sw.js
+if (import.meta.env.MODE === 'netlify' && 'serviceWorker' in navigator) {
+  addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}))
+}
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -34,6 +40,7 @@ createRoot(document.getElementById('root')).render(
       </Routes>
       <ErrorBoundary name="Vidi"><Vidi /></ErrorBoundary>
       <PluginChat />
+      <NetStatus />
     </HashRouter>
   </StrictMode>,
 )

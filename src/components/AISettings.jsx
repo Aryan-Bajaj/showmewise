@@ -6,6 +6,7 @@ import { probeSystem } from "../lib/systemCheck"
 import { savedBest } from "../lib/computerCheck"
 import { isCloud, cloudOn, setCloud, setCloudModel } from "../lib/cloud"
 import OllamaSetup from "./OllamaSetup"
+const FREE_CLOUD = "gemma4:31b-cloud"
 
 // Desktop build ships ONE engine (bundled llama.cpp + gemma3 vision) so a
 // non-technical user on an office laptop never has to choose or install
@@ -135,6 +136,15 @@ export default function AISettings({ onConfirm, onClose, suggestedSections, tool
     ollamaModelHasVision(selectedModel).then((v) => { if (alive) setOllamaVision(v) })
     return () => { alive = false }
   }, [mode, selectedModel])
+
+  // Add a cloud model from Ollama's list: Ollama fetches its small stub file, then it shows in the list
+  const [adding, setAdding] = useState({})
+  const addCloudModel = (name) => {
+    setAdding((a) => ({ ...a, [name]: "busy" }))
+    fetch("http://localhost:11434/api/pull", { method: "POST", body: JSON.stringify({ model: name, stream: false }), signal: AbortSignal.timeout(120000) })
+      .then((r) => { if (!r.ok) throw new Error(r.status); setAdding((a) => ({ ...a, [name]: "done" })); setSelectedModel(name); setCloudModel(name); checkOllama(true) })
+      .catch(() => setAdding((a) => ({ ...a, [name]: "error" })))
+  }
 
   const turnCloud = (on) => {
     setCloud(on); setCloudState(on); setCloudAsk(false); setCloudOk(false)
@@ -341,8 +351,17 @@ export default function AISettings({ onConfirm, onClose, suggestedSections, tool
                   </div>
                 </div>
               )}
-              {cloud && !cloudModels.length && (
-                <p className="mt-2 text-xs text-zinc-400">No cloud model added yet. In a terminal, run “ollama signin”, then “ollama pull” with the name of a cloud model (their names end in “cloud”, listed on ollama.com). Then close this window and open it again.</p>
+              {/* one free cloud model, the best one for ShowMeWise (the others need paid Ollama credits) */}
+              {cloud && !cloudModels.includes(FREE_CLOUD) && (
+                <div className="mt-2 rounded-lg border border-zinc-700 bg-zinc-800/60 p-2.5 flex items-center gap-3">
+                  <div className="flex-1 text-xs text-zinc-200">
+                    <b>☁ Gemma 4</b> · 31B · Free · ✓ 100% in our tests<br />
+                    <span className="text-zinc-400">All-round, sees your screen. Best for guides. Needs the free Ollama account.</span>
+                  </div>
+                  {adding[FREE_CLOUD] === "error" && <span className="text-xs text-amber-300">could not add</span>}
+                  <button type="button" disabled={adding[FREE_CLOUD] === "busy"} onClick={() => addCloudModel(FREE_CLOUD)}
+                    className="px-3 py-1.5 rounded-md bg-blue-500 text-white text-xs font-semibold disabled:opacity-50">{adding[FREE_CLOUD] === "busy" ? "Adding…" : "Use this"}</button>
+                </div>
               )}
               {isCloud(selectedModel) && (
                 <div className="flex items-center gap-1.5 mt-2 text-xs text-amber-200 bg-amber-500/10 border border-amber-500/30 rounded-lg px-2.5 py-1.5">

@@ -54,6 +54,8 @@ An assistant for learning and documenting how software is used: it turns screen 
 - power: to keep the computer awake while a recording or a guide is in progress, so the work is not cut off.
 - scripting and activeTab: to read the text of the page the user asks about, and to mark buttons on it when the user presses "Show me on the page".
 - Host permission for showmewise.netlify.app: the plugin opens the ShowMeWise website in a tab, and the website makes the guides on the user's computer.
+- declarativeNetRequestWithHostAccess: only after the user presses Connect and allows Ollama (on their own computer, localhost:11434), the plugin removes the browser's Origin header from requests to Ollama that come from the ShowMeWise website or the plugin, so Ollama answers them without a terminal setting. No other website gets access. No request leaves the computer.
+- Optional host permission for localhost:11434 and 127.0.0.1:11434 (Ollama on the user's own computer): asked only when the user presses Connect.
 - Optional host permission for all sites: asked for only when the user first asks about a page or turns on the pet, so Vidi can read that page and up to 3 linked pages of the same site, show the pet on pages, and get web search answers from Wikipedia and DuckDuckGo.
 
 ## Remote code

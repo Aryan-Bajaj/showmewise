@@ -57,7 +57,11 @@ async function pickLinksByAI(question, links, base, mode, model) {
 
 // pref: the model the user chose in the pet's chat ("change the AI"); a cloud
 // one only after the user said the work is not confidential (pet/pet-bg.js)
-async function pickModel(pref) {
+// The pet (its requests have ids "pet-...") runs on Ollama only, on this computer or Ollama's cloud:
+// the browser AI froze this laptop's graphics once (26 Oct 2026), so the pet never uses it.
+async function pickModel(pref, id = "") {
+  const pet = /^(pick-)?pet-/.test(String(id)) // ("pick-pet-...": the pet's Show me on the page)
+  if (pet && pref === "webllm") pref = ""
   if (pref === "webllm") return ["webllm", DEFAULT_WEBLLM_MODEL]
   try {
     const d = await fetch("http://localhost:11434/api/tags", { signal: AbortSignal.timeout(3000) }).then((r) => r.json())
@@ -70,6 +74,7 @@ async function pickModel(pref) {
     const quick = local.find((m) => /^gemma3:4b/.test(m.name)) || [...local].sort((a, b) => size(a) - size(b))[0]
     if (quick) return ["ollama", quick.name]
   } catch { /* no Ollama */ }
+  if (pet) throw new Error("I need Ollama to answer. Set it up once on the Pet training page (Download Ollama, then Connect), or open Ollama if it is installed.")
   return ["webllm", DEFAULT_WEBLLM_MODEL]
 }
 
@@ -200,7 +205,7 @@ export default function PluginChat() {
       try {
         // "Show me on the page": which of the page's buttons and fields the answer is about
         if (m.scope === "pick") {
-          const [mode, model] = await pickModel(m.model)
+          const [mode, model] = await pickModel(m.model, m.id)
           const prompt = `Question: ${m.question}\nAnswer: ${m.answer}\n\nThings on the page:\n${m.elements.map((t, i) => `${i + 1}. ${t}`).join("\n")}\n\nWhich of these does the answer tell the user to use? Only the ones needed, usually just one, in the order of the answer. Reply with the numbers separated by commas (at most 3), or 0 if none fits.`
           const sys = "You point at buttons and fields on a page. Reply with numbers only."
           const raw = mode === "ollama" ? await callOllama(prompt, sys, model, { maxTokens: 20, temperature: 0 }) : await callWebLLM(prompt, sys, null, { maxTokens: 20, model })
@@ -216,7 +221,7 @@ export default function PluginChat() {
           const bytes = Uint8Array.from(atob(m.doc.data), (ch) => ch.charCodeAt(0))
           const text = (await extractText(new File([bytes], m.doc.name))).slice(0, 14000)
           if (!text.trim()) throw new Error(`Could not read any text from ${m.doc.name}. A scanned PDF is only pictures of text.`)
-          const [mode, model] = await pickModel(m.model)
+          const [mode, model] = await pickModel(m.model, m.id)
           status("Matching the form to your file...")
           const list = m.fields.map((f) => `${f.i}. ${f.label || "(no label)"} [${f.type}]${f.options?.length ? ` options: ${f.options.slice(0, 40).join(" | ")}` : ""}`).join("\n")
           const prompt = `THE USER'S FILE:\n${text}\n\nFORM FIELDS ON THE PAGE:\n${list}\n\nFor each form field whose answer is clearly written in the file, give the value to put in. For a field with options, give exactly one of its options. Leave out every field the file does not clearly answer. Never invent or guess anything.\nReply exactly in this shape, with the field numbers: {"fills": [{"i": 1, "value": "..."}]}`
@@ -266,7 +271,7 @@ export default function PluginChat() {
             for (const [, i] of ranked) { if (size > 9000) break; keep.add(i); size += parts[i].text.length }
             manual = parts.filter((_, i) => keep.has(i)).map((d) => d.text).join("\n\n")
           }
-          const [mode, model] = await pickModel(m.model)
+          const [mode, model] = await pickModel(m.model, m.id)
           status("Finding your next step...")
           // One AI call for each thing the user SAYS: the task and its whole list of steps (copied
           // from the manual when it has them). "Done, next step" walks that list in the plugin with
@@ -352,7 +357,7 @@ Write "question", "where" and "steps" in ${langOf(said0) || "English"}.`
         // Vidi the pet (BETA): a friendly general chat, or an answer from web
         // results the plugin found (each fact with its result number)
         if (m.scope === "pet") {
-          const [mode, model] = await pickModel(m.model)
+          const [mode, model] = await pickModel(m.model, m.id)
           const p = m.pet || {}
           const sys = `You are ${p.name || "Vidi"}, a small, kind ${p.kind || "dragon"} who lives in the user's web browser as their helper and friend (the ShowMeWise plugin).
 - Talk like a cheerful best friend: answer exactly what was asked, as short as possible (a simple question gets ONE short sentence, like "The capital of Australia is Canberra."). Give more only when the user asks for details, an explanation or steps. A question about an amount (speed, height, size, age, date, price) is answered with the number and its unit. Warm, simple words, sometimes one emoji. Reply in the language the user writes in (Hinglish in Hinglish, German in German); English when unsure.${p.user ? `\n- The user's name is ${p.user}.` : ""}${p.likes?.length ? `\n- The user likes: ${p.likes.join(", ")}.` : ""}
@@ -401,7 +406,7 @@ Write "question", "where" and "steps" in ${langOf(said0) || "English"}.`
         if (m.scope === "help" ||/\b(show ?me ?wise|vidi|plugin|extension)\b/i.test(m.question)) {
           const { onTopic, sections } = findHelp(m.question)
           if (!onTopic) return post("chat-answer", { id: m.id, answer: "Sorry, I can only help with ShowMeWise: recording, the guide, saving it, the chats and the plugin." })
-          const [mode, model] = await pickModel(m.model)
+          const [mode, model] = await pickModel(m.model, m.id)
           status("Looking in the ShowMeWise help...")
           const prompt = vidiPrompt(m.question, sections, "the ShowMeWise browser plugin")
           const answer = mode === "ollama" ? await callOllama(prompt, VIDI_SYSTEM, model, { maxTokens: 200, temperature: 0.2, onToken: typing }) : await callWebLLM(prompt, VIDI_SYSTEM, null, { maxTokens: 200, model, onToken: typing })
@@ -443,7 +448,7 @@ Write "question", "where" and "steps" in ${langOf(said0) || "English"}.`
         }
         // a huge page asked again: pick the parts for this new question
         if (!built && c.docs.length > BIG) await indexDocs()
-        const [mode, model] = await pickModel(m.model)
+        const [mode, model] = await pickModel(m.model, m.id)
         // Most of the question's words are nowhere on the page: the answer is
         // likely behind a link. Checked without the AI, because a small model
         // sometimes answers a different question instead of saying "not here".
@@ -465,6 +470,13 @@ Write "question", "where" and "steps" in ${langOf(said0) || "English"}.`
         }
         // no link fits after all: answer from the page as it is
         if (offPage) { status("Answering..."); r = await ask(m.question, mode, model, (l) => l && status(l), typing) }
+        // A safety net that does not depend on the AI: a page can hide orders ("your computer has a
+        // virus", "enter your password"); a small model once passed such a scare on. Unless the user
+        // asked about it, a sentence with those words is left out of the answer.
+        if (!/virus|malware|infect|password|\bpin\b/i.test(m.question)) {
+          const all = String(r.answer || "").split(/(?<=[.!?])\s+/), kept = all.filter((s) => !/virus|malware|infect|password|\bpin\b/i.test(s))
+          if (kept.length < all.length) r.answer = kept.join(" ") + "\n⚠️ This page also has hidden text aimed at AI helpers. I ignored it: never follow it."
+        }
         post("chat-answer", {
           id: m.id, answer: String(r.answer || "").trim() || "I could not find anything about that in it. Try other words, or the Help tab for questions about ShowMeWise.", notFound: !!r.notFound, model,
           sources: (r.sources || []).slice(0, 3).map((s) => ({ label: s.label, title: s.title, timestamp: s.timestamp, url: c.docs.find((d) => d.label === s.label)?.url || null, text: (s.text || "").slice(0, 300) })),

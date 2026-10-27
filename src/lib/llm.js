@@ -176,7 +176,8 @@ async function postWithRetry(url, body) {
   const payload = JSON.stringify(body)
   for (let i = 0; ; i++) {
     try {
-      const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: payload })
+      // no Content-Type header: a plain request needs no browser pre-check, so the plugin can connect it to Ollama
+      const res = await fetch(url, { method: "POST", body: payload })
       if (res.status < 500 || i >= RETRY_WAITS.length) return res
     } catch (e) {
       if (i >= RETRY_WAITS.length) throw e
@@ -186,7 +187,34 @@ async function postWithRetry(url, body) {
   }
 }
 
+// A cloud model with no internet, or with the free cloud amount used up: the AI on this
+// computer answers instead, and the page tells the user (event "showmewise:ai-switch").
+// Never the other way: a local choice never goes to the cloud by itself.
 export async function callOllama(userMsg, systemPrompt, model = "llama3.2", opts = {}) {
+  if (!isCloud(model)) return callOllamaOnce(userMsg, systemPrompt, model, opts)
+  let why = navigator.onLine === false ? "offline" : ""
+  if (!why) {
+    try { return await callOllamaOnce(userMsg, systemPrompt, model, opts) } catch (e) {
+      // only "free limit reached" (429) or no internet: a paid model the free plan does not include (402)
+      // is told to the user as it is, never answered quietly by another AI
+      why = /free limit/i.test(e.message) ? "limit" : /could not be reached|internet connection|failed to fetch|network/i.test(e.message) ? "offline" : ""
+      if (!why) throw e
+    }
+  }
+  const local = await localBackup()
+  if (!local) throw new Error(why === "limit" ? "The free cloud amount is used up, and there is no AI on this computer yet. Download the offline AI in the AI settings." : "You are offline, and there is no AI on this computer yet. Connect to the internet, or download the offline AI once.")
+  window.dispatchEvent(new CustomEvent("showmewise:ai-switch", { detail: { from: model, to: local, why } }))
+  return callOllamaOnce(userMsg, systemPrompt, local, opts)
+}
+async function localBackup() {
+  try {
+    const d = await fetch("http://localhost:11434/api/tags", { signal: AbortSignal.timeout(2500) }).then((r) => r.json())
+    const names = (d.models || []).map((m) => m.name).filter((n) => !isCloud(n))
+    return names.find((n) => /gemma3/.test(n)) || names[0] || ""
+  } catch { return "" }
+}
+
+async function callOllamaOnce(userMsg, systemPrompt, model, opts = {}) {
   const body = {
     model,
     prompt: `${systemPrompt}\n\n${userMsg}`,

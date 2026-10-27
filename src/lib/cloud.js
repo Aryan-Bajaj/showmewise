@@ -15,7 +15,11 @@ export const setCloudModel = (name) => { try { if (name && isCloud(name)) localS
 // what went wrong with a cloud model, in plain words
 // (why: Ollama's own reason, which names a free model to try instead)
 export function cloudError(status, why = "") {
-  if (status === 401 || status === 403) return "This cloud model needs you to sign in to Ollama: open a terminal and run “ollama signin”. Or pick a model on your computer."
+  if (status === 401 || status === 403) {
+    // Ollama sends its own sign in page with the refusal: no terminal needed then
+    const url = why.match(/"signin_url"\s*:\s*"(https:\/\/ollama\.com\/[^"]+)"/)?.[1]
+    return url ? `This cloud model needs you to sign in to Ollama once. Sign in here: ${url}` : "This cloud model needs you to sign in to Ollama: open a terminal and run “ollama signin”. Or pick a model on your computer."
+  }
   if (status === 402) {
     const free = why.match(/Try ([\w.:-]*cloud)\b/)?.[1]
     return `This cloud model is not in your free Ollama plan (it needs paid credits). Pick a model on your computer${free ? `, or the free cloud model ${free}` : ""}.`

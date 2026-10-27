@@ -1,3 +1,3 @@
-// The browser plugin's Chrome Web Store page. Empty until it is live: then the
-// "Get the browser plugin" links show up on the website by themselves.
-export const PLUGIN_URL = ""
+// The browser plugin's Chrome Web Store page: the "Get the browser plugin" links
+// on the website show up because it is set.
+export const PLUGIN_URL = "https://chromewebstore.google.com/detail/showmewise-record-guide-c/ldnjadhgbdnnmjpdndnjcbbcghbmfkck"

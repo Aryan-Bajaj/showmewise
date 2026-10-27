@@ -1137,7 +1137,7 @@ export default function LandingPage() {
             </div>
             <h2 style={{ fontSize: 'clamp(1.8rem, 4.2vw, 2.8rem)', fontWeight: 700, letterSpacing: '-0.025em' }}>ShowMeWise, one click away</h2>
             <p style={{ maxWidth: 620, margin: '14px auto 0', fontSize: '0.98rem', lineHeight: 1.7, color: 'rgba(255,255,255,0.64)' }}>
-              A small window under the ShowMeWise icon in your browser bar. For Chrome and Edge, coming soon to the Chrome Web Store.
+              A small window under the ShowMeWise icon in your browser bar. For Chrome and Edge, free on the Chrome Web Store.
             </p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14 }}>
