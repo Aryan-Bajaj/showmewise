@@ -74,8 +74,12 @@ export default function OllamaSetup({ onReady }) {
           {dl.command ? <p>On Linux, paste this in a terminal instead:{code(dl.command)}</p> : <ol className="list-decimal pl-4 space-y-1 text-zinc-300">
             {dl.os === "Windows" ? <>
               <li>Open the file you just downloaded, <b>OllamaSetup.exe</b>: click the <b>⬇ arrow at the top right</b> of Chrome, or look in your <b>Downloads</b> folder.</li>
-              <li>Click <b>Install</b> and wait until it finishes.</li>
-              <li>Press the <b>Windows key</b>, type <b>Ollama</b> and press <b>Enter</b>. A small llama icon appears at the bottom right, next to the clock. You can close or minimise any Ollama window: it keeps running.</li>
+              <li>Click <b>Install</b> and wait until it finishes.
+                <img src="/setup/09-ollama-install.png" alt="The Ollama setup window: click Install" loading="lazy" className="mt-1.5 w-full max-w-md rounded border border-zinc-700" /></li>
+              <li>Press the <b>Windows key</b>, type <b>Ollama</b> and press <b>Enter</b>. A small llama icon appears at the bottom right, next to the clock. You can close or minimise any Ollama window: it keeps running.
+                <img src="/setup/10-ollama-start.png" alt="Windows search with Ollama typed: press Enter" loading="lazy" className="mt-1.5 w-full max-w-md rounded border border-zinc-700" />
+                <span className="block mt-1.5">Don't see the llama? Click the small arrow next to the clock:</span>
+                <img src="/setup/11-ollama-tray.png" alt="The arrow next to the clock opens the hidden icons, with the llama icon" loading="lazy" className="mt-1 w-full max-w-xs rounded border border-zinc-700" /></li>
             </> : <>
               <li>Open the file you just downloaded, <b>Ollama.dmg</b>: click the <b>⬇ arrow at the top right</b> of Chrome, or look in <b>Downloads</b>.</li>
               <li><b>Drag the llama</b> into the <b>Applications</b> folder.</li>

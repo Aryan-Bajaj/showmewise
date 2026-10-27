@@ -136,6 +136,19 @@ Real Chrome, as a new user sees it. The Pet training page shows each picture rig
 </tr>
 </table>
 
+Installing Ollama on Windows, as shown in step 1 of the Ollama setup:
+
+<table>
+<tr>
+<td width="50%"><img src="public/setup/09-ollama-install.png" alt="Ollama setup window, Install marked"><br><sub>Open OllamaSetup.exe and click <b>Install</b>.</sub></td>
+<td width="50%"><img src="public/setup/10-ollama-start.png" alt="Windows search with Ollama, Enter marked"><br><sub>Press the Windows key, type <b>Ollama</b>, press <b>Enter</b>.</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="public/setup/11-ollama-tray.png" alt="Hidden icons next to the clock, llama icon marked"><br><sub>The llama icon next to the clock means Ollama runs. Hidden? Click the arrow.</sub></td>
+<td></td>
+</tr>
+</table>
+
 **AI for the pet:** Ollama only (the pet never uses the browser AI). Get Ollama with the Download button in the setup (Windows or Mac), open it, press Connect. Then pick ☁ **Gemma 4** in Ollama's cloud (free, with a monthly limit) or 💻 the AI on your computer, which downloads by itself. With no internet, or when the free cloud limit is used up, the AI on your computer takes over and the pet says so.
 
 <p align="center"><img src="docs/images/pet-family.png" alt="The pets: dragon, wolf, cat, fox and owl, each in three colours" width="820"></p>
