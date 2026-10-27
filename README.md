@@ -97,6 +97,7 @@ ShowMeWise is free and runs completely on your own computer: no cloud, no accoun
 
 Every release is tested against manuals written by hand for real screen recordings, and each guide is read step by step against them. With gemma3 12B on a normal 16 GB laptop (Accurate speech, key words typed in), **60 to 67.5 %** of all actions came out fully right in the first draft. A guide is a strong first draft that you finish: read it and fix it before you share it.
 
+* **Video size on the website:** one video can be up to 1000 MB and 30 minutes. Cut a longer video into parts. The desktop build has no limit.
 * **Your computer sets the speed.** With the biggest model a 10 minute video took about 1¾ hours on a 16 GB laptop. A stronger computer or a smaller model is faster. The computer must stay awake; if it stops, the same video picks up where it stopped.
 * **A bigger model gives a better guide.** A 4B model (Ollama) got about 30 %. In the browser, on our 1-minute demo: Medium (Qwen2.5 1.5B) found 11 of 15 steps, 6 fully right, in about 10 minutes; Small (Llama 3.2 1B) found 2. Test my computer (`#/check`) picks the size that fits.
 * **Often missed:** a click where nothing visible changes, and a button with only an icon. Small clicks that were seen go to the checklist.
