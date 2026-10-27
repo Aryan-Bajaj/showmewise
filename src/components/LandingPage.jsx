@@ -7,6 +7,7 @@ import { PLUGIN_URL } from '../lib/links'
 import HowItRuns from './HowItRuns'
 import BeforeAfter from './BeforeAfter'
 import DocChatDemo from './DocChatDemo'
+import { PetHello, PickYourPet } from './HomePets'
 
 // Primary: #3f62ff (electric blue)  Secondary: #a78bfa (violet)
 // Accent:  #06b6d4 (cyan)           Warm:      #fbbf24 (amber)
@@ -469,6 +470,7 @@ export default function LandingPage() {
           <a href="/#/check" style={{ display: 'inline-block', marginTop: 14, color: 'rgba(255,255,255,0.7)', fontSize: '0.92rem' }}>
             No Ollama? Test my computer first (about 2 minutes)
           </a>
+          <PetHello />
           {PLUGIN_URL && (
             <a href={PLUGIN_URL} target="_blank" rel="noopener" style={{ position: 'fixed', left: 16, bottom: 16, zIndex: 50, padding: '9px 14px', borderRadius: 100, background: '#1b1342', border: '1px solid rgba(124,92,255,0.6)', color: '#fff', textDecoration: 'none', fontSize: 13.5, fontWeight: 600, boxShadow: '0 6px 20px rgba(0,0,0,0.35)' }}>
               ＋ Get the browser plugin
@@ -721,6 +723,9 @@ export default function LandingPage() {
           </div>
           <DocChatDemo />
         </section>
+
+        {/* ── The plugin pet: pick yours ── */}
+        <PickYourPet />
 
         {/* ── How it exactly works ────────────────────────────── */}
         <section id="lp-how" className="lp-section" style={{ padding: '80px 24px 100px', maxWidth: 1140, margin: '0 auto' }}>
