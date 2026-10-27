@@ -266,7 +266,9 @@ ${context}`
     const lang = hits(/\b(kaise|kya|karu|karun|karo|kar|hai|hain|mein|mujhe|kahan|kaun|kyun|batao|ka|ki|ke|ko)\b/gi) >= 2 ? "Hinglish (Hindi words in Latin letters)"
       : hits(/\b(wie|was|ich|das|der|die|und|ist|kann|wo|mein|teile)\b/gi) >= 2 ? "German"
       : hits(/\b(c[oó]mo|qu[eé]|el|la|los|un|una|puedo|agrego|es)\b/gi) >= 2 ? "Spanish"
-      : hits(/\b(comment|quel|quelle|est|le|la|les|un|une|je|ajouter)\b/gi) >= 2 ? "French" : ""
+      : hits(/\b(comment|quel|quelle|est|le|la|les|un|une|je|ajouter)\b/gi) >= 2 ? "French"
+      // English too: on a German page, "explain this page" was answered half in German
+      : /^[\x20-\x7E\s’]+$/.test(question) ? "English" : ""
     const asked = lang ? `${question}\n\n(The question is in ${lang}: answer in ${lang}. Keep button and field names exactly as on screen.)` : question
     const answer = aiMode === "ollama"
       ? await callOllama(asked, system, model, { maxTokens: overview ? 500 : 400, onToken })
