@@ -404,7 +404,7 @@ export const HOWTO = [
     body: [
       "Is it free? Yes. No account, no payment.",
       "Is my video uploaded? No. Your video stays on your computer. Only if you pick a cloud AI (Ollama's cloud), the text and screenshots it needs to write the guide go to Ollama.",
-      "Can I use a long video, like 30, 45 or 60 minutes, or 2 hours? Yes, there is no size limit, but it takes long. With the most accurate model, a 10 minute video took about 1¾ hours on a normal 16 GB laptop, so a 45 minute video can take many hours. Cut it into shorter parts, or pick a smaller model to go faster.",
+      `Can I use a long video, like 30, 45 or 60 minutes, or 2 hours? ${MAX_VIDEO_MB || MAX_VIDEO_MIN ? `On this website one video can be up to ${[MAX_VIDEO_MB && `${MAX_VIDEO_MB} MB`, MAX_VIDEO_MIN && `${MAX_VIDEO_MIN} minutes`].filter(Boolean).join(" and ")}, so cut a longer video into parts.` : "Yes, there is no size limit here."} Long videos take long. With the most accurate model, a 10 minute video took about 1¾ hours on a normal 16 GB laptop, so a 45 minute video can take many hours. Cut it into shorter parts, or pick a smaller model to go faster.`,
       "Can I close the laptop lid while it works? No. The computer goes to sleep and the work stops. Keep it open and plugged in.",
       "Can I use another tab meanwhile? Yes, but keep the ShowMeWise tab open. It works best when its tab is in front.",
       "Which languages? The video can be in English, Hindi or Hinglish, German, Spanish, French or another language. The guide is in English.",
