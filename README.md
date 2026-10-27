@@ -82,6 +82,7 @@ P.S. Version 5 is here: the clicks marked on the screen, in a document that read
 * `/` is the landing page
 * `/#/app` is the ShowMeWise app (video to documentation)
 * `/#/docchat` is the Doc Chat app (upload a document and chat with it)
+* `/#/features` is Features: everything ShowMeWise does, the website first, then the plugin
 * `/#/howto` is How to use: every screen and setting with marked screenshots, and every error message with what to do
 * `/#/pet-training` is the Pet training for the plugin's pet: a setup that starts by itself, then lessons as cards with ▶ Try buttons
 * `/#/check` is Test my computer: which browser AI size runs well here
@@ -593,7 +594,7 @@ showmewise/
 │   └── Output/                   ← compiled installer .exe + .bin parts (gitignored)
 │
 └── src/
-    ├── main.jsx                  ← HashRouter → / · /app · /docchat · /howto · /pet-training · /check · /policy
+    ├── main.jsx                  ← HashRouter → / · /app · /docchat · /features · /howto · /pet-training · /check · /policy
     ├── App.jsx                   ← ShowMeWise pipeline UI + OCR + Vid Chat
     ├── DocChatApp.jsx            ← Doc Chat app (upload a doc, chat)
     ├── index.css                 ← Indeterminate progress animation
@@ -620,7 +621,7 @@ showmewise/
     │   ├── PluginChat.jsx        ← The engine tab's answers for the plugin and the pet
     │   ├── PetTraining.jsx       ← Setup wizard and lesson cards for the pet
     │   ├── OllamaSetup.jsx       ← Ollama in three steps (install, allow, first model)
-    │   ├── HowToPage.jsx · PolicyPage.jsx · CheckPage.jsx  ← How to use, privacy, Test my computer
+    │   ├── FeaturesPage.jsx · HowToPage.jsx · PolicyPage.jsx · CheckPage.jsx  ← Features, How to use, privacy, Test my computer
     │
     ├── hooks/
     │   ├── useFrameExtractor.js  ← Frame extraction (capped + downscaled)

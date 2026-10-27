@@ -48,11 +48,12 @@ export const HOWTO = [
   {
     id: "upload", title: "Step 1. Start: choose your video", img: "upload",
     marks: [
-      { n: 1, x: 57.8, y: 60.2, dir: "right", text: "The size limit of the website. Check it before you choose a long recording." },
-      { n: 2, x: 29.0, y: 50.1, dir: "left", text: "Drop your video here, or click here to pick it from your computer. MP4, MOV and WEBM files work." },
-      { n: 3, x: 37.1, y: 73.1, dir: "left", text: "The language people speak in the video. If it is not in the list, pick Another language. The guide is always written in English." },
-      { n: 4, x: 40.1, y: 78.3, dir: "left", text: "How the speech is heard. Fast is good for clear English. Accurate hears names, codes and mixed languages better, but takes 3 to 4 times longer on most laptops." },
-      { n: 5, x: 29.0, y: 92.5, dir: "left", text: "Key words (optional): names or codes from the video, separated by commas. The guide spells them exactly like this." },
+      { n: 1, x: 53.8, y: 51.1, dir: "right", text: "The video types that work: MP4, MOV and WEBM." },
+      { n: 2, x: 29.0, y: 42.0, dir: "left", text: "Drop your video here, or click here to pick it from your computer. MP4, MOV and WEBM files work." },
+      { n: 3, x: 37.0, y: 76.6, dir: "left", text: "The language people speak in the video. If it is not in the list, pick Another language. The guide is always written in English." },
+      { n: 4, x: 40.0, y: 81.0, dir: "left", text: "How the speech is heard. Fast is good for clear English. Accurate hears names, codes and mixed languages better, but takes 3 to 4 times longer on most laptops." },
+      { n: 5, x: 29.0, y: 93.1, dir: "left", text: "Key words (optional): names or codes from the video, separated by commas. The guide spells them exactly like this." },
+      { n: 6, x: 44.4, y: 67.3, dir: "left", text: "Record your screen: record here instead of choosing a file. The guide starts by itself when you stop." },
     ],
     body: [
       "First pick the language and the speech option. Then choose the video. ShowMeWise starts at once.",
@@ -94,8 +95,8 @@ export const HOWTO = [
   {
     id: "set-ollama", title: "Step 3b. Which AI writes the guide: Ollama", img: "set-backend-ollama",
     marks: [
-      { n: 1, x: 86.4, y: 51.4, dir: "right", text: "Ollama. If it is running on your computer, ShowMeWise finds it and picks it for you. \"Running · 6 models\" means it found 6 models." },
-      { n: 2, x: 15.4, y: 68.5, dir: "right", text: "Select model: the best one is already picked. You can choose a smaller one to go faster." },
+      { n: 1, x: 99.3, y: 25.0, dir: "left", text: "Ollama. If it is running on your computer, ShowMeWise finds it and picks it for you. \"Running · 6 models\" means it found 6 models." },
+      { n: 2, x: 15.4, y: 52.0, dir: "right", text: "Select model: the best one is already picked. You can choose a smaller one to go faster." },
     ],
     body: [
       "Models with \"cloud\" in the name are hidden unless you turn on Use Ollama cloud models (more powerful) under the model list. You must first read a short notice and tick I understand.",
@@ -107,19 +108,18 @@ export const HOWTO = [
   {
     id: "set-webllm", title: "Step 3c. Which AI writes the guide: in the browser (WebLLM)", img: "set-backend-webllm",
     marks: [
-      { n: 1, x: 16.6, y: 21.2, dir: "right", text: "WebLLM: the AI runs inside your browser. Nothing to install. It downloads once and is kept for next time." },
-      { n: 2, x: 86, y: 47.8, dir: "right", text: "Test my system: checks your computer and picks the model that fits it." },
-      { n: 3, x: 53, y: 55.2, dir: "right", text: "Browser model: Small (0.9 GB, only for chat), Medium (1 GB, the usual choice), Large (about 2 GB, needs more free memory) or Vision (3.5 GB). Test my computer picks the size that fits." },
-      { n: 4, x: 99, y: 79, dir: "left", text: "How exact and how fast this model is. If the model is too big for your computer, a warning shows here." },
+      { n: 1, x: 17.0, y: 20.0, dir: "right", text: "WebLLM: the AI runs inside your browser. Nothing to install. It downloads once and is kept for next time." },
+      { n: 2, x: 54.0, y: 45.0, dir: "right", text: "Test my computer: checks your computer and picks the model that fits it." },
+      { n: 3, x: 53.5, y: 58.1, dir: "right", text: "Browser model: Small (0.9 GB, only for chat), Medium (1 GB, the usual choice), Large (about 2 GB, needs more free memory) or Vision (3.5 GB). Test my computer picks the size that fits." },
+      { n: 4, x: 99.6, y: 79.0, dir: "left", text: "How exact and how fast this model is. If the model is too big for your computer, a warning shows here." },
     ],
     body: ["If your browser cannot run it, use Chrome or Edge on a computer, or install Ollama."],
   },
   {
     id: "set-ollama-missing", title: "Step 3d. Ollama says \"Not detected\"", img: "set-ollama-missing",
     marks: [
-      { n: 1, x: 71, y: 21.4, dir: "right", text: "Not detected: Ollama is not running, or it does not allow this website yet." },
-      { n: 2, x: 66, y: 31.1, dir: "right", text: "Follow the lit step in the Set up Ollama box: Download Ollama for your computer, open it, then Connect (one click with the ShowMeWise plugin, no terminal)." },
-      { n: 3, x: 50, y: 96, dir: "up", text: "Retry detection now checks again. The page also finds Ollama by itself after a few seconds." },
+      { n: 1, x: 74.5, y: 37.2, dir: "right", text: "Not detected: Ollama is not running, or it does not allow this website yet." },
+      { n: 2, x: 50.0, y: 75.0, dir: "up", text: "Follow the lit step in the Set up Ollama box: Download Ollama for your computer, open it, then Connect (one click with the ShowMeWise plugin, no terminal)." },
     ],
     body: ["You do not have Ollama? The Download Ollama button gets it for Windows or Mac. After installing, open Ollama (Windows key or Cmd + Space, type Ollama, Enter); you can minimise it. Check if it worked tells you. Still not found? Look for the llama icon, open 127.0.0.1:11434 (it should say Ollama is running), restart the computer, or allow Ollama in your antivirus. Or just use the browser AI."],
   },
@@ -131,8 +131,8 @@ export const HOWTO = [
   {
     id: "set-accuracy", title: "Step 3f. Accuracy options", img: "set-bottom",
     marks: [
-      { n: 1, x: 42.8, y: 40.2, dir: "right", text: "Self-verify each step: off by default. The AI checks every step a second time and removes what it cannot see. In our tests it also removed correct details, and it takes about a third longer." },
-      { n: 2, x: 46.1, y: 55.9, dir: "right", text: "Consolidate procedure: a last tidy-up of the step names. Steps that say the same thing are joined." },
+      { n: 1, x: 43.5, y: 37.2, dir: "right", text: "Self-verify each step: off by default. The AI checks every step a second time and removes what it cannot see. In our tests it also removed correct details, and it takes about a third longer." },
+      { n: 2, x: 47.0, y: 56.0, dir: "right", text: "Consolidate procedure: a last tidy-up of the step names. Steps that say the same thing are joined." },
     ],
     body: ["Consolidate is on, Self-verify is off. Switch Self-verify on only if a guide has steps that never happened in the video."],
   },
@@ -181,11 +181,11 @@ export const HOWTO = [
   {
     id: "guide", title: "Step 5a. Read and fix your guide", img: "guide",
     marks: [
-      { n: 1, x: 76.0, y: 49.9, dir: "right", text: "All actions of this step, in the right order. Codes and numbers are copied from the screen." },
+      { n: 1, x: 79.2, y: 50.0, dir: "right", text: "All actions of this step, in the right order. Codes and numbers are copied from the screen." },
       { n: 3, x: 74.1, y: 42.8, dir: "right", text: "Edit, Move up, Move down and Delete: on every step." },
       { n: 4, x: 78.5, y: 28.1, dir: "left", text: "Self-check: how well the guide matches the video (100 is best), and how many parts it has." },
       { n: 5, x: 18.3, y: 80.2, dir: "right", text: "Your video and small pictures from it. Click a picture to jump to that moment." },
-      { n: 2, x: 84.2, y: 87.8, dir: "up", text: "Pictures of the screen. The button or field you clicked has a number. Click a picture to make it big, click again to close it." },
+      { n: 2, x: 87.0, y: 97.6, dir: "up", text: "Pictures of the screen. The button or field you clicked has a number. Click a picture to make it big, click again to close it." },
     ],
     body: [
       "The AI can make mistakes. Read every step before you share the guide.",

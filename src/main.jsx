@@ -10,6 +10,7 @@ import LegalNotice from './components/LegalNotice.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import MobileNotice from './components/MobileNotice.jsx'
 import HowToPage from './components/HowToPage.jsx'
+import FeaturesPage from './components/FeaturesPage.jsx'
 import CheckPage from './components/CheckPage.jsx'
 import PetTraining from './components/PetTraining.jsx'
 import Vidi from './components/Vidi.jsx'
@@ -35,6 +36,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/policy" element={<PolicyPage />} />
         <Route path="/legal" element={<LegalNotice />} />
         <Route path="/howto" element={<HowToPage />} />
+        <Route path="/features" element={<FeaturesPage />} />
         <Route path="/check" element={<CheckPage />} />
         <Route path="/pet-training" element={<PetTraining />} />
       </Routes>

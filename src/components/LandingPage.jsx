@@ -313,6 +313,7 @@ export default function LandingPage() {
 
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <a href="/#/howto" className="lp-nav-howto" style={{ color: 'rgba(236,233,255,0.75)', fontSize: 13, textDecoration: 'none', padding: '9px 8px' }}>How to use</a>
+            <a href="/#/features" className="lp-nav-howto" style={{ color: 'rgba(236,233,255,0.75)', fontSize: 13, textDecoration: 'none', padding: '9px 8px' }}>Features</a>
             <a href="/#/pet-training" className="lp-nav-howto" style={{ color: 'rgba(236,233,255,0.75)', fontSize: 13, textDecoration: 'none', padding: '9px 8px' }}>Pet training</a>
             <button onClick={handleDocChat} className="lp-nav-btn" style={{
               padding: '9px 18px', borderRadius: 100,
@@ -411,12 +412,12 @@ export default function LandingPage() {
           </div>
 
           {/* CTAs — pick an app */}
-          <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', justifyContent: 'center' }}>
             <button onClick={handleEnter} className="lp-cta" style={{
-              padding: '15px 38px', borderRadius: 100,
+              padding: '20px 52px', borderRadius: 100, minWidth: 260,
               background: 'linear-gradient(135deg, #3f62ff 0%, #a78bfa 100%)',
               border: 'none', color: '#fff',
-              cursor: 'pointer', fontSize: '1rem', fontWeight: 700,
+              cursor: 'pointer', fontSize: '1.22rem', fontWeight: 700,
               letterSpacing: '0.02em',
               boxShadow: '0 0 32px rgba(63,98,255,0.42), 0 0 64px rgba(63,98,255,0.14)',
               animation: 'lp-pulse 3.5s ease-in-out infinite',
@@ -425,26 +426,30 @@ export default function LandingPage() {
             </button>
 
             <button onClick={handleDocChat} className="lp-cta-g" style={{
-              padding: '15px 38px', borderRadius: 100,
+              padding: '20px 52px', borderRadius: 100, minWidth: 260,
               background: 'linear-gradient(135deg, #10b981 0%, #22d3ee 100%)',
               border: 'none', color: '#06231c',
-              cursor: 'pointer', fontSize: '1rem', fontWeight: 700,
+              cursor: 'pointer', fontSize: '1.22rem', fontWeight: 700,
               letterSpacing: '0.02em',
               boxShadow: '0 0 32px rgba(52,211,153,0.35)',
               animation: 'lp-pulse-green 3.5s ease-in-out infinite',
             }}>
               💬 Doc → Chat
             </button>
+          </div>
+
+          {/* smaller: learn more, under the two apps */}
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center', marginTop: 16 }}>
 
             <button
               onClick={() => document.getElementById('lp-how')?.scrollIntoView({ behavior: 'smooth' })}
               className="lp-ghost"
               style={{
-                padding: '15px 32px', borderRadius: 100,
+                padding: '9px 20px', borderRadius: 100,
                 background: 'transparent',
                 border: '1px solid rgba(255,255,255,0.15)',
                 color: 'rgba(255,255,255,0.62)',
-                cursor: 'pointer', fontSize: '1rem', fontWeight: 500,
+                cursor: 'pointer', fontSize: '0.88rem', fontWeight: 500,
               }}>
               See how it works ↓
             </button>
@@ -452,11 +457,11 @@ export default function LandingPage() {
             {/* a finished guide, made by ShowMeWise from our public demo video: see the result before waiting for a run */}
             <a href="/example/" target="_blank" rel="noopener" className="lp-ghost"
               style={{
-                padding: '15px 32px', borderRadius: 100,
+                padding: '9px 20px', borderRadius: 100,
                 background: 'transparent',
                 border: '1px solid rgba(167,139,250,0.45)',
                 color: '#e4dcff', textDecoration: 'none',
-                cursor: 'pointer', fontSize: '1rem', fontWeight: 600,
+                cursor: 'pointer', fontSize: '0.88rem', fontWeight: 600,
               }}>
               📄 See an example guide
             </a>
@@ -1244,8 +1249,8 @@ export default function LandingPage() {
             color: 'rgba(255,255,255,0.64)', fontSize: '1.05rem',
             maxWidth: 480, margin: '0 auto 50px', lineHeight: 1.75,
           }}>
-            ShowMeWise is free, open, and runs entirely on your computer.
-            No account. No cloud. No more putting it off.
+            ShowMeWise is free and open. The AI runs on your computer or, if you choose, in Ollama's free cloud.
+            No account. No more putting it off.
           </p>
 
           <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', justifyContent: 'center' }}>
