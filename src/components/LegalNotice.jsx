@@ -21,9 +21,9 @@ export default function LegalNotice() {
     <div style={{ minHeight: '100vh', background: `radial-gradient(1200px 600px at 20% -10%, rgba(109,74,255,0.22), transparent), ${C.bg}`, color: C.ink, fontFamily: "system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" }}>
       <nav style={{ position: 'sticky', top: 0, zIndex: 10, backdropFilter: 'blur(16px)', background: 'rgba(15,11,36,0.8)', borderBottom: `1px solid ${C.line}` }}>
         <div style={{ maxWidth: 900, margin: '0 auto', padding: '14px 22px', display: 'flex', alignItems: 'center', gap: 10 }}>
-          <a href="/#/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: C.ink, fontWeight: 700 }}><ShowMeWiseLogo size={26} /> ShowMeWise</a>
+          <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: C.ink, fontWeight: 700 }}><ShowMeWiseLogo size={26} /> ShowMeWise</a>
           <span style={{ color: C.dim, fontSize: 13 }}>· Legal notice</span>
-          <a href="/#/" style={{ marginLeft: 'auto', color: C.dim, fontSize: 13, textDecoration: 'none' }}>← Back to home</a>
+          <a href="/" style={{ marginLeft: 'auto', color: C.dim, fontSize: 13, textDecoration: 'none' }}>← Back to home</a>
         </div>
       </nav>
       <main style={{ maxWidth: 900, margin: '0 auto', padding: '44px 22px 70px' }}>
@@ -33,7 +33,7 @@ export default function LegalNotice() {
 
         <Box title="Who runs ShowMeWise">
           <p style={{ margin: 0 }}><b style={{ color: C.ink }}>Aryan Bajaj</b>, as a private person, in Germany.</p>
-          <p style={{ margin: '8px 0 0' }}>ShowMeWise is a free, non-commercial, open-source portfolio project. Nothing is sold here, there are no ads, no payments and no paid plans, and no data is collected (see <a href="/#/policy" style={{ color: C.acc }}>Privacy, terms and credits</a>).</p>
+          <p style={{ margin: '8px 0 0' }}>ShowMeWise is a free, non-commercial, open-source portfolio project. Nothing is sold here, there are no ads, no payments and no paid plans, and no data is collected (see <a href="/policy" style={{ color: C.acc }}>Privacy, terms and credits</a>).</p>
         </Box>
         <Box title="Contact">
           <p style={{ margin: 0 }}>Please write through GitHub: open an issue at <A href={`${REPO}/issues`}>github.com/Aryan-Bajaj/showmewise/issues</A>, or find the author at <A href="https://github.com/Aryan-Bajaj">github.com/Aryan-Bajaj</A>.</p>
@@ -45,14 +45,14 @@ export default function LegalNotice() {
           <p style={{ margin: 0 }}>ShowMeWise is an independent hobby project. It is not connected to, sponsored or endorsed by any other product, company or service with a similar name, for example video consultation services in medicine. All product and company names on this website belong to their owners and are only used to describe what works with ShowMeWise.</p>
         </Box>
         <Box title="Copyright">
-          <p style={{ margin: 0 }}>The ShowMeWise code is open source under the <A href={`${REPO}/blob/main/LICENSE`}>Attribution Assurance License (AAL)</A>: free to use, change and share, but anyone who shares or publishes it must show the credit "Aryan Bajaj, AI and automation developer, github.com/Aryan-Bajaj/showmewise" where their app starts. The texts, the logo and the pet drawings were made for ShowMeWise. The open-source parts ShowMeWise is built on keep their own licenses, listed under <a href="/#/policy" style={{ color: C.acc }}>Open source and credits</a>.</p>
+          <p style={{ margin: 0 }}>The ShowMeWise code is open source under the <A href={`${REPO}/blob/main/LICENSE`}>Attribution Assurance License (AAL)</A>: free to use, change and share, but anyone who shares or publishes it must show the credit "Aryan Bajaj, AI and automation developer, github.com/Aryan-Bajaj/showmewise" where their app starts. The texts, the logo and the pet drawings were made for ShowMeWise. The open-source parts ShowMeWise is built on keep their own licenses, listed under <a href="/policy" style={{ color: C.acc }}>Open source and credits</a>.</p>
         </Box>
         <Box title="Content and links">
           <p style={{ margin: 0 }}>The content of this website is written with care, but it may contain mistakes and is given without guarantee; guides and answers written by the AI must always be checked. Links to other websites lead to content that their owners are responsible for. When a link was added, no breaking of the law was visible there; if one becomes known, the link will be removed.</p>
         </Box>
 
         <p style={{ textAlign: 'center', color: C.dim, fontSize: '0.85rem', marginTop: 30 }}>
-          <a href="/#/policy" style={{ color: C.acc, textDecoration: 'none' }}>Privacy, terms and credits</a> · <a href="/#/" style={{ color: C.acc, textDecoration: 'none' }}>← Back to ShowMeWise</a>
+          <a href="/policy" style={{ color: C.acc, textDecoration: 'none' }}>Privacy, terms and credits</a> · <a href="/" style={{ color: C.acc, textDecoration: 'none' }}>← Back to ShowMeWise</a>
         </p>
       </main>
     </div>

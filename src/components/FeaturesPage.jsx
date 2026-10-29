@@ -42,7 +42,7 @@ const Badge = ({ icon, text, style }) => (
 const Chips = ({ items }) => (
   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 20 }}>
     {items.map(([t, link]) => (
-      <a key={t} href={`/#/howto#${link}`} className="ft-chip" style={{ fontSize: 13.5, color: C.ink, textDecoration: 'none', padding: '7px 13px', borderRadius: 100, border: `1px solid ${C.line}`, background: 'rgba(255,255,255,0.04)' }}>{t}</a>
+      <a key={t} href={`/howto#${link}`} className="ft-chip" style={{ fontSize: 13.5, color: C.ink, textDecoration: 'none', padding: '7px 13px', borderRadius: 100, border: `1px solid ${C.line}`, background: 'rgba(255,255,255,0.04)' }}>{t}</a>
     ))}
   </div>
 )
@@ -101,11 +101,11 @@ export default function FeaturesPage() {
       <div style={{ position: 'relative', zIndex: 1 }}>
         <nav style={{ position: 'sticky', top: 0, zIndex: 10, background: 'rgba(15,11,36,0.92)', borderBottom: `1px solid ${C.line}` }}>
           <div style={{ maxWidth: 1160, margin: '0 auto', padding: '14px 22px', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <a href="/#/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: C.ink, fontWeight: 700 }}>
+            <a href="/"style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: C.ink, fontWeight: 700 }}>
               <ShowMeWiseLogo size={26} /> ShowMeWise
             </a>
             <span style={{ color: C.dim, fontSize: 13 }}>· Features</span>
-            <a href="/#/howto" style={{ marginLeft: 'auto', color: C.body, fontSize: 13, textDecoration: 'none', padding: '7px 8px' }}>How to use</a>
+            <a href="/howto" style={{ marginLeft: 'auto', color: C.body, fontSize: 13, textDecoration: 'none', padding: '7px 8px' }}>How to use</a>
             <a href="/#/app" style={{ color: '#fff', fontSize: 13, textDecoration: 'none', padding: '7px 14px', borderRadius: 10, background: 'linear-gradient(135deg,#6d4aff,#3f62ff)' }}>Open the app</a>
           </div>
         </nav>
@@ -125,10 +125,10 @@ export default function FeaturesPage() {
                 <span className="ft-hop">{pet('dragon', 150)}</span>
               </div>
               <div style={{ position: 'absolute', right: 0, top: 0, width: '50%', height: 250, borderRadius: 24, background: '#ff6b5e', overflow: 'hidden' }}>
-                <img src="/landing/marked-page.jpg" alt="A screenshot from a guide with the click marked" style={{ position: 'absolute', left: 18, top: 18, width: 'calc(100% - 18px)', borderRadius: '10px 0 0 0' }} />
+                <img src="/landing/marked-page.webp" alt="A screenshot from a guide with the click marked" style={{ position: 'absolute', left: 18, top: 18, width: 'calc(100% - 18px)', borderRadius: '10px 0 0 0' }} />
               </div>
               <div style={{ position: 'absolute', left: 0, bottom: 0, width: '46%', height: 230, borderRadius: 24, background: '#5b8cff', overflow: 'hidden' }}>
-                <img src="/landing/guide-pdf.jpg" alt="A page of a finished PDF guide" style={{ position: 'absolute', left: 22, top: 22, width: 'calc(100% - 44px)', borderRadius: 6, boxShadow: '0 10px 30px rgba(0,0,0,.3)' }} />
+                <img src="/landing/guide-pdf.webp" alt="A page of a finished PDF guide" style={{ position: 'absolute', left: 22, top: 22, width: 'calc(100% - 44px)', borderRadius: 6, boxShadow: '0 10px 30px rgba(0,0,0,.3)' }} />
               </div>
               <div style={{ position: 'absolute', right: 0, bottom: 0, width: '50%', height: 190, borderRadius: 24, background: '#10b981', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', padding: '0 10px 14px' }}>
                 {['cat', 'fox', 'owl'].map((k, i) => <span key={k} className="ft-hop" style={{ animationDelay: `${i * 0.4}s` }}>{pet(k, 72)}</span>)}
@@ -163,8 +163,8 @@ export default function FeaturesPage() {
             chips={[['✏️ Fix any step', 'edit'], ['❓ Summary, questions, flow chart', 'faq-flow'], ['📄 HTML, PDF or Word', 'export']]}
             art={<Panel colour="#ffd76a" pad={30}>
               <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end' }}>
-                <img className="ft-shot ft-float" src="/landing/guide-word.jpg" alt="A page of the Word guide" loading="lazy" style={{ width: '48%', transform: 'rotate(-4deg)' }} />
-                <img className="ft-shot ft-float2" src="/landing/guide-pdf.jpg" alt="A page of the PDF guide" loading="lazy" style={{ width: '48%', transform: 'rotate(3deg)' }} />
+                <img className="ft-shot ft-float" src="/landing/guide-word.webp" alt="A page of the Word guide" loading="lazy" style={{ width: '48%', transform: 'rotate(-4deg)' }} />
+                <img className="ft-shot ft-float2" src="/landing/guide-pdf.webp" alt="A page of the PDF guide" loading="lazy" style={{ width: '48%', transform: 'rotate(3deg)' }} />
               </div></Panel>} />
 
           <Story kicker="THE WEBSITE · ASK" colour={C.teal} title="Ask your video. Ask your document."

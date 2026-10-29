@@ -3,9 +3,9 @@ import { useEffect, useRef, useState } from 'react'
 // Drag to compare: the raw recording (a real frame of our demo how-to) against
 // the guide ShowMeWise made from it (real export pages). Nothing here is a mock-up.
 const OUTPUTS = [
-  { id: 'html', label: 'HTML', src: '/landing/guide-html.jpg', note: 'Web guide with step clips' },
-  { id: 'pdf', label: 'PDF', src: '/landing/guide-pdf.jpg', note: 'Print-ready manual' },
-  { id: 'docx', label: 'DOCX', src: '/landing/guide-word.jpg', note: 'Editable in Word' },
+  { id: 'html', label: 'HTML', src: '/landing/guide-html.webp', note: 'Web guide with step clips' },
+  { id: 'pdf', label: 'PDF', src: '/landing/guide-pdf.webp', note: 'Print-ready manual' },
+  { id: 'docx', label: 'DOCX', src: '/landing/guide-word.webp', note: 'Editable in Word' },
 ]
 
 export default function BeforeAfter() {
@@ -68,7 +68,7 @@ export default function BeforeAfter() {
       <div style={{ position: 'absolute', inset: 0, clipPath: `inset(0 ${100 - pos}% 0 0)`, background: '#08061a', display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: '14px 16px 10px', fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)' }}>Before · raw recording</div>
         <div style={{ flex: 1, margin: '0 16px 16px', borderRadius: 12, overflow: 'hidden', background: '#000', position: 'relative', display: 'flex', flexDirection: 'column' }}>
-          <img src="/landing/raw-frame.jpg" alt="A frame of the raw screen recording" draggable={false} style={{ width: '100%', flex: 1, objectFit: 'cover', objectPosition: 'top left', filter: 'saturate(0.85)', minHeight: 0 }} />
+          <img src="/landing/raw-frame.webp" alt="A frame of the raw screen recording" loading="lazy" draggable={false} style={{ width: '100%', flex: 1, objectFit: 'cover', objectPosition: 'top left', filter: 'saturate(0.85)', minHeight: 0 }} />
           {/* player bar */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', background: 'rgba(0,0,0,0.85)', color: '#fff', fontSize: 12 }}>
             <span>▶</span>

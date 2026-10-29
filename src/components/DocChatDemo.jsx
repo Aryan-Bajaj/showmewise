@@ -52,7 +52,7 @@ export default function DocChatDemo() {
 
             {/* the step it came from: marked screenshot, part, play this moment */}
             <div style={{ marginTop: 10, borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(167,139,250,0.3)', background: '#120c2c', animation: `dcd-src ${cycle} ease-in-out infinite` }}>
-              <img src="/landing/marked-share.jpg" alt="The share step with markers on Share, the switch and Copy link" loading="lazy" style={{ display: 'block', width: '100%' }} />
+              <img src="/landing/marked-share.webp" alt="The share step with markers on Share, the switch and Copy link" loading="lazy" width={1000} height={592} style={{ display: 'block', width: '100%', height: 'auto' }} />
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', fontSize: 12 }}>
                 <span style={{ fontWeight: 700, color: '#fff', background: '#6d4aff', borderRadius: 5, padding: '2px 7px' }}>Part D</span>
                 <span style={{ color: 'rgba(255,255,255,0.85)' }}>Share the dashboard</span>

@@ -2,6 +2,14 @@
 
 All notable changes to ShowMeWise, version by version. Newest first.
 
+## Easier to find (29 Oct 2026)
+
+* **Plain page addresses.** Features, How to use, Privacy and Legal notice now live at `/features`, `/howto`, `/policy` and `/legal`, so Google can list each page. Old links with `#/` still work, and the app pages the plugin opens keep their addresses, so the plugin needs no update.
+* **Readable without JavaScript.** Each of these pages is also saved as a finished page, so search engines and AI tools that do not run JavaScript read the whole text.
+* **New `llms.txt`** with a short description of ShowMeWise and its pages, and a sitemap with all five pages.
+* **Faster home page.** The pictures are WebP now (less than half the size), with their sizes set so the page does not jump, and the background animation loads after the page.
+* **How to use links open the right part again** when the pictures above it load late.
+
 ## New name: ShowMeWise (25 Oct 2026)
 
 * **Video limits on the website again.** One video can be up to 1000 MB and 30 minutes, as before (a wrong build had left them out for a day). The help answer about long videos now says the same.

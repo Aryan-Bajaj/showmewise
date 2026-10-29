@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { HashRouter, Routes, Route } from 'react-router-dom'
+import { HashRouter, BrowserRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
 import LandingPage from './components/LandingPage.jsx'
 import App from './App.jsx'
@@ -25,10 +25,15 @@ if (import.meta.env.MODE === 'netlify' && 'serviceWorker' in navigator) {
   addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}))
 }
 
+// Info pages have real addresses (/features, /howto) so search engines can find them.
+// Old links like /#/policy, and the app pages the plugin opens (/#/app, /#/pet-training),
+// keep working: an address with #/ still uses the hash router.
+const Router = location.hash.startsWith('#/') ? HashRouter : BrowserRouter
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <MobileNotice />
-    <HashRouter>
+    <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/app" element={<ErrorBoundary name="ShowMeWise"><App /></ErrorBoundary>} />
@@ -43,6 +48,6 @@ createRoot(document.getElementById('root')).render(
       <ErrorBoundary name="Vidi"><Vidi /></ErrorBoundary>
       <PluginChat />
       <NetStatus />
-    </HashRouter>
+    </Router>
   </StrictMode>,
 )

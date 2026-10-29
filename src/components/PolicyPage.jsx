@@ -33,11 +33,11 @@ export default function PolicyPage() {
     <div style={{ minHeight: '100vh', background: `radial-gradient(1200px 600px at 20% -10%, rgba(109,74,255,0.22), transparent), ${C.bg}`, color: C.ink, fontFamily: "system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" }}>
       <nav style={{ position: 'sticky', top: 0, zIndex: 10, backdropFilter: 'blur(16px)', background: 'rgba(15,11,36,0.8)', borderBottom: `1px solid ${C.line}` }}>
         <div style={{ maxWidth: 900, margin: '0 auto', padding: '14px 22px', display: 'flex', alignItems: 'center', gap: 10 }}>
-          <a href="/#/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: C.ink, fontWeight: 700 }}>
+          <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: C.ink, fontWeight: 700 }}>
             <ShowMeWiseLogo size={26} /> ShowMeWise
           </a>
           <span style={{ color: C.dim, fontSize: 13 }}>· Policy</span>
-          <a href="/#/" style={{ marginLeft: 'auto', color: C.dim, fontSize: 13, textDecoration: 'none' }}>← Back to home</a>
+          <a href="/" style={{ marginLeft: 'auto', color: C.dim, fontSize: 13, textDecoration: 'none' }}>← Back to home</a>
         </div>
       </nav>
 
@@ -141,7 +141,7 @@ export default function PolicyPage() {
         </Section>
 
         <Section id="contact" n="4" title="Contact">
-          <p style={{ margin: 0 }}>Questions, ideas or a problem? Please open an issue on <A href={`${REPO}/issues`}>GitHub</A>. We usually answer there. Who runs ShowMeWise: see the <a href="/#/legal" style={{ color: C.acc }}>Legal notice</a>.</p>
+          <p style={{ margin: 0 }}>Questions, ideas or a problem? Please open an issue on <A href={`${REPO}/issues`}>GitHub</A>. We usually answer there. Who runs ShowMeWise: see the <a href="/legal" style={{ color: C.acc }}>Legal notice</a>.</p>
         </Section>
 
         <Section id="changes" n="5" title="Changes to this page">
@@ -149,7 +149,7 @@ export default function PolicyPage() {
         </Section>
 
         <p style={{ textAlign: 'center', color: C.dim, fontSize: '0.85rem', marginTop: 30 }}>
-          <a href="/#/" style={{ color: C.acc, textDecoration: 'none' }}>← Back to ShowMeWise</a>
+          <a href="/" style={{ color: C.acc, textDecoration: 'none' }}>← Back to ShowMeWise</a>
         </p>
       </main>
     </div>

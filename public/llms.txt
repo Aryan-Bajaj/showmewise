@@ -1,0 +1,25 @@
+# ShowMeWise
+
+> ShowMeWise turns a screen recording into a step-by-step guide, with the clicks marked on the screenshots. The guide can be saved as HTML, PDF or Word. It is free, needs no account, and runs on the user's own computer: the video is never uploaded.
+
+How it works: the user records the screen (or drops a video they already have). ShowMeWise listens to what is said, reads the text on the screen and looks at every step, then writes a guide with a cover, the purpose, what you need, numbered steps with marked screenshots, a checklist and questions and answers. Every step can be changed before saving.
+
+Facts:
+
+* Runs in Chrome or Edge. The AI runs in the browser or through Ollama on the same computer.
+* On the website one video can be up to 30 minutes and 1000 MB (MP4, MOV or WEBM).
+* No sign-up, no API key, no payment.
+* Open source under the Attribution Assurance License (AAL), by Aryan Bajaj.
+
+## Pages
+
+* [Home](https://showmewise.netlify.app/): what ShowMeWise does, with examples
+* [Features](https://showmewise.netlify.app/features): everything the website and the browser plugin can do
+* [How to use](https://showmewise.netlify.app/howto): from a recording to a finished guide, step by step, with screenshots
+* [Privacy, terms and credits](https://showmewise.netlify.app/policy): what stays on your computer, and the open-source parts used
+* [Legal notice](https://showmewise.netlify.app/legal): who runs ShowMeWise
+
+## More
+
+* [Source code on GitHub](https://github.com/Aryan-Bajaj/showmewise)
+* [Browser plugin on the Chrome Web Store](https://chromewebstore.google.com/detail/showmewise-record-guide-c/ldnjadhgbdnnmjpdndnjcbbcghbmfkck)

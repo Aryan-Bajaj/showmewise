@@ -630,7 +630,7 @@ export default function App() {
 
       <header className="border-b border-white/10 px-6 py-4 flex items-center gap-3 bg-[#0b0820]/95 sticky top-0 z-40">
         <button
-          onClick={() => { window.location.href = '/#/' }}
+          onClick={() => { window.location.href = '/' }}
           className="flex items-center gap-2.5 text-lg font-bold tracking-tight group"
           title="Back to home"
         >
@@ -641,10 +641,10 @@ export default function App() {
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> Runs on your computer
         </span>
         <a href="/#/docchat" className="text-xs text-zinc-400 hover:text-violet-300 transition-colors">Doc Chat</a>
-        <a href="/#/howto" className="text-xs text-zinc-400 hover:text-violet-300 transition-colors">How to use</a>
+        <a href="/howto" className="text-xs text-zinc-400 hover:text-violet-300 transition-colors">How to use</a>
         <a href="/#/pet-training" className="text-xs text-zinc-400 hover:text-violet-300 transition-colors">Pet training</a>
-        <a href="/#/policy" className="text-xs text-zinc-400 hover:text-violet-300 transition-colors">Privacy</a>
-        <a href="/#/legal" className="text-xs text-zinc-400 hover:text-violet-300 transition-colors">Legal notice</a>
+        <a href="/policy" className="text-xs text-zinc-400 hover:text-violet-300 transition-colors">Privacy</a>
+        <a href="/legal" className="text-xs text-zinc-400 hover:text-violet-300 transition-colors">Legal notice</a>
 
         {videoFile && !showAISettings && !isAnnotating && frames.length > 0 && !busy && (
           <button
@@ -666,7 +666,7 @@ export default function App() {
 
         {!videoFile && (
           <button
-            onClick={() => { window.location.href = '/#/' }}
+            onClick={() => { window.location.href = '/' }}
             className="text-xs text-zinc-500 hover:text-zinc-300 ml-auto transition-colors"
           >
             ← Back to home

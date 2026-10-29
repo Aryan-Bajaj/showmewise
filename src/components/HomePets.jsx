@@ -47,7 +47,7 @@ export function PetHello() {
           <b>Hi! I'm Vidi. 👋</b><br />I can sit on every website, explain the page and show you where to click.
           <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
             {PLUGIN_URL && <a href={PLUGIN_URL} target="_blank" rel="noopener" style={{ padding: '7px 12px', borderRadius: 100, background: 'linear-gradient(135deg,#6d4aff,#3f62ff)', color: '#fff', fontWeight: 700, textDecoration: 'none', fontSize: 13 }}>Get me free</a>}
-            <a href="/#/features" style={{ padding: '7px 12px', borderRadius: 100, border: '1px solid #c9bfff', color: '#3b2b8f', fontWeight: 600, textDecoration: 'none', fontSize: 13 }}>What I can do</a>
+            <a href="/features" style={{ padding: '7px 12px', borderRadius: 100, border: '1px solid #c9bfff', color: '#3b2b8f', fontWeight: 600, textDecoration: 'none', fontSize: 13 }}>What I can do</a>
           </div>
         </div>
       )}
@@ -86,7 +86,7 @@ export function PickYourPet() {
       <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, margin: '18px 0 22px' }}>Give it a name too, or use your own picture.</p>
       <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
         {PLUGIN_URL && <a href={PLUGIN_URL} target="_blank" rel="noopener" style={{ padding: '13px 30px', borderRadius: 100, background: 'linear-gradient(135deg,#ffb547,#ff6b5e)', color: '#1b1340', fontWeight: 800, textDecoration: 'none' }}>Get {NAMES[picked].toLowerCase() === 'owl' ? 'an' : 'a'} {NAMES[picked].toLowerCase()} for your browser</a>}
-        <a href="/#/features" style={{ padding: '13px 26px', borderRadius: 100, border: '1px solid rgba(255,255,255,0.25)', color: '#fff', fontWeight: 600, textDecoration: 'none' }}>See what it can do</a>
+        <a href="/features" style={{ padding: '13px 26px', borderRadius: 100, border: '1px solid rgba(255,255,255,0.25)', color: '#fff', fontWeight: 600, textDecoration: 'none' }}>See what it can do</a>
       </div>
     </section>
   )

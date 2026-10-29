@@ -212,7 +212,7 @@ export default function Uploader({ onVideoSelect }) {
         <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-400" /> Your video never leaves your computer</span>
         <span>No account</span>
         <span>Free</span>
-        <a href="/#/policy" className="text-violet-300 hover:text-violet-200 underline-offset-2 hover:underline">Privacy</a>
+        <a href="/policy" className="text-violet-300 hover:text-violet-200 underline-offset-2 hover:underline">Privacy</a>
       </div>
 
       {limitError && (

@@ -266,7 +266,7 @@ The user's name is ${me.name}. You may use it now and then, in a friendly way.` 
                 {m.section && m.bullets && <ul style={{ margin: '6px 0 0', paddingLeft: 18, listStyle: 'disc' }}>{m.bullets.slice(0, 4).map((b, j) => <li key={j}>{b}</li>)}</ul>}
                 {m.section?.img && <MarkedShot section={m.section} compact />}
                 {m.offer && <button style={{ ...btn, marginTop: 8 }} onClick={() => ask(`What does this message mean and what do I do: ${m.offer.slice(0, 300)}`)}>Yes, explain it</button>}
-                {m.section && <a href={`/#/howto#${m.section.id}`} onClick={() => setOpen(false)} style={{ display: 'inline-block', marginTop: 6, color: '#c4b5fd', fontSize: 12.5 }}>Open “{m.section.title.replace(/^\d+\.\s*/, '')}” in How to use →</a>}
+                {m.section && <a href={`/howto#${m.section.id}`} onClick={() => setOpen(false)} style={{ display: 'inline-block', marginTop: 6, color: '#c4b5fd', fontSize: 12.5 }}>Open “{m.section.title.replace(/^\d+\.\s*/, '')}” in How to use →</a>}
               </div>
             ))}
 

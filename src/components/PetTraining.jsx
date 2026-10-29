@@ -510,7 +510,7 @@ export default function PetTraining() {
       <div style={{ position: "relative", zIndex: 1 }}>
       <nav style={{ position: "sticky", top: 0, zIndex: 10, background: "rgba(15,11,36,0.92)", borderBottom: `1px solid ${C.line}` }}>
         <div style={{ maxWidth: 980, margin: "0 auto", padding: "14px 16px", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-          <a href="/#/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", color: C.ink, fontWeight: 700 }}><ShowMeWiseLogo size={26} /> ShowMeWise</a>
+          <a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", color: C.ink, fontWeight: 700 }}><ShowMeWiseLogo size={26} /> ShowMeWise</a>
           <span style={{ color: C.dim, fontSize: 13 }}>· Pet training</span>
           <a href="/#/app" style={{ marginLeft: "auto", color: "#fff", fontSize: 13, textDecoration: "none", padding: "7px 14px", borderRadius: 10, background: "linear-gradient(135deg,#6d4aff,#3f62ff)" }}>Open the app</a>
         </div>
@@ -643,7 +643,7 @@ export default function PetTraining() {
             <li>It cannot open apps, send messages or press buttons for you, and it never presses Submit.</li>
             <li>Robot checks (“I'm not a robot”, picture puzzles) are yours to do: your pet tells you when it sees one, and never tries to get around it.</li>
           </ul>
-          <p style={{ margin: "10px 0 0" }}><a href="/#/policy" style={{ color: "#c4b5fd" }}>Privacy policy</a> · <a href="/#/legal" style={{ color: "#c4b5fd" }}>Legal notice</a> · <a href="/#/howto" style={{ color: "#c4b5fd" }}>How to use ShowMeWise</a></p>
+          <p style={{ margin: "10px 0 0" }}><a href="/policy" style={{ color: "#c4b5fd" }}>Privacy policy</a> · <a href="/legal" style={{ color: "#c4b5fd" }}>Legal notice</a> · <a href="/howto"style={{ color: "#c4b5fd" }}>How to use ShowMeWise</a></p>
         </Card>
       </div>
       </div>

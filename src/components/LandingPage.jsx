@@ -221,7 +221,9 @@ export default function LandingPage() {
   }, [])
 
   useEffect(() => {
-    if (!vantaRef.current || !window.VANTA?.NET) return
+    // three.js and Vanta load with defer, so they may arrive after this runs: then start on page load.
+    const start = () => {
+    if (!vantaRef.current || !window.VANTA?.NET || vantaEffect.current) return
     // Decorative only — never let a WebGL failure crash the landing page.
     try {
       vantaEffect.current = window.VANTA.NET({
@@ -245,7 +247,9 @@ export default function LandingPage() {
     } catch (e) {
       console.warn('Vanta background disabled (no WebGL):', e?.message)
     }
-    return () => { try { vantaEffect.current?.destroy() } catch {} }
+    }
+    if (window.VANTA?.NET) start(); else addEventListener('load', start, { once: true })
+    return () => { removeEventListener('load', start); try { vantaEffect.current?.destroy() } catch {} vantaEffect.current = null }
   }, [])
 
   const handleEnter = () => {
@@ -313,8 +317,8 @@ export default function LandingPage() {
           </div>
 
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <a href="/#/howto" className="lp-nav-howto" style={{ color: 'rgba(236,233,255,0.75)', fontSize: 13, textDecoration: 'none', padding: '9px 8px' }}>How to use</a>
-            <a href="/#/features" className="lp-nav-howto" style={{ color: 'rgba(236,233,255,0.75)', fontSize: 13, textDecoration: 'none', padding: '9px 8px' }}>Features</a>
+            <a href="/howto" className="lp-nav-howto" style={{ color: 'rgba(236,233,255,0.75)', fontSize: 13, textDecoration: 'none', padding: '9px 8px' }}>How to use</a>
+            <a href="/features" className="lp-nav-howto" style={{ color: 'rgba(236,233,255,0.75)', fontSize: 13, textDecoration: 'none', padding: '9px 8px' }}>Features</a>
             <a href="/#/pet-training" className="lp-nav-howto" style={{ color: 'rgba(236,233,255,0.75)', fontSize: 13, textDecoration: 'none', padding: '9px 8px' }}>Pet training</a>
             <button onClick={handleDocChat} className="lp-nav-btn" style={{
               padding: '9px 18px', borderRadius: 100,
@@ -334,6 +338,7 @@ export default function LandingPage() {
           <LimitBanner />
         </nav>
 
+        <main>
         {/* ── Hero ────────────────────────────────────────────── */}
         <section style={{
           minHeight: '100vh',
@@ -522,14 +527,14 @@ export default function LandingPage() {
           </div>
           <div className="lp-out-grid">
             <figure className="lp-shot" style={{ margin: 0, borderRadius: 18, overflow: 'hidden', border: '1px solid rgba(167,139,250,0.28)', boxShadow: '0 24px 70px rgba(20,10,60,0.5)', background: '#0f0b24' }}>
-              <img src="/landing/marked-dialog.jpg" alt="A screenshot with numbered markers on the name field, the template and the Create button" loading="lazy" style={{ display: 'block', width: '100%', height: 'auto' }} />
+              <img src="/landing/marked-dialog.webp" alt="A screenshot with numbered markers on the name field, the template and the Create button" loading="lazy" width={1400} height={594} style={{ display: 'block', width: '100%', height: 'auto' }} />
               <figcaption style={{ padding: '12px 16px', fontSize: '0.85rem', color: 'rgba(255,255,255,0.72)', background: 'rgba(28,18,55,0.9)' }}>
                 One popup, three actions, three markers: type the name, pick the template, click Create.
               </figcaption>
             </figure>
             <div style={{ position: 'relative', minHeight: 380, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-              <img className="lp-page" src="/landing/guide-word.jpg" alt="A page of the Word guide" loading="lazy" style={{ position: 'absolute', width: '62%', transform: 'rotate(-5deg) translateX(-26%)', borderRadius: 8, boxShadow: '0 20px 50px rgba(0,0,0,0.45)' }} />
-              <img className="lp-page" src="/landing/guide-pdf.jpg" alt="A page of the PDF guide" loading="lazy" style={{ position: 'relative', width: '62%', transform: 'rotate(4deg) translateX(18%)', borderRadius: 8, boxShadow: '0 24px 60px rgba(0,0,0,0.5)' }} />
+              <img className="lp-page" src="/landing/guide-word.webp" alt="A page of the Word guide" loading="lazy" width={900} height={1273} style={{ position: 'absolute', width: '62%', height: 'auto', transform: 'rotate(-5deg) translateX(-26%)', borderRadius: 8, boxShadow: '0 20px 50px rgba(0,0,0,0.45)' }} />
+              <img className="lp-page" src="/landing/guide-pdf.webp" alt="A page of the PDF guide" loading="lazy" width={900} height={1273} style={{ position: 'relative', width: '62%', height: 'auto', transform: 'rotate(4deg) translateX(18%)', borderRadius: 8, boxShadow: '0 24px 60px rgba(0,0,0,0.5)' }} />
             </div>
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center', marginTop: 34 }}>
@@ -1285,6 +1290,7 @@ export default function LandingPage() {
             No sign-up · No API key · Works in Chrome and Edge
           </p>
         </section>
+        </main>
 
         {/* ── Footer ──────────────────────────────────────────── */}
         <footer className="lp-footer" style={{
@@ -1304,8 +1310,8 @@ export default function LandingPage() {
             {' '}from ShowMeWise
           </span>
           <span style={{ display: 'flex', gap: 18, alignItems: 'center', flexWrap: 'wrap' }}>
-            <a href="/#/policy" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none' }}>Privacy, terms and credits</a>
-            <a href="/#/legal" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none' }}>Legal notice</a>
+            <a href="/policy" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none' }}>Privacy, terms and credits</a>
+            <a href="/legal" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none' }}>Legal notice</a>
             <a href="https://github.com/Aryan-Bajaj/showmewise" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none' }}>GitHub</a>
           </span>
         </footer>

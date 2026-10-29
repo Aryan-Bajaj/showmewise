@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:netlify": "vite build --mode netlify",
+    "build:netlify": "vite build --mode netlify && node scripts/prerender.mjs",
     "build:desktop": "vite build --mode desktop --outDir dist-desktop",
     "preview": "vite preview"
   },
@@ -32,6 +32,7 @@
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "playwright-core": "^1.64.1",
     "tailwindcss": "^4.0.0",
     "vite": "^6.1.0"
   }

@@ -10,9 +10,17 @@ const C = { bg: '#0f0b24', card: 'rgba(22,15,46,0.94)', line: 'rgba(167,139,250,
 export default function HowToPage() {
   useEffect(() => {
     document.title = 'ShowMeWise · How to use'
-    const id = window.location.hash.split('#')[2] // /#/howto#export opens that part
-    if (id) setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }), 300)
-    else window.scrollTo(0, 0)
+    // /howto#export (and the old /#/howto#export) opens that part
+    const id = window.location.hash.split('#').filter((p) => p && !p.startsWith('/'))[0]
+    if (!id) { window.scrollTo(0, 0); return }
+    // pictures above the part load late and push it down, so scroll again until they are in
+    // (stops as soon as the reader scrolls by hand)
+    let stop = false
+    const halt = () => { stop = true }
+    addEventListener('wheel', halt, { once: true }); addEventListener('touchstart', halt, { once: true }); addEventListener('keydown', halt, { once: true })
+    const go = (behavior) => { if (!stop) document.getElementById(id)?.scrollIntoView({ behavior }) }
+    const timers = [setTimeout(() => go('smooth'), 300), ...[1500, 3000, 5000].map((ms) => setTimeout(() => go('auto'), ms))]
+    return () => { timers.forEach(clearTimeout); removeEventListener('wheel', halt); removeEventListener('touchstart', halt); removeEventListener('keydown', halt) }
   }, [])
 
   return (
@@ -21,7 +29,7 @@ export default function HowToPage() {
       <div style={{ position: 'relative', zIndex: 1 }}>
       <nav style={{ position: 'sticky', top: 0, zIndex: 10, background: 'rgba(15,11,36,0.92)', borderBottom: `1px solid ${C.line}` }}>
         <div style={{ maxWidth: 980, margin: '0 auto', padding: '14px 22px', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <a href="/#/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: C.ink, fontWeight: 700 }}>
+          <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: C.ink, fontWeight: 700 }}>
             <ShowMeWiseLogo size={26} /> ShowMeWise
           </a>
           <span style={{ color: C.dim, fontSize: 13 }}>· How to use</span>
@@ -53,7 +61,7 @@ export default function HowToPage() {
         ))}
 
         <p style={{ color: C.dim, fontSize: 13, marginTop: 28 }}>
-          See also <a href="/#/policy" style={{ color: C.acc }}>Privacy, terms and credits</a>.
+          See also <a href="/policy" style={{ color: C.acc }}>Privacy, terms and credits</a>.
         </p>
       </main>
       </div>

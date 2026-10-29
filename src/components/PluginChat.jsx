@@ -410,7 +410,7 @@ Write "question", "where" and "steps" in ${langOf(said0) || "English"}.`
           status("Looking in the ShowMeWise help...")
           const prompt = vidiPrompt(m.question, sections, "the ShowMeWise browser plugin")
           const answer = mode === "ollama" ? await callOllama(prompt, VIDI_SYSTEM, model, { maxTokens: 200, temperature: 0.2, onToken: typing }) : await callWebLLM(prompt, VIDI_SYSTEM, null, { maxTokens: 200, model, onToken: typing })
-          return post("chat-answer", { id: m.id, answer: answer.trim(), model, sources: sections.slice(0, 1).map((h) => ({ label: h.title, url: `${location.origin}/#/howto` })) })
+          return post("chat-answer", { id: m.id, answer: answer.trim(), model, sources: sections.slice(0, 1).map((h) => ({ label: h.title, url: `${location.origin}/howto` })) })
         }
         if (m.scope === "video") {
           const docs = videoDocs()

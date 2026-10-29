@@ -82,12 +82,14 @@ P.S. Version 5 is here: the clicks marked on the screen, in a document that read
 * `/` is the landing page
 * `/#/app` is the ShowMeWise app (video to documentation)
 * `/#/docchat` is the Doc Chat app (upload a document and chat with it)
-* `/#/features` is Features: everything ShowMeWise does, the website first, then the plugin
-* `/#/howto` is How to use: every screen and setting with marked screenshots, and every error message with what to do
+* `/features` is Features: everything ShowMeWise does, the website first, then the plugin
+* `/howto` is How to use: every screen and setting with marked screenshots, and every error message with what to do
 * `/#/pet-training` is the Pet training for the plugin's pet: a setup that starts by itself, then lessons as cards with ▶ Try buttons
 * `/#/check` is Test my computer: which browser AI size runs well here
-* `/#/policy` is privacy, terms and credits
-* `/#/legal` is the legal notice (who runs it, contact through GitHub)
+* `/policy` is privacy, terms and credits
+* `/legal` is the legal notice (who runs it, contact through GitHub)
+
+The info pages (home, features, how to use, policy, legal) have plain addresses so search engines can list them, and `npm run build:netlify` saves a ready-made copy of each (`scripts/prerender.mjs`, needs Chrome) for readers that do not run JavaScript. The app pages keep their `#/` addresses, which the plugin uses. Old links such as `/#/policy` still open the right page.
 
 ---
 

@@ -18,7 +18,7 @@ export default function LimitBanner() {
         <span className="lb-short" style={{ display: 'none', whiteSpace: 'nowrap' }}>Up to <b style={{ color: '#fff', fontWeight: 600 }}>{max}</b></span>
       </span>
       <span style={{ display: 'inline-flex', gap: 6 }}>
-        <a href="/#/howto" style={pill}>How to use</a>
+        <a href="/howto" style={pill}>How to use</a>
         <button type="button" onClick={() => window.dispatchEvent(new Event('vidi:open'))} style={pill}>Ask Vidi</button>
       </span>
     </div>

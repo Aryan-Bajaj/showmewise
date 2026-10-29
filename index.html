@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ShowMeWise · Turn screen recordings into step-by-step guides</title>
-    <meta name="description" content="Record your screen once. ShowMeWise turns the video into a step-by-step guide with the clicks marked on the screen, as HTML, PDF or Word. Free, no account, and your video never leaves your computer." />
+    <meta name="description" content="Turn a screen recording into a step-by-step guide with the clicks marked, as HTML, PDF or Word. Free, no account, and your video stays on your computer." />
     <meta name="theme-color" content="#0f0b24" />
     <!-- Only our own scripts run (plus the one line below by its hash, and blob: scripts the page makes itself:
          the search model's runtime loads that way); the page talks only to Ollama and the desktop engine on this
@@ -46,7 +46,7 @@
   </head>
   <body style="margin:0;background:#0f0b24">
     <script>document.documentElement.className += " js"</script>
-    <style>.js #root > main { visibility: hidden }</style>
+    <style>.js #root > main, .js #root > .pre { visibility: hidden }</style>
     <div id="root">
       <!-- Shown until the app loads, and to readers without JavaScript. React replaces it. -->
       <main style="max-width:760px;margin:0 auto;padding:80px 24px;color:#ece9ff;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;line-height:1.6">
@@ -54,12 +54,12 @@
         <p style="font-size:1.2rem;margin:0 0 18px">Turn screen recordings into step-by-step guides, with the clicks marked on the screen.</p>
         <p>Record your screen once. ShowMeWise listens to what you say, reads the text on screen and looks at every step, then writes a finished guide: a cover, the purpose, what you need, the process at a glance, numbered steps with marked screenshots, a checklist and FAQ. Export it as HTML, PDF or Word.</p>
         <p>It is free, needs no account and no API key, and runs on your own computer. Your video is never uploaded.</p>
-        <p><a href="/#/app" style="color:#b9a6ff">Open ShowMeWise</a> · <a href="/#/policy" style="color:#b9a6ff">Privacy, terms and credits</a> · <a href="https://github.com/Aryan-Bajaj/showmewise" style="color:#b9a6ff">Source code on GitHub</a></p>
+        <p><a href="/#/app" style="color:#b9a6ff">Open ShowMeWise</a> · <a href="/features" style="color:#b9a6ff">Features</a> · <a href="/howto" style="color:#b9a6ff">How to use</a> · <a href="/policy" style="color:#b9a6ff">Privacy, terms and credits</a> · <a href="https://github.com/Aryan-Bajaj/showmewise" style="color:#b9a6ff">Source code on GitHub</a></p>
         <noscript><p>ShowMeWise runs in your browser, so please turn on JavaScript to use it.</p></noscript>
       </main>
     </div>
-    <script src="/three.min.js"></script>
-    <script src="/vanta.net.min.js"></script>
+    <script src="/three.min.js" defer></script>
+    <script src="/vanta.net.min.js" defer></script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

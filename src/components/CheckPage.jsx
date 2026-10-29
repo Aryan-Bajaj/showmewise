@@ -60,7 +60,7 @@ export default function CheckPage() {
   return (
     <div style={{ minHeight: "100vh", background: C.bg, color: C.ink, fontFamily: "system-ui,-apple-system,'Segoe UI',sans-serif", padding: "32px 16px" }}>
       <div style={{ maxWidth: 720, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
-        <a href="/#/" style={{ color: C.dim, fontSize: 14, textDecoration: "none" }}>← Back</a>
+        <a href="/"style={{ color: C.dim, fontSize: 14, textDecoration: "none" }}>← Back</a>
         <h1 style={{ margin: 0, fontSize: "clamp(1.8rem,5vw,2.4rem)" }}>Test my computer</h1>
         <p style={{ margin: 0, color: C.dim, lineHeight: 1.6 }}>
           ShowMeWise can use an AI that runs inside your browser. This test finds the best one for your computer, so it runs well and nothing gets stuck. It takes a few minutes. The ones you do not need are deleted after the test, so they do not take space.

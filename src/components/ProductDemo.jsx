@@ -70,13 +70,13 @@ export default function ProductDemo() {
               <span style={{ color: '#fff', fontWeight: 600 }}>Create a new dashboard</span>
               <span style={{ marginLeft: 'auto', fontSize: 11.5, color: '#a5f3fc' }}>▶ 00:09</span>
             </div>
-            <img src="/landing/marked-dialog.jpg" alt="Part A with numbered markers" loading="lazy" style={{ display: 'block', width: '100%', maxHeight: 230, objectFit: 'cover', objectPosition: 'left center' }} />
+            <img src="/landing/marked-dialog.webp" alt="Part A with numbered markers" loading="lazy" style={{ display: 'block', width: '100%', maxHeight: 230, objectFit: 'cover', objectPosition: 'left center' }} />
           </div>
           <div className="pd-fmt" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
             {[
-              { ic: '🌐', name: 'HTML', img: '/landing/guide-html.jpg', best: 'Best for sharing a link', c: '#22d3ee', items: ['Marked screenshots, click to enlarge', 'Step clips with the same markers', 'Checklist that remembers ticks', 'Jump to any part, FAQ'] },
-              { ic: '📄', name: 'PDF', img: '/landing/guide-pdf.jpg', best: 'Best for print and email', c: '#a78bfa', items: ['Cover, contents, page numbers', 'Marked screenshots with captions', 'Tick-box checklist for paper', 'Looks the same everywhere'] },
-              { ic: '📝', name: 'DOCX', img: '/landing/guide-word.jpg', best: 'Best for editing', c: '#fbbf24', items: ['The same manual, fully editable', 'Tables and screenshots kept', 'Add your own notes and logo', 'Opens in Word'] },
+              { ic: '🌐', name: 'HTML', img: '/landing/guide-html.webp', best: 'Best for sharing a link', c: '#22d3ee', items: ['Marked screenshots, click to enlarge', 'Step clips with the same markers', 'Checklist that remembers ticks', 'Jump to any part, FAQ'] },
+              { ic: '📄', name: 'PDF', img: '/landing/guide-pdf.webp', best: 'Best for print and email', c: '#a78bfa', items: ['Cover, contents, page numbers', 'Marked screenshots with captions', 'Tick-box checklist for paper', 'Looks the same everywhere'] },
+              { ic: '📝', name: 'DOCX', img: '/landing/guide-word.webp', best: 'Best for editing', c: '#fbbf24', items: ['The same manual, fully editable', 'Tables and screenshots kept', 'Add your own notes and logo', 'Opens in Word'] },
             ].map((f) => (
               <div key={f.name} style={{ borderRadius: 12, overflow: 'hidden', border: `1px solid ${f.c}40`, background: `linear-gradient(160deg, ${f.c}14, rgba(255,255,255,0.02))` }}>
                 {/* a real page of this export */}
