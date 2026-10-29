@@ -29,6 +29,9 @@ if (import.meta.env.MODE === 'netlify' && 'serviceWorker' in navigator) {
 // Old links like /#/policy, and the app pages the plugin opens (/#/app, /#/pet-training),
 // keep working: an address with #/ still uses the hash router.
 const Router = location.hash.startsWith('#/') ? HashRouter : BrowserRouter
+// on a plain page (like the home page /) a link to /#/app only changes the # part, and the
+// browser does not load a new page for that: load it, so the hash router opens the app page
+if (Router === BrowserRouter) addEventListener('hashchange', () => { if (location.hash.startsWith('#/')) location.reload() })
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
