@@ -9,6 +9,7 @@ All notable changes to ShowMeWise, version by version. Newest first.
 * **New `llms.txt`** with a short description of ShowMeWise and its pages, and a sitemap with all five pages.
 * **Faster home page.** The pictures are WebP now (less than half the size), with their sizes set so the page does not jump, and the background animation loads after the page.
 * **How to use links open the right part again** when the pictures above it load late.
+* **Tidier corners.** 🟢 Online now sits in the top bar of every page, next to the ShowMeWise name, and Get the browser plugin is in the home page's top menu. The bottom left corner is free.
 
 ## New name: ShowMeWise (25 Oct 2026)
 

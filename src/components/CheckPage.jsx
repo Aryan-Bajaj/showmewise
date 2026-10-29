@@ -1,6 +1,7 @@
 // "Test my computer": finds the browser AI that runs best on this computer.
 // Written for people who are not technical: no technical words on the page.
 import { useEffect, useState } from "react"
+import { OnlineBadge } from "./NetStatus"
 import { CHECK_MODELS, SAFETY_MB, gpuInfo, pluginSystem, fitsNow, tryModel, pickBest, savedBest, saveBest, removeUnused } from "../lib/computerCheck"
 
 // what each size is good for, from our tests (read step by step, 1-minute demo video)
@@ -60,7 +61,10 @@ export default function CheckPage() {
   return (
     <div style={{ minHeight: "100vh", background: C.bg, color: C.ink, fontFamily: "system-ui,-apple-system,'Segoe UI',sans-serif", padding: "32px 16px" }}>
       <div style={{ maxWidth: 720, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
-        <a href="/"style={{ color: C.dim, fontSize: 14, textDecoration: "none" }}>← Back</a>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <a href="/"style={{ color: C.dim, fontSize: 14, textDecoration: "none" }}>← Back</a>
+          <OnlineBadge />
+        </div>
         <h1 style={{ margin: 0, fontSize: "clamp(1.8rem,5vw,2.4rem)" }}>Test my computer</h1>
         <p style={{ margin: 0, color: C.dim, lineHeight: 1.6 }}>
           ShowMeWise can use an AI that runs inside your browser. This test finds the best one for your computer, so it runs well and nothing gets stuck. It takes a few minutes. The ones you do not need are deleted after the test, so they do not take space.

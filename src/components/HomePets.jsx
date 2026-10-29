@@ -35,7 +35,7 @@ export function PetHello() {
   if (!show) return null
   const bye = () => { setShow(false); try { sessionStorage.setItem('hp-hello-off', '1') } catch { /* private window */ } }
   return (
-    <div className="hp-hello" style={{ position: 'fixed', left: 18, bottom: 104, zIndex: 49, display: 'flex', alignItems: 'flex-end', gap: 8 }}>
+    <div className="hp-hello" style={{ position: 'fixed', left: 18, bottom: 18, zIndex: 49, display: 'flex', alignItems: 'flex-end', gap: 8 }}>
       <style>{CSS}</style>
       <button type="button" onClick={() => setOpen((o) => !o)} className="hp-peek" aria-label="Vidi the pet says hello"
         style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>

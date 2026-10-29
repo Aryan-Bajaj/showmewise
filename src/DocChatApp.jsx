@@ -5,6 +5,7 @@ import { extractText, chunkText } from "./hooks/useDocParser"
 import { WEBLLM_MODELS, DEFAULT_WEBLLM_MODEL } from "./lib/llm"
 import { savedBest } from "./lib/computerCheck"
 import { isCloud, cloudOn } from "./lib/cloud"
+import { OnlineBadge } from "./components/NetStatus"
 
 export default function DocChatApp() {
   const fileRef = useRef()
@@ -92,6 +93,7 @@ export default function DocChatApp() {
           </button>
           <span className="text-zinc-600">/</span>
           <span className="text-sm text-emerald-300 font-semibold">Doc Chat</span>
+          <OnlineBadge />
           <a href="/#/app" className="ml-auto text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Video → Docs →</a>
         </header>
 

@@ -10,6 +10,7 @@ import PipelineStatus from "./components/PipelineStatus"
 import InsightsPanel from "./components/InsightsPanel"
 import ShowMeWiseLogo from "./components/ShowMeWiseLogo"
 import ErrorBoundary from "./components/ErrorBoundary"
+import { OnlineBadge } from "./components/NetStatus"
 import useFrameExtractor from "./hooks/useFrameExtractor"
 import useAudioExtractor from "./hooks/useAudioExtractor"
 import useTranscriber from "./hooks/useTranscriber"
@@ -640,6 +641,7 @@ export default function App() {
         <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] text-emerald-300/90 bg-emerald-500/10 border border-emerald-400/20 rounded-full px-2.5 py-0.5">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> Runs on your computer
         </span>
+        <OnlineBadge />
         <a href="/#/docchat" className="text-xs text-zinc-400 hover:text-violet-300 transition-colors">Doc Chat</a>
         <a href="/howto" className="text-xs text-zinc-400 hover:text-violet-300 transition-colors">How to use</a>
         <a href="/#/pet-training" className="text-xs text-zinc-400 hover:text-violet-300 transition-colors">Pet training</a>

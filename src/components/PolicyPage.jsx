@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { OnlineBadge } from './NetStatus'
 import ShowMeWiseLogo from './ShowMeWiseLogo'
 import { MAX_VIDEO_MB, MAX_VIDEO_MIN } from '../lib/limits'
 
@@ -37,6 +38,7 @@ export default function PolicyPage() {
             <ShowMeWiseLogo size={26} /> ShowMeWise
           </a>
           <span style={{ color: C.dim, fontSize: 13 }}>· Policy</span>
+          <OnlineBadge />
           <a href="/" style={{ marginLeft: 'auto', color: C.dim, fontSize: 13, textDecoration: 'none' }}>← Back to home</a>
         </div>
       </nav>

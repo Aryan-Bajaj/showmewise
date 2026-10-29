@@ -7,6 +7,7 @@ import "../../extension/pet/pets.js"
 import "../../extension/pet/pet-css.js"
 import "../../extension/pet/scores.js"
 import { PLUGIN_URL } from "../lib/links"
+import { OnlineBadge } from "./NetStatus"
 import { pluginSystem } from "../lib/computerCheck"
 import { pullModel, ollamaState } from "../lib/ollamaSetup"
 import { callOllama } from "../lib/llm"
@@ -512,6 +513,7 @@ export default function PetTraining() {
         <div style={{ maxWidth: 980, margin: "0 auto", padding: "14px 16px", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           <a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", color: C.ink, fontWeight: 700 }}><ShowMeWiseLogo size={26} /> ShowMeWise</a>
           <span style={{ color: C.dim, fontSize: 13 }}>· Pet training</span>
+          <OnlineBadge />
           <a href="/#/app" style={{ marginLeft: "auto", color: "#fff", fontSize: 13, textDecoration: "none", padding: "7px 14px", borderRadius: 10, background: "linear-gradient(135deg,#6d4aff,#3f62ff)" }}>Open the app</a>
         </div>
       </nav>

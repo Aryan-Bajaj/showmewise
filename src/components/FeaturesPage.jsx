@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import ShowMeWiseLogo from './ShowMeWiseLogo'
 import { PLUGIN_URL } from '../lib/links'
+import { OnlineBadge } from './NetStatus'
 import "../../extension/pet/pets.js"
 
 // Everything ShowMeWise does, told as short stories with real screenshots:
@@ -105,6 +106,7 @@ export default function FeaturesPage() {
               <ShowMeWiseLogo size={26} /> ShowMeWise
             </a>
             <span style={{ color: C.dim, fontSize: 13 }}>· Features</span>
+            <OnlineBadge />
             <a href="/howto" style={{ marginLeft: 'auto', color: C.body, fontSize: 13, textDecoration: 'none', padding: '7px 8px' }}>How to use</a>
             <a href="/#/app" style={{ color: '#fff', fontSize: 13, textDecoration: 'none', padding: '7px 14px', borderRadius: 10, background: 'linear-gradient(135deg,#6d4aff,#3f62ff)' }}>Open the app</a>
           </div>

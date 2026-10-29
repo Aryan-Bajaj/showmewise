@@ -4,6 +4,7 @@ import { MAX_VIDEO_MB, MAX_VIDEO_MIN } from '../lib/limits'
 import ProductDemo from './ProductDemo'
 import LimitBanner from './LimitBanner'
 import { PLUGIN_URL } from '../lib/links'
+import { OnlineBadge } from './NetStatus'
 import HowItRuns from './HowItRuns'
 import BeforeAfter from './BeforeAfter'
 import DocChatDemo from './DocChatDemo'
@@ -314,12 +315,14 @@ export default function LandingPage() {
               background: 'linear-gradient(90deg, #7b96ff, #a78bfa)',
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
             }}>ShowMeWise</span>
+            <OnlineBadge />
           </div>
 
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <a href="/howto" className="lp-nav-howto" style={{ color: 'rgba(236,233,255,0.75)', fontSize: 13, textDecoration: 'none', padding: '9px 8px' }}>How to use</a>
             <a href="/features" className="lp-nav-howto" style={{ color: 'rgba(236,233,255,0.75)', fontSize: 13, textDecoration: 'none', padding: '9px 8px' }}>Features</a>
             <a href="/#/pet-training" className="lp-nav-howto" style={{ color: 'rgba(236,233,255,0.75)', fontSize: 13, textDecoration: 'none', padding: '9px 8px' }}>Pet training</a>
+            {PLUGIN_URL && <a href={PLUGIN_URL} target="_blank" rel="noopener" className="lp-nav-howto" style={{ color: '#c4b5fd', fontSize: 13, fontWeight: 600, textDecoration: 'none', padding: '9px 8px' }}>＋ Get the browser plugin</a>}
             <button onClick={handleDocChat} className="lp-nav-btn" style={{
               padding: '9px 18px', borderRadius: 100,
               background: 'transparent', border: '1px solid rgba(52,211,153,0.4)',
@@ -476,11 +479,6 @@ export default function LandingPage() {
             No Ollama? Test my computer first (about 2 minutes)
           </a>
           <PetHello />
-          {PLUGIN_URL && (
-            <a href={PLUGIN_URL} target="_blank" rel="noopener" style={{ position: 'fixed', left: 16, bottom: 16, zIndex: 50, padding: '9px 14px', borderRadius: 100, background: '#1b1342', border: '1px solid rgba(124,92,255,0.6)', color: '#fff', textDecoration: 'none', fontSize: 13.5, fontWeight: 600, boxShadow: '0 6px 20px rgba(0,0,0,0.35)' }}>
-              ＋ Get the browser plugin
-            </a>
-          )}
 
 
           {/* Stats row */}

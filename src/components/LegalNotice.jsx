@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { OnlineBadge } from './NetStatus'
 import ShowMeWiseLogo from './ShowMeWiseLogo'
 
 // Legal notice (Impressum): who runs ShowMeWise and how to reach them. A free, private, non-commercial
@@ -23,6 +24,7 @@ export default function LegalNotice() {
         <div style={{ maxWidth: 900, margin: '0 auto', padding: '14px 22px', display: 'flex', alignItems: 'center', gap: 10 }}>
           <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: C.ink, fontWeight: 700 }}><ShowMeWiseLogo size={26} /> ShowMeWise</a>
           <span style={{ color: C.dim, fontSize: 13 }}>· Legal notice</span>
+          <OnlineBadge />
           <a href="/" style={{ marginLeft: 'auto', color: C.dim, fontSize: 13, textDecoration: 'none' }}>← Back to home</a>
         </div>
       </nav>

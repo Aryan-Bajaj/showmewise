@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import ShowMeWiseLogo from './ShowMeWiseLogo'
 import MarkedShot from './MarkedShot'
 import { HOWTO } from '../lib/howto'
+import { OnlineBadge } from './NetStatus'
 
 // How to use ShowMeWise, step by step, with real screenshots of the app and
 // numbered pins. The text comes from lib/howto.js, which Vidi answers from too.
@@ -33,6 +34,7 @@ export default function HowToPage() {
             <ShowMeWiseLogo size={26} /> ShowMeWise
           </a>
           <span style={{ color: C.dim, fontSize: 13 }}>· How to use</span>
+          <OnlineBadge />
           <a href="/#/app" style={{ marginLeft: 'auto', color: '#fff', fontSize: 13, textDecoration: 'none', padding: '7px 14px', borderRadius: 10, background: 'linear-gradient(135deg,#6d4aff,#3f62ff)' }}>Open the app</a>
         </div>
       </nav>
